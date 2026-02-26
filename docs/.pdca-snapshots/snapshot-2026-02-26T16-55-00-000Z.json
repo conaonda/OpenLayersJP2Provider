@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-02-26T16:55:00.000Z",
+  "feature": "replace-mock-decoder-wasm",
+  "phase": "check",
+  "status": "completed",
+  "matchRate": 98,
+  "files": [
+    "docs/03-analysis/replace-mock-decoder-wasm.analysis.md",
+    "docs/.pdca-status.json"
+  ]
+}

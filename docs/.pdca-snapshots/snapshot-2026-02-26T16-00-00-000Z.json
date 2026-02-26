@@ -1,0 +1,10 @@
+{
+  "timestamp": "2026-02-26T16:00:00.000Z",
+  "feature": "replace-mock-decoder-wasm",
+  "phase": "plan",
+  "status": "completed",
+  "files": [
+    "docs/01-plan/features/replace-mock-decoder-wasm.plan.md",
+    "docs/.pdca-status.json"
+  ]
+}

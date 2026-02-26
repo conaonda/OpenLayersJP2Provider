@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-02-26T15:20:00.000Z",
+  "feature": "openlayers-jp2-provider",
+  "phase": "check",
+  "status": "completed",
+  "matchRate": 60,
+  "files": [
+    "docs/03-analysis/openlayers-jp2-provider.analysis.md",
+    "docs/.pdca-status.json"
+  ]
+}

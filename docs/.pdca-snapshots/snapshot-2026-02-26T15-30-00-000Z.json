@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-02-26T15:30:00.000Z",
+  "feature": "openlayers-jp2-provider",
+  "phase": "act",
+  "status": "completed",
+  "matchRate": 85,
+  "iteration": 1,
+  "files": [
+    "src/source.ts",
+    "src/decoder.ts",
+    "docs/.pdca-status.json"
+  ]
+}
