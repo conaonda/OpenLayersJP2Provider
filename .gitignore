@@ -6,6 +6,9 @@ dist/
 test-results/
 playwright-report/
 
+# Sample JP2 files (large binaries)
+public/*.jp2
+
 # Build cache
 .vite/
 *.tsbuildinfo

@@ -194,6 +194,7 @@ function parseGeoTIFF(data: Uint8Array): GeoInfo | undefined {
 
   // Extract EPSG from GeoKeys
   let epsgCode = 0;
+  let isGeographic = false;
   if (geoKeys && geoKeys.length >= 4) {
     const numKeys = geoKeys[3];
     for (let k = 0; k < numKeys; k++) {
@@ -204,8 +205,13 @@ function parseGeoTIFF(data: Uint8Array): GeoInfo | undefined {
       // const count = geoKeys[base + 2];
       const value = geoKeys[base + 3];
       // ProjectedCSTypeGeoKey=3072, GeographicTypeGeoKey=2048
-      if ((keyId === 3072 || keyId === 2048) && tiffTagLoc === 0 && value > 0) {
+      if (keyId === 2048 && tiffTagLoc === 0 && value > 0) {
         epsgCode = value;
+        isGeographic = true;
+      }
+      if (keyId === 3072 && tiffTagLoc === 0 && value > 0) {
+        epsgCode = value;
+        isGeographic = false;
       }
     }
   }
@@ -216,16 +222,27 @@ function parseGeoTIFF(data: Uint8Array): GeoInfo | undefined {
   }
 
   // Tiepoint: [I, J, K, X, Y, Z] — pixel (I,J) maps to CRS (X,Y)
-  const originX = tiepoint[3] - tiepoint[0] * pixelScale[0];
-  const originY = tiepoint[4] + tiepoint[1] * pixelScale[1];
+  let originX = tiepoint[3] - tiepoint[0] * pixelScale[0];
+  let originY = tiepoint[4] + tiepoint[1] * pixelScale[1];
+  let scaleX = pixelScale[0];
+  let scaleY = pixelScale[1];
 
-  console.log(`GeoJP2: EPSG:${epsgCode}, origin=(${originX}, ${originY}), scale=(${pixelScale[0]}, ${pixelScale[1]})`);
+  // For geographic CRS (e.g. EPSG:4326), GeoTIFF tiepoints may store
+  // lat/lon order. Detect and swap if originY is out of latitude range
+  // but originX is within latitude range.
+  if (isGeographic && Math.abs(originY) > 90 && Math.abs(originX) <= 90) {
+    console.log('GeoJP2: detected lat/lon axis swap, correcting...');
+    [originX, originY] = [originY, originX];
+    [scaleX, scaleY] = [scaleY, scaleX];
+  }
+
+  console.log(`GeoJP2: EPSG:${epsgCode}, origin=(${originX}, ${originY}), scale=(${scaleX}, ${scaleY}), geographic=${isGeographic}`);
 
   return {
     originX,
     originY,
-    pixelScaleX: pixelScale[0],
-    pixelScaleY: pixelScale[1],
+    pixelScaleX: scaleX,
+    pixelScaleY: scaleY,
     epsgCode,
   };
 }

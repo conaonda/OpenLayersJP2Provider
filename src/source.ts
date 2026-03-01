@@ -2,9 +2,27 @@ import TileImage from 'ol/source/TileImage';
 import TileLayer from 'ol/layer/Tile';
 import TileGrid from 'ol/tilegrid/TileGrid';
 import { Projection, get as getProjection } from 'ol/proj';
+import { register } from 'ol/proj/proj4';
+import proj4 from 'proj4';
 import type Tile from 'ol/Tile';
 import ImageTile from 'ol/ImageTile';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
+
+async function ensureProjection(epsgCode: number): Promise<void> {
+  const code = `EPSG:${epsgCode}`;
+  if (getProjection(code)) return;
+  try {
+    const resp = await fetch(`https://epsg.io/${epsgCode}.proj4`);
+    const def = await resp.text();
+    if (def.trim().startsWith('+')) {
+      proj4.defs(code, def.trim());
+      register(proj4);
+      console.log(`Registered projection ${code} from epsg.io`);
+    }
+  } catch (e) {
+    console.warn(`Failed to fetch projection ${code} from epsg.io:`, e);
+  }
+}
 
 // Semaphore to limit concurrent tile loads
 class Semaphore {
@@ -59,15 +77,33 @@ export async function createJP2TileLayer(
   let projection: Projection;
 
   if (geoInfo) {
+    await ensureProjection(geoInfo.epsgCode);
+
+    // For geographic CRS (e.g. EPSG:4326), origin may have lat/lon order.
+    // OpenLayers expects X=lon, Y=lat. Detect and swap if needed.
+    let { originX, originY, pixelScaleX, pixelScaleY } = geoInfo;
+    const proj = getProjection(`EPSG:${geoInfo.epsgCode}`);
+    const isGeographic = proj ? proj.getUnits() === 'degrees' : geoInfo.epsgCode === 4326;
+    if (isGeographic) {
+      const computedMaxX = originX + width * pixelScaleX;
+      const computedMinY = originY - height * pixelScaleY;
+      // If Y values are out of latitude range but X values look like latitude, swap
+      if ((Math.abs(originY) > 90 || Math.abs(computedMinY) > 90) && Math.abs(originX) <= 90) {
+        console.log('Detected lat/lon axis swap in geo info, correcting...');
+        [originX, originY] = [originY, originX];
+        [pixelScaleX, pixelScaleY] = [pixelScaleY, pixelScaleX];
+      }
+    }
+
     // Geographic mode: compute extent and resolutions in CRS units
-    const minX = geoInfo.originX;
-    const maxY = geoInfo.originY;
-    const maxX = minX + width * geoInfo.pixelScaleX;
-    const minY = maxY - height * geoInfo.pixelScaleY;
+    const minX = originX;
+    const maxY = originY;
+    const maxX = minX + width * pixelScaleX;
+    const minY = maxY - height * pixelScaleY;
     extent = [minX, minY, maxX, maxY];
 
     // Resolutions in CRS units per pixel
-    resolutions = pixelResolutions.map(r => r * geoInfo.pixelScaleX);
+    resolutions = pixelResolutions.map(r => r * pixelScaleX);
 
     const existing = getProjection(`EPSG:${geoInfo.epsgCode}`);
     if (existing) {

@@ -20,7 +20,8 @@ proj4.defs('EPSG:32652', '+proj=utm +zone=52 +datum=WGS84 +units=m +no_defs');
 register(proj4);
 
 async function main() {
-  const jp2Url = '/sample.jp2';
+  const params = new URLSearchParams(window.location.search);
+  const jp2Url = params.get('jp2') || '/sample.jp2';
 
   console.log('Initializing JP2 tile-based viewer...');
   const provider = new RangeTileProvider(jp2Url);
