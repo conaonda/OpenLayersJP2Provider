@@ -7,7 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "test": "vitest run --exclude tests/**"
   },
   "keywords": [],
   "author": "",
@@ -15,10 +17,14 @@
   "type": "commonjs",
   "dependencies": {
     "@abasb75/openjpeg": "^2.5.3",
-    "ol": "^10.8.0"
+    "ol": "^10.8.0",
+    "proj4": "^2.20.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/proj4": "^2.5.6",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
   }
 }

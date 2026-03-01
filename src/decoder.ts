@@ -1,92 +1,67 @@
-import OpenJPEGWASM from '@abasb75/openjpeg';
+import { decode } from '@abasb75/openjpeg';
+import type { DecodedOpenJPEG } from '@abasb75/openjpeg/types';
+import { decodedBufferToRGBA } from './pixel-conversion';
 
-export interface JP2Metadata {
+export interface DecodeResult {
+  data: Uint8ClampedArray;
   width: number;
   height: number;
-  numComponents: number;
-  precision: number;
-  isTiled: boolean;
-  tileSize?: { width: number; height: number };
 }
 
 export class JP2Decoder {
-  private openjpegjs: any = null;
-
   /**
-   * Initializes the WASM decoder.
+   * Decodes a JPEG2000 bitstream into RGBA pixel data.
    */
-  async init(): Promise<void> {
-    if (this.openjpegjs) return;
+  async decode(data: ArrayBuffer, decodeLevel?: number, minValue?: number, maxValue?: number): Promise<DecodeResult> {
+    const result: DecodedOpenJPEG = await decode(data, decodeLevel != null ? { decodeLevel } : undefined);
 
-    console.log('Loading JP2 WASM module (@abasb75/openjpeg)...');
-    try {
-      this.openjpegjs = await OpenJPEGWASM();
-      console.log('JP2 WASM module loaded successfully.');
-    } catch (error) {
-      console.error('Failed to load JP2 WASM module:', error);
-      throw error;
-    }
+    const { width, height, componentCount, bitsPerSample } = result.frameInfo;
+    const rgba = decodedBufferToRGBA(result.decodedBuffer, width, height, componentCount, bitsPerSample, minValue, maxValue);
+    console.log(`JP2 decoded: ${width}x${height}, ${componentCount}ch, ${bitsPerSample}bps`);
+    return { data: rgba, width, height };
   }
 
   /**
-   * Decodes a JPEG2000 bitstream into raw RGBA data.
+   * Decodes a single tile by combining a patched mainHeader + tileData + EOC.
    */
-  async decode(data: ArrayBuffer): Promise<Uint8ClampedArray> {
-    if (!this.openjpegjs) {
-      throw new Error('Decoder not initialized. Call init() first.');
-    }
+  async decodeTile(
+    mainHeader: Uint8Array,
+    tileData: Uint8Array,
+    tileCol: number,
+    tileRow: number,
+    tileWidth: number,
+    tileHeight: number,
+    imageWidth: number,
+    imageHeight: number,
+    tilesX: number,
+  ): Promise<DecodeResult> {
+    const actualW = Math.min(tileWidth, imageWidth - tileCol * tileWidth);
+    const actualH = Math.min(tileHeight, imageHeight - tileRow * tileHeight);
 
-    const decoder = new this.openjpegjs.J2KDecoder();
-    try {
-      // Copy encoded data to WASM memory
-      const encodedBuffer = decoder.getEncodedBuffer(data.byteLength);
-      encodedBuffer.set(new Uint8Array(data));
+    const header = new Uint8Array(mainHeader);
+    const hv = new DataView(header.buffer, header.byteOffset, header.byteLength);
 
-      // Decode the JP2 data
-      decoder.decode();
+    const sizOffset = 4;
+    const xsizOff = sizOffset + 4;
+    hv.setUint32(xsizOff, actualW, false);
+    hv.setUint32(xsizOff + 4, actualH, false);
+    hv.setUint32(xsizOff + 8, 0, false);
+    hv.setUint32(xsizOff + 12, 0, false);
+    hv.setUint32(xsizOff + 16, actualW, false);
+    hv.setUint32(xsizOff + 20, actualH, false);
+    hv.setUint32(xsizOff + 24, 0, false);
+    hv.setUint32(xsizOff + 28, 0, false);
 
-      // Get frame information
-      const frameInfo = decoder.getFrameInfo();
-      const { width, height, components } = frameInfo;
+    const tile = new Uint8Array(tileData);
+    const tv = new DataView(tile.buffer, tile.byteOffset, tile.byteLength);
+    tv.setUint16(4, 0, false);
 
-      // Get the decoded buffer (raw pixel data)
-      const decodedBuffer = decoder.getDecodedBuffer();
-      const decodedArray = new Uint8Array(decodedBuffer);
+    const eoc = new Uint8Array([0xFF, 0xD9]);
+    const codestream = new Uint8Array(header.length + tile.length + 2);
+    codestream.set(header, 0);
+    codestream.set(tile, header.length);
+    codestream.set(eoc, header.length + tile.length);
 
-      // Convert to RGBA if it's not already
-      // OpenJPEG usually decodes into component-interleaved or planar formats
-      // For simplicity in this provider, we assume it's RGB and convert to RGBA
-      const rgba = new Uint8ClampedArray(width * height * 4);
-      
-      if (components.length === 3) {
-        // Simple RGB to RGBA conversion
-        for (let i = 0; i < width * height; i++) {
-          rgba[i * 4] = decodedArray[i * 3];     // R
-          rgba[i * 4 + 1] = decodedArray[i * 3 + 1]; // G
-          rgba[i * 4 + 2] = decodedArray[i * 3 + 2]; // B
-          rgba[i * 4 + 3] = 255;                 // A
-        }
-      } else if (components.length === 1) {
-        // Grayscale to RGBA conversion
-        for (let i = 0; i < width * height; i++) {
-          const val = decodedArray[i];
-          rgba[i * 4] = val;
-          rgba[i * 4 + 1] = val;
-          rgba[i * 4 + 2] = val;
-          rgba[i * 4 + 3] = 255;
-        }
-      } else if (components.length === 4) {
-        // Already RGBA (or CMYK, but we'll assume RGBA)
-        rgba.set(decodedArray);
-      }
-
-      return rgba;
-    } catch (error) {
-      console.error('Decoding failed:', error);
-      throw error;
-    } finally {
-      // Free the decoder instance
-      decoder.delete();
-    }
+    return this.decode(codestream.buffer);
   }
 }

@@ -1,4 +1,17 @@
 node_modules/
 dist/
 .env
+
+# Test artifacts
+test-results/
+playwright-report/
+
+# Sample JP2 files (large binaries)
+public/*.jp2
+
+# Build cache
+.vite/
+*.tsbuildinfo
+
+# AI tools
 .gemini/tmp/
