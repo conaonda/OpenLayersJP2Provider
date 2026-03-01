@@ -1,4 +1,14 @@
 node_modules/
 dist/
 .env
+
+# Test artifacts
+test-results/
+playwright-report/
+
+# Build cache
+.vite/
+*.tsbuildinfo
+
+# AI tools
 .gemini/tmp/
