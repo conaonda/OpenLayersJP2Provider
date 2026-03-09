@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 13,
+  "status": "success",
+  "merged_prs": [55, 54],
+  "closed_issues": [53],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter: PR #55(JP2LayerOptions.requestHeaders + URL string 오버로드)와 PR #54(docs sprint-12) 머지 완료 — sprint-13 문서화 및 CHANGELOG 업데이트 필요"
+}

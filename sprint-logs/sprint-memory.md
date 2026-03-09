@@ -14,6 +14,9 @@
 - JP2LayerOptions.onProgress: 타일 로드 진행률 콜백 (loaded/total 카운터, sem.acquire() 이전에 total 증가)
 - JP2LayerOptions.initialOpacity: 레이어 초기 투명도 옵션 (0~1 클램프 처리)
 - JP2LayerOptions.tileLoadTimeout: 타일 로드 타임아웃 옵션 (ms), Promise.race 대신 new Promise + clearTimeout 패턴으로 타이머 누수 방지
+- RangeTileProvider.requestHeaders: fetchRange 호출 시 커스텀 HTTP 헤더 병합 옵션, Range 헤더 덮어쓰기 방지 로직 포함 (PR #52)
+- JP2LayerOptions.requestHeaders: createJP2TileLayer에서 RangeTileProvider로 헤더 전달 옵션 추가, _decodeTile 버그 수정 포함 (PR #55)
+- createJP2TileLayer: URL string 오버로드 추가 — options 없이 url만 전달 가능
 
 ## 반복 패턴 & 주의사항
 - 동일 작성자 PR은 GitHub 정책상 공식 approve 불가 → 리뷰 코멘트로 대체
@@ -28,16 +31,17 @@
 - [ ] decoder.ts의 decodeTile()은 현재 미사용 상태이나 public API로 유지 중
 - [ ] setDebug()를 라이브러리 public API로 export 고려 (현재는 main.ts에서만 호출)
 - [x] tileRetryCount 재시도 간 delay 없음 — Sprint 8에서 exponential backoff(onTileError 콜백 포함) PR #39로 해결
+- [x] JP2LayerOptions에 requestHeaders 옵션 미포함 — PR #55로 해결 (Sprint 13)
 
 ## 최근 3개 스프린트 요약
+### Sprint 13 (2026-03-10)
+- 완료: PR #55(JP2LayerOptions.requestHeaders + URL string 오버로드 + _decodeTile 버그 수정), PR #54(docs sprint-12) 머지, 이슈 #53 닫힘, 단위 테스트 93개 전체 통과
+- 발견된 문제: 없음
+
+### Sprint 12 (2026-03-10)
+- 완료: PR #52(requestHeaders), PR #50(docs sprint-11) 머지, 이슈 #51 닫힘, 단위 테스트 91개 전체 통과
+- 발견된 문제: JP2LayerOptions에 requestHeaders 옵션 누락 — 이슈 #53으로 분리 추적
+
 ### Sprint 11 (2026-03-10)
 - 완료: PR #49(tileLoadTimeout), PR #47(docs sprint-10) 머지, 이슈 #48 닫힘, 단위 테스트 84개 전체 통과
 - 발견된 문제: Promise.race 패턴에서 setTimeout 타이머 누수 — new Promise + clearTimeout 패턴으로 수정 (PR #49 재커밋)
-
-### Sprint 10 (2026-03-10)
-- 완료: PR #46(onProgress/initialOpacity), PR #43(docs sprint-9) 머지, 이슈 #44 #45 닫힘, 단위 테스트 77개 전체 통과
-- 발견된 문제: progressTotal이 sem.acquire() 이전에 증가 — 의도된 설계로 허용, 카운터 리셋 없음 — 현재 사용 패턴상 무관
-
-### Sprint 9 (2026-03-10)
-- 완료: PR #42(onTileLoad), PR #40(docs sprint-8) 머지, 이슈 #41 닫힘
-- 발견된 문제: 없음
