@@ -51,6 +51,9 @@ const result = await createJP2TileLayer(provider, options);
 |------|------|--------|------|
 | `maxConcurrentTiles` | `number` | `4` | 동시 타일 로드 최대 수 |
 | `projectionResolver` | `(epsgCode: number) => Promise<string \| null>` | epsg.io fetch | EPSG 코드에 대한 proj4 문자열 resolver |
+| `minValue` | `number` | 자동 계산 | 픽셀 정규화 최소값 (16비트 이미지용) |
+| `maxValue` | `number` | 자동 계산 | 픽셀 정규화 최대값 (16비트 이미지용) |
+| `tileRetryCount` | `number` | `0` | 타일 로드 실패 시 재시도 횟수 |
 
 #### 반환값 (`JP2LayerResult`)
 

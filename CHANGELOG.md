@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 7
+
+### Added
+- **`JP2LayerOptions.minValue` / `maxValue`**: 픽셀 정규화 최소/최대값 옵션 추가 (closes #32, PR #34)
+  - 16비트 이미지 등 사용자 정의 정규화 범위 지정 가능
+  - 미지정 시 자동 계산(픽셀 데이터 min/max 추론) 폴백 동작
+- **`JP2LayerOptions.tileRetryCount`**: 타일 로드 실패 시 자동 재시도 옵션 추가 (closes #33, PR #35)
+  - 기본값: `0` (재시도 없음), 양의 정수로 재시도 횟수 지정
+
+---
+
 ## [Unreleased] — Sprint 6
 
 ### Added
