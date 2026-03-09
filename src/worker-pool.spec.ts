@@ -52,4 +52,17 @@ describe('WorkerPool', () => {
     await expect(p1).rejects.toThrow('WorkerPool destroyed');
     await expect(p2).rejects.toThrow('WorkerPool destroyed');
   });
+
+  it('destroy 시 모든 Worker의 terminate가 호출된다', () => {
+    const pool = new WorkerPool(3);
+    pool.init();
+
+    expect(mockWorkers).toHaveLength(3);
+
+    pool.destroy();
+
+    for (const w of mockWorkers) {
+      expect(w.terminate).toHaveBeenCalledOnce();
+    }
+  });
 });
