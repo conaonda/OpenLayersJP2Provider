@@ -142,6 +142,18 @@ describe('attributions option', () => {
       attributions: ['© Provider A', '© Provider B'],
     };
     expect(opts.attributions).toHaveLength(2);
+    expect(opts.attributions).toEqual(['© Provider A', '© Provider B']);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.attributions).toBeUndefined();
+  });
+
+  it('should preserve attribution string content exactly', () => {
+    const attr = '© 2026 My Organization <a href="https://example.com">Terms</a>';
+    const opts: JP2LayerOptions = { attributions: attr };
+    expect(opts.attributions).toBe(attr);
   });
 });
 
@@ -207,6 +219,52 @@ describe('bands option', () => {
     expect(data[1]).toBe(10);
     expect(data[2]).toBe(20);
     expect(data[3]).toBe(255);
+  });
+
+  it('should skip remapping when band index is out of range', () => {
+    // componentCount=3, bands[0]=3 is out of range (>= componentCount)
+    const componentCount = 3;
+    const bands: [number, number, number] = [3, 1, 0]; // index 3 is invalid for 3 components
+    const validBands = bands.every(b => b >= 0 && b < componentCount);
+    expect(validBands).toBe(false);
+  });
+
+  it('should accept identity mapping [0, 1, 2] without change', () => {
+    const componentCount = 3;
+    const data = new Uint8ClampedArray([100, 150, 200, 255]);
+    const bands: [number, number, number] = [0, 1, 2];
+
+    const validBands = bands.every(b => b >= 0 && b < componentCount);
+    expect(validBands).toBe(true);
+
+    const off = 0;
+    const ch0 = data[off];
+    const ch1 = data[off + 1];
+    const ch2 = data[off + 2];
+    const ch3 = componentCount >= 4 ? data[off + 3] : 0;
+    const channels = [ch0, ch1, ch2, ch3];
+    data[off] = channels[bands[0]];
+    data[off + 1] = channels[bands[1]];
+    data[off + 2] = channels[bands[2]];
+    data[off + 3] = 255;
+
+    // Identity mapping: unchanged
+    expect(data[0]).toBe(100);
+    expect(data[1]).toBe(150);
+    expect(data[2]).toBe(200);
+    expect(data[3]).toBe(255);
+  });
+
+  it('should skip remapping when all band indices are negative', () => {
+    const componentCount = 4;
+    const bands: [number, number, number] = [-1, 1, 2];
+    const validBands = bands.every(b => b >= 0 && b < componentCount);
+    expect(validBands).toBe(false);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.bands).toBeUndefined();
   });
 });
 
