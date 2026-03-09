@@ -7,7 +7,7 @@ import proj4 from 'proj4';
 import type Tile from 'ol/Tile';
 import ImageTile from 'ol/ImageTile';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
-import { debugLog, debugWarn } from './debug-logger';
+import { debugLog, debugWarn, debugError } from './debug-logger';
 
 async function ensureProjection(epsgCode: number): Promise<void> {
   const code = `EPSG:${epsgCode}`;
@@ -218,7 +218,7 @@ export async function createJP2TileLayer(
             }
           });
         } catch (err) {
-          console.error(`Failed to load tile (${col},${row}) sub(${subCol},${subRow}):`, err);
+          debugError(`Failed to load tile (${col},${row}) sub(${subCol},${subRow}):`, err);
           tile.setState(3);
         } finally {
           sem.release();

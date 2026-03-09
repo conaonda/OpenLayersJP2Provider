@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { setDebug, debugLog, debugWarn } from './debug-logger';
+import { setDebug, debugLog, debugWarn, debugError } from './debug-logger';
 
 describe('debug-logger', () => {
   beforeEach(() => {
@@ -33,14 +33,30 @@ describe('debug-logger', () => {
     expect(spy).toHaveBeenCalledWith('[JP2]', 'something wrong');
   });
 
+  it('기본 상태에서 debugError는 콘솔 출력 없음', () => {
+    const spy = vi.spyOn(console, 'error');
+    debugError('some error');
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('setDebug(true) 후 debugError는 [JP2] 프리픽스로 출력', () => {
+    const spy = vi.spyOn(console, 'error');
+    setDebug(true);
+    debugError('tile failed', 404);
+    expect(spy).toHaveBeenCalledWith('[JP2]', 'tile failed', 404);
+  });
+
   it('setDebug(true) 후 setDebug(false)로 다시 억제', () => {
     const logSpy = vi.spyOn(console, 'log');
     const warnSpy = vi.spyOn(console, 'warn');
+    const errorSpy = vi.spyOn(console, 'error');
     setDebug(true);
     setDebug(false);
     debugLog('no output');
     debugWarn('no output');
+    debugError('no output');
     expect(logSpy).not.toHaveBeenCalled();
     expect(warnSpy).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 });

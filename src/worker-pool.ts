@@ -1,4 +1,5 @@
 import type { DecodeRequest, DecodeResponse } from './decode-worker';
+import { debugError } from './debug-logger';
 
 interface PendingTask {
   resolve: (resp: DecodeResponse) => void;
@@ -30,7 +31,7 @@ export class WorkerPool {
         this.dispatch();
       };
       worker.onerror = (e) => {
-        console.error('Worker error:', e);
+        debugError('Worker error:', e);
         const taskId = this.activeTask.get(worker);
         if (taskId != null) {
           const task = this.pending.get(taskId);
