@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 8
+
+### Added
+- **`JP2LayerOptions.tileRetryDelay`**: 재시도 초기 대기 시간 옵션 추가 (closes #37, PR #39)
+  - 기본값: `500` (ms). 재시도마다 `delay * 2^attempt` exponential backoff 적용
+- **`JP2LayerOptions.tileRetryMaxDelay`**: 재시도 대기 시간 상한 옵션 추가 (closes #37, PR #39)
+  - 기본값: `5000` (ms). 계산된 delay가 이 값을 초과하지 않도록 상한 제어
+- **`JP2LayerOptions.onTileError`**: 타일 최종 실패 콜백 옵션 추가 (closes #38, PR #39)
+  - 모든 재시도 소진 후 최종 실패 시 `{ col, row, decodeLevel, error }` 정보와 함께 호출
+
+---
+
 ## [Unreleased] — Sprint 7
 
 ### Added
