@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 3
+
+### Fixed
+- **debug-logger**: `debugError()` 함수 추가 — `console.error`도 `setDebug()`로 제어 (#15, PR #17)
+  - `source.ts`와 `worker-pool.ts`의 `console.error`를 `debugError()`로 교체
+  - 모든 로그/경고/에러 출력이 `setDebug(false)`(기본값)에서 완전히 억제됨
+
+### Added
+- **Public API**: `src/index.ts` 라이브러리 진입점 추가 (#16, PR #18)
+  - `setDebug`, `createJP2TileLayer`, `RangeTileProvider` 및 관련 타입 export
+  - 라이브러리 소비자가 `import { setDebug } from 'openlayers-jp2provider'`로 디버그 모드 제어 가능
+
+---
+
 ## [Unreleased] — Sprint 2
 
 ### Fixed

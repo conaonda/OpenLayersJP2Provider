@@ -35,6 +35,7 @@ npx playwright test  # E2E 테스트
 | `src/jp2-parser.ts` | JP2/JPEG2000 파일 파싱 |
 | `src/pixel-conversion.ts` | 픽셀 데이터 변환 유틸리티 |
 | `src/debug-logger.ts` | 조건부 디버그 로거 (`setDebug`로 on/off) |
+| `src/index.ts` | 라이브러리 공개 API 진입점 |
 
 ## API
 
@@ -87,4 +88,19 @@ setDebug(false); // 콘솔 출력 비활성화 (기본값)
 
 - 기본값 `false` — 프로덕션 빌드에서 콘솔 출력 없음
 - `setDebug(true)` 호출 후 라이브러리 내부의 `debugLog`/`debugWarn`이 `[JP2]` 프리픽스와 함께 출력됨
-- 실제 오류(`console.error`)는 항상 출력됨
+- 실제 오류(`console.error`)도 `setDebug(false)`에서 억제됨 (sprint 3부터)
+
+### Public API (`src/index.ts`)
+
+라이브러리로 사용 시 `src/index.ts`를 통해 공개 API를 import합니다.
+
+```typescript
+import { setDebug, createJP2TileLayer, RangeTileProvider } from 'openlayers-jp2provider';
+import type { JP2LayerResult, TileProvider, TileProviderInfo, GeoInfo } from 'openlayers-jp2provider';
+
+// 디버그 로그 활성화
+setDebug(true);
+
+// JP2 레이어 생성
+const { layer, view } = createJP2TileLayer({ url: 'path/to/file.jp2' });
+```

@@ -24,6 +24,9 @@ export function debugWarn(...args: unknown[]): void {
   if (enabled) console.warn('[JP2]', ...args);
 }
 
+/**
+ * 디버그 모드가 활성화된 경우 `[JP2]` 프리픽스와 함께 `console.error`를 호출한다.
+ */
 export function debugError(...args: unknown[]): void {
   if (enabled) console.error('[JP2]', ...args);
 }
