@@ -1,0 +1,12 @@
+{
+  "role": "documenter",
+  "sprint": 5,
+  "status": "success",
+  "documented_prs": [25, 26],
+  "updated_files": ["CHANGELOG.md", "README.md"],
+  "doc_pr_number": null,
+  "issues": [
+    "PR #22 (docs sprint-4) was CLOSED without merge - sprint-4 CHANGELOG entry added in this sprint",
+    "main branch does not yet reflect PR #25/#26 merges - documented based on orchestrator report"
+  ]
+}

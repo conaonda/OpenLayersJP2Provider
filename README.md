@@ -90,17 +90,56 @@ setDebug(false); // 콘솔 출력 비활성화 (기본값)
 - `setDebug(true)` 호출 후 라이브러리 내부의 `debugLog`/`debugWarn`이 `[JP2]` 프리픽스와 함께 출력됨
 - 실제 오류(`console.error`)도 `setDebug(false)`에서 억제됨 (sprint 3부터)
 
+### `createJP2TileLayer`
+
+```typescript
+createJP2TileLayer(provider: TileProvider, options?: JP2LayerOptions): Promise<JP2LayerResult>
+```
+
+JP2 타일 레이어를 생성합니다. `options`는 선택적이며, 생략 시 기본값이 적용됩니다.
+
+| 옵션 | 타입 | 기본값 | 설명 |
+|------|------|--------|------|
+| `maxConcurrentTiles` | `number` | `4` | 동시 타일 로드 최대 수 |
+| `projectionResolver` | `(epsgCode: number) => Promise<string \| null>` | epsg.io fetch | 커스텀 proj4 문자열 resolver |
+
+### `JP2Decoder`
+
+```typescript
+import { JP2Decoder } from 'openlayers-jp2provider';
+import type { DecodeResult } from 'openlayers-jp2provider';
+
+const decoder = new JP2Decoder();
+const result: DecodeResult = await decoder.decode(arrayBuffer);
+// result: { data: Uint8ClampedArray, width: number, height: number }
+```
+
 ### Public API (`src/index.ts`)
 
 라이브러리로 사용 시 `src/index.ts`를 통해 공개 API를 import합니다.
 
 ```typescript
-import { setDebug, createJP2TileLayer, RangeTileProvider } from 'openlayers-jp2provider';
-import type { JP2LayerResult, TileProvider, TileProviderInfo, GeoInfo } from 'openlayers-jp2provider';
+import { setDebug, createJP2TileLayer, RangeTileProvider, JP2Decoder } from 'openlayers-jp2provider';
+import type { JP2LayerResult, JP2LayerOptions, DecodeResult, TileProvider, TileProviderInfo, GeoInfo } from 'openlayers-jp2provider';
 
 // 디버그 로그 활성화
 setDebug(true);
 
-// JP2 레이어 생성
-const { layer, view } = createJP2TileLayer({ url: 'path/to/file.jp2' });
+// JP2 레이어 생성 (기본 옵션)
+const provider = new RangeTileProvider('path/to/file.jp2');
+const { layer, projection, extent } = await createJP2TileLayer(provider);
+
+// JP2 레이어 생성 (커스텀 옵션)
+const options: JP2LayerOptions = {
+  maxConcurrentTiles: 8,                          // 동시 타일 로드 수 (기본값: 4)
+  projectionResolver: async (epsgCode) => {       // 커스텀 proj4 resolver
+    const resp = await fetch(`/my-proxy/${epsgCode}.proj4`);
+    return resp.text();
+  },
+};
+const { layer: layer2 } = await createJP2TileLayer(provider, options);
+
+// JP2Decoder 직접 사용
+const decoder = new JP2Decoder();
+const result: DecodeResult = await decoder.decode(arrayBuffer);
 ```

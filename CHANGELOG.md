@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 5
+
+### Added
+- **Public API**: `JP2Decoder` 클래스와 `DecodeResult` 타입을 public API에서 named export (#23, PR #25)
+  - `import { JP2Decoder, DecodeResult } from 'openlayers-jp2provider'`로 직접 사용 가능
+- **`createJP2TileLayer` options 파라미터**: 선택적 `JP2LayerOptions` 파라미터 추가 (#24, PR #26)
+  - `maxConcurrentTiles`: 동시 타일 로드 최대 수 제어 (기본값: 4)
+  - `projectionResolver`: 커스텀 proj4 문자열 resolver (기본값: epsg.io fetch)
+  - `JP2LayerOptions` 타입을 public API에서 export
+
+---
+
+## [Unreleased] — Sprint 4
+
+### Changed
+- **빌드 설정**: Vite lib 모드로 전환, `package.json` entry points 업데이트 (#19, PR #21)
+  - ES 모듈 번들(`dist/openlayers-jp2provider.js`) 및 타입 선언(`dist/index.d.ts`) 생성
+  - `peerDependencies`로 `ol`과 `proj4` 분리
+
+---
+
 ## [Unreleased] — Sprint 3
 
 ### Fixed
