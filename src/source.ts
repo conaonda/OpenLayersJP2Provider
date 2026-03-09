@@ -78,6 +78,10 @@ export interface JP2LayerOptions {
   onTileError?: (info: { col: number; row: number; decodeLevel: number; error: unknown }) => void;
   /** 타일 디코딩 성공 시 호출되는 콜백 */
   onTileLoad?: (info: { col: number; row: number; decodeLevel: number }) => void;
+  /** 타일 로드 진행률 콜백 */
+  onProgress?: (info: { loaded: number; total: number; failed: number }) => void;
+  /** 레이어 초기 투명도 (0.0 ~ 1.0, 기본값: 1.0) */
+  initialOpacity?: number;
 }
 
 export interface JP2LayerResult {
@@ -176,6 +180,18 @@ export async function createJP2TileLayer(
   const retryMaxDelay = options?.tileRetryMaxDelay ?? 5000;
   const onTileError = options?.onTileError;
   const onTileLoad = options?.onTileLoad;
+  const onProgress = options?.onProgress;
+
+  // Progress tracking state
+  let progressTotal = 0;
+  let progressLoaded = 0;
+  let progressFailed = 0;
+
+  const emitProgress = () => {
+    if (onProgress) {
+      onProgress({ loaded: progressLoaded, total: progressTotal, failed: progressFailed });
+    }
+  };
 
   const source = new TileImage({
     projection,
@@ -214,6 +230,8 @@ export async function createJP2TileLayer(
       const img = imageTile.getImage() as HTMLImageElement;
 
       (async () => {
+        progressTotal++;
+        emitProgress();
         await sem.acquire();
         try {
           let decoded;
@@ -236,6 +254,8 @@ export async function createJP2TileLayer(
             if (onTileError) {
               onTileError({ col, row, decodeLevel, error: lastErr });
             }
+            progressFailed++;
+            emitProgress();
             tile.setState(3);
             return;
           }
@@ -243,6 +263,8 @@ export async function createJP2TileLayer(
           if (onTileLoad) {
             onTileLoad({ col, row, decodeLevel });
           }
+          progressLoaded++;
+          emitProgress();
 
           const canvas = document.createElement('canvas');
           canvas.width = DISPLAY_TILE_SIZE;
@@ -290,9 +312,11 @@ export async function createJP2TileLayer(
     },
   });
 
+  const opacity = Math.max(0, Math.min(1, options?.initialOpacity ?? 1.0));
+
   const layer = geoInfo
-    ? new TileLayer({ source })
-    : new TileLayer({ source, extent });
+    ? new TileLayer({ source, opacity })
+    : new TileLayer({ source, extent, opacity });
 
   const destroy = () => {
     provider.destroy();
