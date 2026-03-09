@@ -42,7 +42,11 @@ npx playwright test  # E2E 테스트
 ### `createJP2TileLayer`
 
 ```typescript
+// TileProvider 객체 전달
 const result = await createJP2TileLayer(provider, options);
+
+// URL 문자열 직접 전달 (내부에서 RangeTileProvider 자동 생성)
+const result = await createJP2TileLayer('path/to/file.jp2', options);
 ```
 
 #### 옵션 (`JP2LayerOptions`)
@@ -61,6 +65,7 @@ const result = await createJP2TileLayer(provider, options);
 | `onProgress` | `(info: { loaded, total, failed }) => void` | - | 타일 로드 진행률 콜백 (loaded+failed === total 시 완료) |
 | `tileLoadTimeout` | `number` | - | 개별 타일 로드 타임아웃 (ms). 초과 시 `Error('Tile load timeout')` throw. 미지정 시 타임아웃 없음 |
 | `initialOpacity` | `number` | `1.0` | 레이어 초기 투명도 (0.0 ~ 1.0) |
+| `requestHeaders` | `Record<string, string>` | - | HTTP 요청에 추가할 커스텀 헤더. URL 문자열로 호출 시 `RangeTileProvider`에 전달 |
 
 #### 반환값 (`JP2LayerResult`)
 
@@ -75,6 +80,11 @@ const result = await createJP2TileLayer(provider, options);
 
 ```typescript
 const { layer, projection, extent, destroy } = await createJP2TileLayer(provider);
+
+// URL 문자열로 간편하게 생성 (requestHeaders와 함께 사용)
+const { layer } = await createJP2TileLayer('path/to/file.jp2', {
+  requestHeaders: { Authorization: 'Bearer token' },
+});
 
 // 사용 완료 후 리소스 해제
 destroy();

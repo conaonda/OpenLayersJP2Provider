@@ -4,13 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 13
+
+### Added
+- **`JP2LayerOptions.requestHeaders`**: `createJP2TileLayer`에 커스텀 HTTP 헤더 옵션 추가 (closes #53, PR #55)
+  - URL 문자열로 호출 시 내부 생성되는 `RangeTileProvider`에 자동 전달
+  - `TileProvider` 객체 직접 전달 시에는 무시됨 (프로바이더에서 직접 설정 필요)
+- **`createJP2TileLayer` URL 문자열 오버로드**: 첫 번째 인자로 URL string을 직접 전달 가능 (PR #55)
+  - `createJP2TileLayer('path/to/file.jp2', { requestHeaders: { Authorization: 'Bearer token' } })`
+  - 내부에서 `RangeTileProvider`를 자동 생성, `minValue`/`maxValue`/`requestHeaders` 옵션 전달
+
+### Fixed
+- **`RangeTileProvider._decodeTile` requestHeaders 누락 버그**: `_decodeTile` 호출 시 `requestHeaders`가 전달되지 않던 버그 수정 (PR #55)
+
+---
+
 ## [Unreleased] — Sprint 12
 
 ### Added
-- **`RangeTileProvider` 생성자 옵션 `requestHeaders`**: JP2 파일 Range 요청 시 커스텀 HTTP 헤더 전달 기능 추가 (closes #51, PR #52)
-  - 인증 토큰(`Authorization`) 등 서버 인증이 필요한 환경에서 활용 가능
-  - `Range` 헤더는 항상 마지막에 적용되어 커스텀 헤더로 덮어쓸 수 없음
-  - `parseJP2` 및 `fetchTileData` 내부 함수에 `extraHeaders` 파라미터로 전파
+- **`RangeTileProviderOptions.requestHeaders`**: `RangeTileProvider` 생성자에 커스텀 HTTP 헤더 옵션 추가 (closes #51, PR #52)
+  - 생성자 시그니처: `new RangeTileProvider(url, { requestHeaders: Record<string, string> })`
+  - 모든 Range 요청에 지정된 헤더 포함 (인증 토큰, CORS 등)
 
 ---
 
