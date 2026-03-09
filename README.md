@@ -58,6 +58,8 @@ const result = await createJP2TileLayer(provider, options);
 | `tileRetryMaxDelay` | `number` | `5000` | 재시도 최대 delay 상한 (ms) |
 | `onTileError` | `(info: { col, row, decodeLevel, error }) => void` | - | 모든 재시도 소진 후 최종 실패 시 호출되는 콜백 |
 | `onTileLoad` | `(info: { col, row, decodeLevel }) => void` | - | 타일 디코딩 성공 시 호출되는 콜백 |
+| `onProgress` | `(info: { loaded, total, failed }) => void` | - | 타일 로드 진행률 콜백 (loaded+failed === total 시 완료) |
+| `initialOpacity` | `number` | `1.0` | 레이어 초기 투명도 (0.0 ~ 1.0) |
 
 #### 반환값 (`JP2LayerResult`)
 
