@@ -11,3 +11,7 @@ export function debugLog(...args: unknown[]): void {
 export function debugWarn(...args: unknown[]): void {
   if (enabled) console.warn('[JP2]', ...args);
 }
+
+export function debugError(...args: unknown[]): void {
+  if (enabled) console.error('[JP2]', ...args);
+}
