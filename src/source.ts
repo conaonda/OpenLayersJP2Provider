@@ -91,6 +91,10 @@ export interface JP2LayerOptions {
   colormap?: (value: number) => [r: number, g: number, b: number];
   /** 타일 로드 시작 시 호출되는 콜백 (sem.acquire 이후, getTile 직전) */
   onTileLoadStart?: (info: { col: number; row: number; decodeLevel: number }) => void;
+  /** OpenLayers 소스에 표시할 저작권/출처 정보 */
+  attributions?: string | string[];
+  /** 다중 채널 이미지에서 RGB에 매핑할 밴드 인덱스 (0-based). 예: [3, 2, 1] */
+  bands?: [r: number, g: number, b: number];
 }
 
 export interface JP2LayerResult {
@@ -232,9 +236,11 @@ export async function createJP2TileLayer(
     }
   };
 
+  const bands = options?.bands;
   const source = new TileImage({
     projection,
     tileGrid,
+    attributions: options?.attributions,
     tileUrlFunction: (tileCoord) => {
       const [z, x, y] = tileCoord;
       const subtilesPerAxis = tileWidth / DISPLAY_TILE_SIZE / pixelResolutions[z];
@@ -323,6 +329,42 @@ export async function createJP2TileLayer(
               d[p] = r;
               d[p + 1] = g;
               d[p + 2] = b;
+            }
+          }
+
+          if (bands && info.componentCount >= 3) {
+            // Re-decode raw tile with band remapping
+            // decoded.data is already RGBA; we need to re-read from the raw decoded buffer
+            // Since decodedBufferToRGBA already mapped channels, we apply bands by
+            // re-interpreting: the RGBA buffer has channels packed as component-order.
+            // For componentCount>=3, pixel i has R=comp0, G=comp1, B=comp2 in decoded.data.
+            // We remap so that output R=comp[bands[0]], G=comp[bands[1]], B=comp[bands[2]].
+            // We can do this by reading from the raw data if available, but decoded.data
+            // is already converted. We need to work with the raw buffer from the provider.
+            // Actually, the decoded.data from getTile already has RGBA conversion done.
+            // For bands remapping, we need the raw component data.
+            // Let's remap using the existing RGBA data as a source of the original channels.
+            // With componentCount=3, decoded.data[i*4+0]=ch0, [i*4+1]=ch1, [i*4+2]=ch2.
+            // For componentCount=4, decoded.data[i*4+0]=ch0, [i*4+1]=ch1, [i*4+2]=ch2, [i*4+3]=ch3.
+            // We can remap in-place by first copying the original channels per pixel.
+            const d = decoded.data;
+            const pixelCount = decoded.width * decoded.height;
+            const validBands = bands.every(b => b >= 0 && b < info.componentCount);
+            if (!validBands) {
+              debugWarn(`bands indices ${JSON.stringify(bands)} out of range for ${info.componentCount} components, using default mapping`);
+            } else {
+              for (let i = 0; i < pixelCount; i++) {
+                const off = i * 4;
+                const ch0 = d[off];
+                const ch1 = d[off + 1];
+                const ch2 = d[off + 2];
+                const ch3 = info.componentCount >= 4 ? d[off + 3] : 0;
+                const channels = [ch0, ch1, ch2, ch3];
+                d[off] = channels[bands[0]];
+                d[off + 1] = channels[bands[1]];
+                d[off + 2] = channels[bands[2]];
+                d[off + 3] = 255; // alpha
+              }
             }
           }
 

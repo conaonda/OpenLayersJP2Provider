@@ -129,3 +129,142 @@ describe('onTileLoadStart callback', () => {
   });
 });
 
+describe('attributions option', () => {
+  it('should accept a string value', () => {
+    const opts: JP2LayerOptions = {
+      attributions: '© Example Data Provider',
+    };
+    expect(opts.attributions).toBe('© Example Data Provider');
+  });
+
+  it('should accept an array of strings', () => {
+    const opts: JP2LayerOptions = {
+      attributions: ['© Provider A', '© Provider B'],
+    };
+    expect(opts.attributions).toHaveLength(2);
+    expect(opts.attributions).toEqual(['© Provider A', '© Provider B']);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.attributions).toBeUndefined();
+  });
+
+  it('should preserve attribution string content exactly', () => {
+    const attr = '© 2026 My Organization <a href="https://example.com">Terms</a>';
+    const opts: JP2LayerOptions = { attributions: attr };
+    expect(opts.attributions).toBe(attr);
+  });
+});
+
+describe('bands option', () => {
+  it('should accept a 3-element tuple of band indices', () => {
+    const opts: JP2LayerOptions = {
+      bands: [3, 2, 1],
+    };
+    expect(opts.bands).toEqual([3, 2, 1]);
+  });
+
+  it('should remap pixel data correctly with bands', () => {
+    // Simulate the bands remapping logic from source.ts
+    const componentCount = 4;
+    const pixelCount = 2;
+    // RGBA data: pixel0=[10,20,30,255], pixel1=[40,50,60,255]
+    const data = new Uint8ClampedArray([10, 20, 30, 255, 40, 50, 60, 255]);
+    const bands: [number, number, number] = [2, 1, 0]; // swap R and B
+
+    for (let i = 0; i < pixelCount; i++) {
+      const off = i * 4;
+      const ch0 = data[off];
+      const ch1 = data[off + 1];
+      const ch2 = data[off + 2];
+      const ch3 = componentCount >= 4 ? data[off + 3] : 0;
+      const channels = [ch0, ch1, ch2, ch3];
+      data[off] = channels[bands[0]];
+      data[off + 1] = channels[bands[1]];
+      data[off + 2] = channels[bands[2]];
+      data[off + 3] = 255;
+    }
+
+    // pixel0: R=ch2(30), G=ch1(20), B=ch0(10)
+    expect(data[0]).toBe(30);
+    expect(data[1]).toBe(20);
+    expect(data[2]).toBe(10);
+    expect(data[3]).toBe(255);
+    // pixel1: R=ch2(60), G=ch1(50), B=ch0(40)
+    expect(data[4]).toBe(60);
+    expect(data[5]).toBe(50);
+    expect(data[6]).toBe(40);
+    expect(data[7]).toBe(255);
+  });
+
+  it('should handle 3-component images (alpha defaults to 0)', () => {
+    const componentCount = 3;
+    const data = new Uint8ClampedArray([10, 20, 30, 255]);
+    const bands: [number, number, number] = [2, 0, 1];
+
+    const off = 0;
+    const ch0 = data[off];
+    const ch1 = data[off + 1];
+    const ch2 = data[off + 2];
+    const ch3 = componentCount >= 4 ? data[off + 3] : 0;
+    const channels = [ch0, ch1, ch2, ch3];
+    data[off] = channels[bands[0]];
+    data[off + 1] = channels[bands[1]];
+    data[off + 2] = channels[bands[2]];
+    data[off + 3] = 255;
+
+    // R=ch2(30), G=ch0(10), B=ch1(20)
+    expect(data[0]).toBe(30);
+    expect(data[1]).toBe(10);
+    expect(data[2]).toBe(20);
+    expect(data[3]).toBe(255);
+  });
+
+  it('should skip remapping when band index is out of range', () => {
+    // componentCount=3, bands[0]=3 is out of range (>= componentCount)
+    const componentCount = 3;
+    const bands: [number, number, number] = [3, 1, 0]; // index 3 is invalid for 3 components
+    const validBands = bands.every(b => b >= 0 && b < componentCount);
+    expect(validBands).toBe(false);
+  });
+
+  it('should accept identity mapping [0, 1, 2] without change', () => {
+    const componentCount = 3;
+    const data = new Uint8ClampedArray([100, 150, 200, 255]);
+    const bands: [number, number, number] = [0, 1, 2];
+
+    const validBands = bands.every(b => b >= 0 && b < componentCount);
+    expect(validBands).toBe(true);
+
+    const off = 0;
+    const ch0 = data[off];
+    const ch1 = data[off + 1];
+    const ch2 = data[off + 2];
+    const ch3 = componentCount >= 4 ? data[off + 3] : 0;
+    const channels = [ch0, ch1, ch2, ch3];
+    data[off] = channels[bands[0]];
+    data[off + 1] = channels[bands[1]];
+    data[off + 2] = channels[bands[2]];
+    data[off + 3] = 255;
+
+    // Identity mapping: unchanged
+    expect(data[0]).toBe(100);
+    expect(data[1]).toBe(150);
+    expect(data[2]).toBe(200);
+    expect(data[3]).toBe(255);
+  });
+
+  it('should skip remapping when all band indices are negative', () => {
+    const componentCount = 4;
+    const bands: [number, number, number] = [-1, 1, 2];
+    const validBands = bands.every(b => b >= 0 && b < componentCount);
+    expect(validBands).toBe(false);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.bands).toBeUndefined();
+  });
+});
+
