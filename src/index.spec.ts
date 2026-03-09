@@ -31,4 +31,14 @@ describe('public API (index.ts)', () => {
     // createJP2TileLayer(provider, options?) — 파라미터 2개 선언
     expect(publicApi.createJP2TileLayer.length).toBe(2);
   });
+
+  it('RangeTileProvider가 cacheTTL 옵션을 받는다', () => {
+    const provider = new publicApi.RangeTileProvider('https://example.com/test.jp2', { cacheTTL: 1000 });
+    expect(provider).toBeInstanceOf(publicApi.RangeTileProvider);
+  });
+
+  it('RangeTileProvider에 destroy 메서드가 존재한다', () => {
+    const provider = new publicApi.RangeTileProvider('https://example.com/test.jp2');
+    expect(typeof provider.destroy).toBe('function');
+  });
 });

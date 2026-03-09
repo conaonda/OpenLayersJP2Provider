@@ -128,12 +128,16 @@ export class RangeTileProvider implements TileProvider {
   private globalMin?: number;
   private globalMax?: number;
 
-  constructor(private url: string) {}
+  private cacheTTL: number;
+
+  constructor(private url: string, options?: { cacheTTL?: number }) {
+    this.cacheTTL = options?.cacheTTL ?? DEFAULT_TTL_MS;
+  }
 
   async init(): Promise<TileProviderInfo> {
     this.pool.init();
 
-    const cached = await getCachedIndex(this.url);
+    const cached = await getCachedIndex(this.url, this.cacheTTL);
     if (cached) {
       debugLog('Loaded tile index from IndexedDB cache');
       this.info = {
