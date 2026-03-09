@@ -95,6 +95,8 @@ export interface JP2LayerOptions {
   attributions?: string | string[];
   /** 다중 채널 이미지에서 RGB에 매핑할 밴드 인덱스 (0-based). 예: [3, 2, 1] */
   bands?: [r: number, g: number, b: number];
+  /** 레이어 초기 가시성 (기본값: true) */
+  visible?: boolean;
 }
 
 export interface JP2LayerResult {
@@ -421,10 +423,11 @@ export async function createJP2TileLayer(
   });
 
   const opacity = Math.max(0, Math.min(1, options?.initialOpacity ?? 1.0));
+  const visible = options?.visible ?? true;
 
   const layer = geoInfo
-    ? new TileLayer({ source, opacity })
-    : new TileLayer({ source, extent, opacity });
+    ? new TileLayer({ source, opacity, visible })
+    : new TileLayer({ source, extent, opacity, visible });
 
   const destroy = () => {
     provider.destroy();
