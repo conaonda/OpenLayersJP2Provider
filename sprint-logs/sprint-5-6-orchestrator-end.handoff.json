@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 5,
+  "status": "success",
+  "merged_prs": [25, 26],
+  "closed_issues": [23, 24],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter는 PR #25(JP2Decoder/DecodeResult export)와 PR #26(JP2LayerOptions/createJP2TileLayer options)의 변경사항을 CHANGELOG 및 README에 반영하고, docs PR #22 충돌로 누락된 sprint-4 문서도 함께 업데이트할 것"
+}

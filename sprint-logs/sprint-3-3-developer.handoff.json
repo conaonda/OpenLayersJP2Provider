@@ -1,0 +1,19 @@
+{
+  "role": "developer",
+  "sprint": 3,
+  "status": "success",
+  "completed": [
+    "fix: source.ts와 worker-pool.ts의 console.error를 debug-logger로 교체",
+    "feat: setDebug()를 라이브러리 public API로 export"
+  ],
+  "pr_numbers": [17, 18],
+  "branch_names": [
+    "fix/15-replace-console-error-with-debug-logger",
+    "feat/16-export-setdebug-public-api"
+  ],
+  "issues": [
+    "main.ts의 console.error는 데모 진입점이므로 교체 대상에서 제외",
+    "src/index.ts 신규 생성 — package.json의 main 필드는 현재 index.js로 설정되어 있으나 빌드 설정 변경은 별도 이슈로 처리 필요"
+  ],
+  "next_action": "Reviewer는 PR #17(debugError 교체)과 PR #18(index.ts public API export)을 리뷰하고, Tester는 setDebug(false) 상태에서 에러 로그 미출력 확인"
+}

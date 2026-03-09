@@ -1,0 +1,106 @@
+{
+  "sprint": 4,
+  "repo": "conaonda/OpenLayersJP2Provider",
+  "date": "2026-03-10",
+  "start_time": 1773070762,
+  "end_time": 1773071498,
+  "elapsed_seconds": 736,
+  "closed_issues": [
+    {
+      "number": 19,
+      "title": "chore: package.json main 필드와 vite.config.ts lib.entry를 src/index.ts로 업데이트"
+    },
+    {
+      "number": 16,
+      "title": "feat: setDebug()를 라이브러리 public API로 export"
+    },
+    {
+      "number": 15,
+      "title": "fix: source.ts와 worker-pool.ts의 console.error를 debug-logger로 교체"
+    },
+    {
+      "number": 11,
+      "title": "refactor: 프로덕션 console.log 제거 및 디버그 로깅 조건화"
+    },
+    {
+      "number": 10,
+      "title": "fix: SharedArrayBuffer/ArrayBuffer 타입 호환성 tsc 에러 4개 수정"
+    },
+    {
+      "number": 4,
+      "title": "feat: IndexedDB 타일 인덱스 캐시에 TTL 및 URL 기반 무효화 추가"
+    },
+    {
+      "number": 3,
+      "title": "refactor: decoder.ts의 decodeTile()과 range-tile-provider.ts의 코드스트림 조립 로직 중복 제거"
+    },
+    {
+      "number": 2,
+      "title": "fix: WorkerPool onerror에서 pending task가 reject되지 않아 메모리 누수 발생"
+    }
+  ],
+  "merged_prs": [
+    {
+      "headRefName": "chore/19-update-build-entry",
+      "number": 21,
+      "title": "chore(build): configure vite lib mode and package.json entry points"
+    },
+    {
+      "headRefName": "docs/sprint-3-update-docs",
+      "number": 20,
+      "title": "docs(sprint-3): update CHANGELOG, README, and JSDoc"
+    },
+    {
+      "headRefName": "feat/16-export-setdebug-public-api",
+      "number": 18,
+      "title": "feat(api): export setDebug as public API"
+    },
+    {
+      "headRefName": "fix/15-replace-console-error-with-debug-logger",
+      "number": 17,
+      "title": "fix(logging): replace console.error with debugError"
+    },
+    {
+      "headRefName": "docs/sprint-2-update-docs",
+      "number": 14,
+      "title": "docs(sprint-2): update CHANGELOG, README, and JSDoc"
+    },
+    {
+      "headRefName": "refactor/11-remove-production-console-log",
+      "number": 13,
+      "title": "refactor(logging): conditional debug logger for production"
+    },
+    {
+      "headRefName": "fix/10-sharedarraybuffer-type-compat",
+      "number": 12,
+      "title": "fix(types): resolve SharedArrayBuffer/ArrayBuffer tsc errors"
+    },
+    {
+      "headRefName": "docs/sprint-1-update-docs",
+      "number": 9,
+      "title": "docs: add README and CHANGELOG for sprint 1"
+    },
+    {
+      "headRefName": "feat/4-indexeddb-cache-ttl",
+      "number": 7,
+      "title": "feat(cache): add TTL and URL-based invalidation to IndexedDB cache"
+    },
+    {
+      "headRefName": "refactor/3-extract-build-tile-codestream",
+      "number": 6,
+      "title": "refactor(codestream): extract buildTileCodestream to remove duplication"
+    },
+    {
+      "headRefName": "fix/2-workerpool-onerror-pending-reject",
+      "number": 5,
+      "title": "fix(worker-pool): reject pending tasks on worker error and destroy"
+    },
+    {
+      "headRefName": "fix/16bit-jp2-crosshatch",
+      "number": 1,
+      "title": "Fix 16-bit JP2 crosshatch/black screen rendering"
+    }
+  ],
+  "issue_count": 8,
+  "pr_count": 12
+}

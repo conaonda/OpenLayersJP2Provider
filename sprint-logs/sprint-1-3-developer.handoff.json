@@ -1,0 +1,22 @@
+{
+  "role": "developer",
+  "sprint": 1,
+  "status": "success",
+  "completed": [
+    "fix: WorkerPool onerror에서 pending task가 reject되지 않아 메모리 누수 발생",
+    "refactor: decoder.ts의 decodeTile()과 range-tile-provider.ts의 코드스트림 조립 로직 중복 제거",
+    "feat: IndexedDB 타일 인덱스 캐시에 TTL 및 URL 기반 무효화 추가"
+  ],
+  "pr_numbers": [5, 6, 7],
+  "branch_names": [
+    "fix/2-workerpool-onerror-pending-reject",
+    "refactor/3-extract-build-tile-codestream",
+    "feat/4-indexeddb-cache-ttl"
+  ],
+  "issues": [
+    "기존 tsc 타입 에러 4개 존재 (SharedArrayBuffer/ArrayBuffer 호환성) - 이번 변경과 무관",
+    "decoder.ts의 decodeTile()은 현재 미사용 상태이나 public API이므로 유지함",
+    "이슈 #3과 #4는 range-tile-provider.ts를 각각 수정하므로 머지 시 충돌 가능"
+  ],
+  "next_action": "Reviewer는 PR #5(버그픽스) 우선 리뷰, PR #6/#7은 range-tile-provider.ts 충돌 가능성 확인 필요"
+}

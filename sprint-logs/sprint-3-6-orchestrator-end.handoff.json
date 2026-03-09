@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 3,
+  "status": "success",
+  "merged_prs": [17, 18, 14],
+  "closed_issues": [15, 16],
+  "new_issues_created": [19],
+  "released": false,
+  "next_action": "Documenter는 PR #17(debugError 교체), PR #18(setDebug public API export), PR #14(docs/sprint-2) 머지를 기반으로 CHANGELOG와 README를 스프린트 3 내용으로 업데이트하세요 — 이슈 #19(빌드 설정 업데이트)도 다음 스프린트 계획에 포함"
+}

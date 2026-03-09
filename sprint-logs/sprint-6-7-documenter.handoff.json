@@ -1,0 +1,11 @@
+{
+  "role": "documenter",
+  "sprint": 6,
+  "status": "success",
+  "documented_prs": [30],
+  "updated_files": ["CHANGELOG.md", "README.md"],
+  "doc_pr_number": 31,
+  "issues": [
+    "PR #27(sprint-5 docs)이 closed 상태로 미머지되어 sprint 4, 5 CHANGELOG/README 내용이 누락되어 있었음 — 이번 PR #31에서 함께 통합"
+  ]
+}

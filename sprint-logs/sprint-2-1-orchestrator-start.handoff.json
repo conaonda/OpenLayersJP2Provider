@@ -1,0 +1,28 @@
+{
+  "role": "orchestrator-start",
+  "sprint": 2,
+  "status": "success",
+  "selected_issues": [
+    {
+      "number": 8,
+      "title": "research: Kakadu JPIP 서버 연동을 통한 서버사이드 JP2 스트리밍 도입 검토",
+      "labels": ["agent/researcher"]
+    },
+    {
+      "number": 10,
+      "title": "fix: SharedArrayBuffer/ArrayBuffer 타입 호환성 tsc 에러 4개 수정",
+      "labels": ["bug", "agent/developer"]
+    },
+    {
+      "number": 11,
+      "title": "refactor: 프로덕션 console.log 제거 및 디버그 로깅 조건화",
+      "labels": ["enhancement", "agent/developer"]
+    }
+  ],
+  "researcher_needed": true,
+  "issues": [
+    "Sprint 1에서 잔존한 tsc 타입 에러 4개를 이번 스프린트 developer 이슈로 전환",
+    "기존 오픈 이슈 #8은 researcher 이슈만 존재하여 신규 developer 이슈 2개(#10, #11) 생성"
+  ],
+  "next_action": "agent/developer가 이슈 #10(tsc 에러 수정)을 먼저 처리하고, 이슈 #11(console.log 정리)을 후속 처리; agent/researcher는 이슈 #8 JPIP 기술 검토 병행"
+}

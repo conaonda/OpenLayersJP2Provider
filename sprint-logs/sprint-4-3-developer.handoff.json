@@ -1,0 +1,10 @@
+{
+  "role": "developer",
+  "sprint": 4,
+  "status": "success",
+  "completed": ["chore: package.json main 필드와 vite.config.ts lib.entry를 src/index.ts로 업데이트"],
+  "pr_numbers": [21],
+  "branch_names": ["chore/19-update-build-entry"],
+  "issues": [],
+  "next_action": "Reviewer: PR #21에서 vite lib 모드 설정과 package.json exports 필드 변경 검토 필요"
+}

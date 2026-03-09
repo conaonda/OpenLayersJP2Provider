@@ -1,0 +1,28 @@
+{
+  "role": "orchestrator-start",
+  "sprint": 6,
+  "status": "success",
+  "selected_issues": [
+    {
+      "number": 8,
+      "title": "research: Kakadu JPIP 서버 연동을 통한 서버사이드 JP2 스트리밍 도입 검토",
+      "labels": ["agent/researcher"]
+    },
+    {
+      "number": 28,
+      "title": "feat: JP2LayerResult에 destroy() 메서드 추가하여 리소스 정리 지원",
+      "labels": ["enhancement", "agent/developer"]
+    },
+    {
+      "number": 29,
+      "title": "feat: RangeTileProvider 생성자에 cacheTTL 옵션 추가",
+      "labels": ["enhancement", "agent/developer"]
+    }
+  ],
+  "researcher_needed": true,
+  "issues": [
+    "로컬 main 브랜치가 origin/main보다 2커밋 뒤처져 있음 (PR #25, #26 미반영) — git fetch/pull 필요",
+    "현재 브랜치 docs/sprint-5-update-docs는 이전 스프린트 문서 작업용으로 main에 아직 미머지"
+  ],
+  "next_action": "Developer 에이전트가 이슈 #28(destroy 메서드)과 #29(cacheTTL 옵션)를 구현하고, Researcher 에이전트가 이슈 #8(JPIP 조사)을 병행 진행"
+}

@@ -1,0 +1,28 @@
+{
+  "role": "orchestrator-start",
+  "sprint": 1,
+  "status": "success",
+  "selected_issues": [
+    {
+      "number": 2,
+      "title": "fix: WorkerPool onerror에서 pending task가 reject되지 않아 메모리 누수 발생",
+      "labels": ["bug", "agent/developer"]
+    },
+    {
+      "number": 3,
+      "title": "refactor: decoder.ts의 decodeTile()과 range-tile-provider.ts의 코드스트림 조립 로직 중복 제거",
+      "labels": ["enhancement", "agent/developer"]
+    },
+    {
+      "number": 4,
+      "title": "feat: IndexedDB 타일 인덱스 캐시에 TTL 및 URL 기반 무효화 추가",
+      "labels": ["enhancement", "agent/developer"]
+    }
+  ],
+  "researcher_needed": false,
+  "issues": [
+    "초기 스프린트로 오픈 이슈가 없어 코드베이스 분석 후 신규 이슈 3개 생성",
+    "'refactor' 라벨이 없어 'enhancement' 라벨로 대체함"
+  ],
+  "next_action": "agent/developer가 이슈 #2(WorkerPool 버그 수정)를 P1으로 먼저 처리하고, 이슈 #3(코드스트림 중복 제거), #4(IndexedDB TTL) 순으로 진행"
+}

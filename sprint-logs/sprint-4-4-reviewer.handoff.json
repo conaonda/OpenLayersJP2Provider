@@ -1,0 +1,10 @@
+{
+  "role": "reviewer",
+  "sprint": 4,
+  "status": "success",
+  "reviewed_prs": [21],
+  "approved_prs": [21],
+  "change_requested_prs": [],
+  "issues": [],
+  "next_action": "Tester: PR #21 머지 후 npm run build 및 npm test 실행하여 dist 출력물과 29개 테스트 통과 확인"
+}
