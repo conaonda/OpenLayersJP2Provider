@@ -126,7 +126,7 @@ class DecodedTileCache {
  */
 export class RangeTileProvider implements TileProvider {
   private info!: JP2Info;
-  private pool = new WorkerPool();
+  private pool: WorkerPool;
   private maxDecodeLevel = 5;
 
   static async invalidateCache(url: string): Promise<void> {
@@ -150,12 +150,14 @@ export class RangeTileProvider implements TileProvider {
    * @param options.minValue - 픽셀 정규화 최소값 (미지정 시 자동 계산)
    * @param options.maxValue - 픽셀 정규화 최대값 (미지정 시 자동 계산)
    * @param options.requestHeaders - fetch 요청에 추가할 HTTP 헤더. `Range` 헤더는 덮어쓸 수 없음
+   * @param options.maxConcurrency - 디코딩 워커 풀 크기 (기본값: WorkerPool 기본값)
    */
-  constructor(private url: string, options?: { cacheTTL?: number; minValue?: number; maxValue?: number; requestHeaders?: Record<string, string> }) {
+  constructor(private url: string, options?: { cacheTTL?: number; minValue?: number; maxValue?: number; requestHeaders?: Record<string, string>; maxConcurrency?: number }) {
     this.cacheTTL = options?.cacheTTL ?? DEFAULT_TTL_MS;
     this.userMin = options?.minValue;
     this.userMax = options?.maxValue;
     this.requestHeaders = options?.requestHeaders;
+    this.pool = new WorkerPool(options?.maxConcurrency);
   }
 
   async init(): Promise<TileProviderInfo> {
