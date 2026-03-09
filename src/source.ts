@@ -72,6 +72,8 @@ export interface JP2LayerResult {
   projection: Projection;
   extent: [number, number, number, number];
   resolutions: number[];
+  /** 내부 리소스(WebWorker 등)를 해제한다 */
+  destroy: () => void;
 }
 
 export async function createJP2TileLayer(
@@ -247,5 +249,9 @@ export async function createJP2TileLayer(
     ? new TileLayer({ source })
     : new TileLayer({ source, extent });
 
-  return { layer, info, projection, extent, resolutions };
+  const destroy = () => {
+    provider.destroy();
+  };
+
+  return { layer, info, projection, extent, resolutions, destroy };
 }
