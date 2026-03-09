@@ -17,6 +17,9 @@
 - RangeTileProvider.requestHeaders: fetchRange 호출 시 커스텀 HTTP 헤더 병합 옵션, Range 헤더 덮어쓰기 방지 로직 포함 (PR #52)
 - JP2LayerOptions.requestHeaders: createJP2TileLayer에서 RangeTileProvider로 헤더 전달 옵션 추가, _decodeTile 버그 수정 포함 (PR #55)
 - createJP2TileLayer: URL string 오버로드 추가 — options 없이 url만 전달 가능
+- JP2LayerOptions.attributions: OL TileImage에 저작권 표기 전달 옵션 (string | string[])
+- JP2LayerOptions.bands: 다중 채널 이미지에서 렌더링할 밴드 인덱스 배열 옵션, 유효 범위 벗어나면 무시
+- JP2LayerOptions.visible: 레이어 초기 가시성 옵션 (boolean, 기본값 true), OL TileLayer의 visible 옵션에 전달 (PR #69)
 
 ## 반복 패턴 & 주의사항
 - 동일 작성자 PR은 GitHub 정책상 공식 approve 불가 → 리뷰 코멘트로 대체
@@ -34,14 +37,14 @@
 - [x] JP2LayerOptions에 requestHeaders 옵션 미포함 — PR #55로 해결 (Sprint 13)
 
 ## 최근 3개 스프린트 요약
+### Sprint 16 (2026-03-10)
+- 완료: PR #69(visible 옵션), PR #67(docs sprint-15) 머지, 이슈 #68 닫힘, 단위 테스트 118개 전체 통과
+- 발견된 문제: docs PR #67이 feature PR 머지 후 충돌 → rebase 후 force-with-lease push로 해결
+
+### Sprint 15 (2026-03-10)
+- 완료: PR #66(attributions + bands 옵션), PR #63(docs sprint-14) 머지, 이슈 #64 #65 닫힘, 단위 테스트 111개 전체 통과
+- 발견된 문제: docs PR이 feature PR 머지 후 충돌 → rebase 후 force-with-lease push로 해결
+
 ### Sprint 13 (2026-03-10)
 - 완료: PR #55(JP2LayerOptions.requestHeaders + URL string 오버로드 + _decodeTile 버그 수정), PR #54(docs sprint-12) 머지, 이슈 #53 닫힘, 단위 테스트 93개 전체 통과
 - 발견된 문제: 없음
-
-### Sprint 12 (2026-03-10)
-- 완료: PR #52(requestHeaders), PR #50(docs sprint-11) 머지, 이슈 #51 닫힘, 단위 테스트 91개 전체 통과
-- 발견된 문제: JP2LayerOptions에 requestHeaders 옵션 누락 — 이슈 #53으로 분리 추적
-
-### Sprint 11 (2026-03-10)
-- 완료: PR #49(tileLoadTimeout), PR #47(docs sprint-10) 머지, 이슈 #48 닫힘, 단위 테스트 84개 전체 통과
-- 발견된 문제: Promise.race 패턴에서 setTimeout 타이머 누수 — new Promise + clearTimeout 패턴으로 수정 (PR #49 재커밋)

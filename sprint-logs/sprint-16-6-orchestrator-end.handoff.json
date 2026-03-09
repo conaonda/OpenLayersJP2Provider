@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 16,
+  "status": "success",
+  "merged_prs": [69, 67],
+  "closed_issues": [68],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter: sprint-16 CHANGELOG 및 README 업데이트 — JP2LayerOptions.visible 옵션 (초기 레이어 가시성, PR #69) 문서화"
+}
