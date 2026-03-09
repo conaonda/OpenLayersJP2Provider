@@ -99,6 +99,25 @@ export interface JP2LayerResult {
   destroy: () => void;
 }
 
+/**
+ * JP2 파일을 렌더링하는 OpenLayers TileLayer를 생성한다.
+ *
+ * @param providerOrUrl - `TileProvider` 객체 또는 JP2 파일의 URL 문자열.
+ *   URL 문자열을 전달하면 내부에서 `RangeTileProvider`를 자동 생성한다.
+ * @param options - 레이어 옵션 (`JP2LayerOptions`)
+ * @returns 레이어, 메타데이터, 좌표계, 범위, 해상도, destroy 함수를 포함하는 객체
+ *
+ * @example
+ * // TileProvider 객체 전달
+ * const provider = new RangeTileProvider('path/to/file.jp2');
+ * const { layer, destroy } = await createJP2TileLayer(provider);
+ *
+ * @example
+ * // URL 문자열 직접 전달 (requestHeaders 포함)
+ * const { layer, destroy } = await createJP2TileLayer('path/to/file.jp2', {
+ *   requestHeaders: { Authorization: 'Bearer token' },
+ * });
+ */
 export async function createJP2TileLayer(
   providerOrUrl: TileProvider | string,
   options?: JP2LayerOptions,
