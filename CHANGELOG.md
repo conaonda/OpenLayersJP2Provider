@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 15
+
+### Added
+- **`JP2LayerOptions.attributions`**: OpenLayers TileImage 소스에 저작권/출처 정보 전달 옵션 추가 (closes #64, PR #66)
+  - 타입: `string | string[]`
+  - OpenLayers TileImage 소스의 `attributions` 옵션에 그대로 전달
+- **`JP2LayerOptions.bands`**: 다중 채널 이미지에서 특정 밴드를 RGB에 매핑하는 옵션 추가 (closes #65, PR #66)
+  - 타입: `[r: number, g: number, b: number]` (0-based 인덱스)
+  - 예: `[3, 2, 1]` — 4채널 이미지에서 적외선 합성 표현
+  - `componentCount` 범위 초과 시 경고 후 기본 매핑 유지
+  - `componentCount >= 3`인 경우에만 적용
+
+---
+
 ## [Unreleased] — Sprint 14
 
 ### Added
