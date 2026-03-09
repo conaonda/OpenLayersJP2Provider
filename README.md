@@ -66,6 +66,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `tileLoadTimeout` | `number` | - | 개별 타일 로드 타임아웃 (ms). 초과 시 `Error('Tile load timeout')` throw. 미지정 시 타임아웃 없음 |
 | `initialOpacity` | `number` | `1.0` | 레이어 초기 투명도 (0.0 ~ 1.0) |
 | `requestHeaders` | `Record<string, string>` | - | HTTP 요청에 추가할 커스텀 헤더. URL 문자열로 호출 시 `RangeTileProvider`에 전달 |
+| `colormap` | `(value: number) => [r, g, b]` | - | 단채널(grayscale) 이미지에 적용할 컬러맵 함수. 0~255 픽셀 값을 RGB로 변환 (`componentCount === 1`에만 적용) |
+| `onTileLoadStart` | `(info: { col, row, decodeLevel }) => void` | - | 타일 로드 시작 시 호출되는 콜백 (`sem.acquire` 이후, `getTile` 직전) |
 
 #### 반환값 (`JP2LayerResult`)
 
@@ -104,6 +106,7 @@ const provider = new RangeTileProvider(url, options);
 |------|------|--------|------|
 | `cacheTTL` | `number` | `86400000` (24시간) | IndexedDB 캐시 TTL (밀리초) |
 | `requestHeaders` | `Record<string, string>` | - | JP2 파일 fetch 시 추가할 HTTP 헤더 (인증 토큰 등). `Range` 헤더는 항상 마지막에 적용되어 덮어쓸 수 없음 |
+| `maxConcurrency` | `number` | WorkerPool 기본값 | 디코딩 워커 풀 크기 (동시 디코딩 작업 수 제어) |
 
 ```typescript
 // TTL을 1시간으로 설정

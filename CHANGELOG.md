@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 14
+
+### Added
+- **`JP2LayerOptions.colormap`**: 단채널(grayscale) 이미지에 적용할 컬러맵 함수 옵션 추가 (closes #57, PR #60)
+  - 시그니처: `(value: number) => [r: number, g: number, b: number]`
+  - 0~255 픽셀 값을 RGB로 변환, 단채널 이미지(`componentCount === 1`)에만 적용
+- **`JP2LayerOptions.onTileLoadStart`**: 타일 로드 시작 시 호출되는 콜백 옵션 추가 (closes #58, PR #61)
+  - 시그니처: `(info: { col, row, decodeLevel }) => void`
+  - `sem.acquire()` 이후, `provider.getTile()` 직전에 호출 — 타일 생명주기 추적 완성
+- **`RangeTileProvider` `maxConcurrency` 옵션**: 디코딩 워커 풀 크기 제어 옵션 추가 (closes #59, PR #62)
+  - `new RangeTileProvider(url, { maxConcurrency: 4 })` 형태로 WorkerPool 크기 직접 지정
+  - 미지정 시 WorkerPool 기본값 유지
+
+---
+
 ## [Unreleased] — Sprint 13
 
 ### Added
