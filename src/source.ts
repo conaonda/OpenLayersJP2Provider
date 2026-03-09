@@ -7,6 +7,7 @@ import proj4 from 'proj4';
 import type Tile from 'ol/Tile';
 import ImageTile from 'ol/ImageTile';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
+import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
 
 async function ensureProjection(
@@ -84,6 +85,8 @@ export interface JP2LayerOptions {
   tileLoadTimeout?: number;
   /** 레이어 초기 투명도 (0.0 ~ 1.0, 기본값: 1.0) */
   initialOpacity?: number;
+  /** HTTP 요청에 추가할 커스텀 헤더 (URL 문자열로 호출 시 RangeTileProvider에 전달) */
+  requestHeaders?: Record<string, string>;
 }
 
 export interface JP2LayerResult {
@@ -97,9 +100,17 @@ export interface JP2LayerResult {
 }
 
 export async function createJP2TileLayer(
-  provider: TileProvider,
+  providerOrUrl: TileProvider | string,
   options?: JP2LayerOptions,
 ): Promise<JP2LayerResult> {
+  const provider: TileProvider =
+    typeof providerOrUrl === 'string'
+      ? new RangeTileProvider(providerOrUrl, {
+          minValue: options?.minValue,
+          maxValue: options?.maxValue,
+          requestHeaders: options?.requestHeaders,
+        })
+      : providerOrUrl;
   const info = await provider.init();
   const { width, height, tileWidth, tileHeight, tilesX, tilesY, geoInfo } = info;
 
