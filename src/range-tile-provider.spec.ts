@@ -122,4 +122,27 @@ describe('RangeTileProvider', () => {
       expect(provider).toBeInstanceOf(RangeTileProvider);
     });
   });
+
+  describe('maxConcurrency 옵션', () => {
+    it('maxConcurrency 없이 생성하면 정상적으로 초기화된다', () => {
+      const provider = new RangeTileProvider('https://example.com/test.jp2');
+      expect(provider).toBeInstanceOf(RangeTileProvider);
+    });
+
+    it('maxConcurrency를 지정하면 정상적으로 초기화된다', () => {
+      const provider = new RangeTileProvider('https://example.com/test.jp2', {
+        maxConcurrency: 8,
+      });
+      expect(provider).toBeInstanceOf(RangeTileProvider);
+    });
+
+    it('maxConcurrency와 다른 옵션을 함께 지정해도 오류가 발생하지 않는다', () => {
+      const provider = new RangeTileProvider('https://example.com/test.jp2', {
+        cacheTTL: 5000,
+        maxConcurrency: 2,
+        requestHeaders: { Authorization: 'Bearer token' },
+      });
+      expect(provider).toBeInstanceOf(RangeTileProvider);
+    });
+  });
 });
