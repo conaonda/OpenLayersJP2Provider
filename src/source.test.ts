@@ -268,3 +268,22 @@ describe('bands option', () => {
   });
 });
 
+describe('visible option', () => {
+  it('should accept visible: false', () => {
+    const opts: JP2LayerOptions = { visible: false };
+    expect(opts.visible).toBe(false);
+  });
+
+  it('should accept visible: true', () => {
+    const opts: JP2LayerOptions = { visible: true };
+    expect(opts.visible).toBe(true);
+  });
+
+  it('should be optional (undefined when not specified, defaults to true)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.visible).toBeUndefined();
+    // Default behavior: visible ?? true === true
+    expect(opts.visible ?? true).toBe(true);
+  });
+});
+
