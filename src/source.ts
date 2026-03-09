@@ -80,6 +80,8 @@ export interface JP2LayerOptions {
   onTileLoad?: (info: { col: number; row: number; decodeLevel: number }) => void;
   /** 타일 로드 진행률 콜백 */
   onProgress?: (info: { loaded: number; total: number; failed: number }) => void;
+  /** 개별 타일 로드 타임아웃 (ms). 미지정 시 타임아웃 없음 */
+  tileLoadTimeout?: number;
   /** 레이어 초기 투명도 (0.0 ~ 1.0, 기본값: 1.0) */
   initialOpacity?: number;
 }
@@ -178,6 +180,7 @@ export async function createJP2TileLayer(
   const retryCount = options?.tileRetryCount ?? 0;
   const retryDelay = options?.tileRetryDelay ?? 500;
   const retryMaxDelay = options?.tileRetryMaxDelay ?? 5000;
+  const tileLoadTimeout = options?.tileLoadTimeout;
   const onTileError = options?.onTileError;
   const onTileLoad = options?.onTileLoad;
   const onProgress = options?.onProgress;
@@ -238,7 +241,17 @@ export async function createJP2TileLayer(
           let lastErr: unknown;
           for (let attempt = 0; attempt <= retryCount; attempt++) {
             try {
-              decoded = await provider.getTile(col, row, decodeLevel);
+              const tilePromise = provider.getTile(col, row, decodeLevel);
+              if (tileLoadTimeout != null) {
+                decoded = await Promise.race([
+                  tilePromise,
+                  new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Tile load timeout')), tileLoadTimeout),
+                  ),
+                ]);
+              } else {
+                decoded = await tilePromise;
+              }
               break;
             } catch (err) {
               lastErr = err;
