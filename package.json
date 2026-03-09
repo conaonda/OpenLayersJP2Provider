@@ -2,10 +2,18 @@
   "name": "openlayersjp2provider",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
+  "main": "dist/openlayersjp2provider.mjs",
+  "module": "dist/openlayersjp2provider.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/openlayersjp2provider.mjs",
+      "types": "./dist/index.d.ts"
+    }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
