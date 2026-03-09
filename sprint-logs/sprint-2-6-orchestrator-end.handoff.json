@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 2,
+  "status": "success",
+  "merged_prs": [12, 13, 9],
+  "closed_issues": [10, 11],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter가 스프린트 2 변경사항(tsc 에러 수정, debug-logger 모듈 도입)을 CHANGELOG 및 README에 반영"
+}
