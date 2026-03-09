@@ -4,11 +4,13 @@ import { WorkerPool } from './worker-pool';
 import { buildTileCodestream } from './codestream-builder';
 
 const IDB_NAME = 'jp2-tile-index';
-const IDB_VERSION = 1;
+const IDB_VERSION = 2;
 const IDB_STORE = 'indices';
+const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface CachedIndex {
   url: string;
+  cachedAt: number;
   tiles: TileIndex[];
   mainHeader: number[];
   width: number;
@@ -25,25 +27,48 @@ function openIDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(IDB_NAME, IDB_VERSION);
     req.onupgradeneeded = () => {
-      req.result.createObjectStore(IDB_STORE, { keyPath: 'url' });
+      const db = req.result;
+      if (db.objectStoreNames.contains(IDB_STORE)) {
+        db.deleteObjectStore(IDB_STORE);
+      }
+      db.createObjectStore(IDB_STORE, { keyPath: 'url' });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
 
-async function getCachedIndex(url: string): Promise<CachedIndex | undefined> {
+async function getCachedIndex(url: string, ttlMs: number = DEFAULT_TTL_MS): Promise<CachedIndex | undefined> {
   try {
     const db = await openIDB();
-    return new Promise((resolve, reject) => {
+    const cached: CachedIndex | undefined = await new Promise((resolve, reject) => {
       const tx = db.transaction(IDB_STORE, 'readonly');
       const req = tx.objectStore(IDB_STORE).get(url);
       req.onsuccess = () => resolve(req.result ?? undefined);
       req.onerror = () => reject(req.error);
       tx.oncomplete = () => db.close();
     });
+    if (cached && (Date.now() - cached.cachedAt) > ttlMs) {
+      await deleteCachedIndex(url);
+      return undefined;
+    }
+    return cached;
   } catch {
     return undefined;
+  }
+}
+
+async function deleteCachedIndex(url: string): Promise<void> {
+  try {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(url);
+      tx.oncomplete = () => { db.close(); resolve(); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    });
+  } catch {
+    // deletion failure is non-fatal
   }
 }
 
@@ -93,6 +118,10 @@ export class RangeTileProvider implements TileProvider {
   private info!: JP2Info;
   private pool = new WorkerPool();
   private maxDecodeLevel = 5;
+
+  static async invalidateCache(url: string): Promise<void> {
+    await deleteCachedIndex(url);
+  }
   private cache = new DecodedTileCache(50);
   private inflight = new Map<string, Promise<DecodedTile>>();
   private globalMin?: number;
@@ -123,6 +152,7 @@ export class RangeTileProvider implements TileProvider {
       this.info = await parseJP2(this.url);
       await setCachedIndex({
         url: this.url,
+        cachedAt: Date.now(),
         tiles: this.info.tiles,
         mainHeader: Array.from(this.info.mainHeader),
         width: this.info.width,
