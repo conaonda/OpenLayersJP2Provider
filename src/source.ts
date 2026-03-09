@@ -70,6 +70,12 @@ export interface JP2LayerOptions {
   maxValue?: number;
   /** 타일 로드 실패 시 재시도 횟수 (기본값: 0, 재시도 없음) */
   tileRetryCount?: number;
+  /** 재시도 초기 delay (ms, 기본값: 500). exponential backoff 적용: delay * 2^attempt */
+  tileRetryDelay?: number;
+  /** 재시도 최대 delay 상한 (ms, 기본값: 5000) */
+  tileRetryMaxDelay?: number;
+  /** 모든 재시도 소진 후 최종 실패 시 호출되는 콜백 */
+  onTileError?: (info: { col: number; row: number; decodeLevel: number; error: unknown }) => void;
 }
 
 export interface JP2LayerResult {
@@ -164,6 +170,9 @@ export async function createJP2TileLayer(
 
   const sem = new Semaphore(options?.maxConcurrentTiles ?? 4);
   const retryCount = options?.tileRetryCount ?? 0;
+  const retryDelay = options?.tileRetryDelay ?? 500;
+  const retryMaxDelay = options?.tileRetryMaxDelay ?? 5000;
+  const onTileError = options?.onTileError;
 
   const source = new TileImage({
     projection,
@@ -213,12 +222,17 @@ export async function createJP2TileLayer(
             } catch (err) {
               lastErr = err;
               if (attempt < retryCount) {
-                debugWarn(`Tile (${col},${row}) load failed (attempt ${attempt + 1}/${retryCount + 1}), retrying...`);
+                const delay = Math.min(retryDelay * Math.pow(2, attempt), retryMaxDelay);
+                debugWarn(`Tile (${col},${row}) load failed (attempt ${attempt + 1}/${retryCount + 1}), retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
               }
             }
           }
           if (!decoded) {
             debugError(`Failed to load tile (${col},${row}) sub(${subCol},${subRow}) after ${retryCount + 1} attempts:`, lastErr);
+            if (onTileError) {
+              onTileError({ col, row, decodeLevel, error: lastErr });
+            }
             tile.setState(3);
             return;
           }
