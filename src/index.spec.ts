@@ -1,4 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+vi.mock('@abasb75/openjpeg', () => ({ decode: vi.fn() }));
+
 import * as publicApi from './index';
 
 describe('public API (index.ts)', () => {
@@ -12,6 +15,10 @@ describe('public API (index.ts)', () => {
 
   it('RangeTileProvider 클래스를 export한다', () => {
     expect(typeof publicApi.RangeTileProvider).toBe('function');
+  });
+
+  it('JP2Decoder 클래스를 export한다', () => {
+    expect(typeof publicApi.JP2Decoder).toBe('function');
   });
 
   it('setDebug(true/false) 호출이 오류 없이 동작한다', () => {
