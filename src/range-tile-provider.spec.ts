@@ -42,6 +42,35 @@ describe('RangeTileProvider', () => {
     });
   });
 
+  describe('minValue/maxValue 옵션', () => {
+    it('minValue/maxValue 없이 생성하면 정상적으로 초기화된다', () => {
+      const provider = new RangeTileProvider('https://example.com/test.jp2');
+      expect(provider).toBeInstanceOf(RangeTileProvider);
+    });
+
+    it('minValue/maxValue 커스텀 값으로 생성하면 정상적으로 초기화된다', () => {
+      const provider = new RangeTileProvider('https://example.com/test.jp2', {
+        minValue: 0,
+        maxValue: 65535,
+      });
+      expect(provider).toBeInstanceOf(RangeTileProvider);
+    });
+
+    it('minValue만 지정해도 오류가 발생하지 않는다', () => {
+      const provider = new RangeTileProvider('https://example.com/test.jp2', {
+        minValue: 100,
+      });
+      expect(provider).toBeInstanceOf(RangeTileProvider);
+    });
+
+    it('maxValue만 지정해도 오류가 발생하지 않는다', () => {
+      const provider = new RangeTileProvider('https://example.com/test.jp2', {
+        maxValue: 50000,
+      });
+      expect(provider).toBeInstanceOf(RangeTileProvider);
+    });
+  });
+
   describe('cacheTTL 옵션', () => {
     it('cacheTTL 없이 생성하면 정상적으로 초기화된다', () => {
       const provider = new RangeTileProvider('https://example.com/test.jp2');
