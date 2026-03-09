@@ -1,3 +1,5 @@
+import { debugLog, debugWarn } from './debug-logger';
+
 export interface TileIndex {
   tileId: number;
   offset: number;     // absolute file offset
@@ -217,7 +219,7 @@ function parseGeoTIFF(data: Uint8Array): GeoInfo | undefined {
   }
 
   if (epsgCode === 0) {
-    console.warn('GeoJP2: could not determine EPSG code from GeoKeys');
+    debugWarn('GeoJP2: could not determine EPSG code from GeoKeys');
     return undefined;
   }
 
@@ -231,12 +233,12 @@ function parseGeoTIFF(data: Uint8Array): GeoInfo | undefined {
   // lat/lon order. Detect and swap if originY is out of latitude range
   // but originX is within latitude range.
   if (isGeographic && Math.abs(originY) > 90 && Math.abs(originX) <= 90) {
-    console.log('GeoJP2: detected lat/lon axis swap, correcting...');
+    debugLog('GeoJP2: detected lat/lon axis swap, correcting...');
     [originX, originY] = [originY, originX];
     [scaleX, scaleY] = [scaleY, scaleX];
   }
 
-  console.log(`GeoJP2: EPSG:${epsgCode}, origin=(${originX}, ${originY}), scale=(${scaleX}, ${scaleY}), geographic=${isGeographic}`);
+  debugLog(`GeoJP2: EPSG:${epsgCode}, origin=(${originX}, ${originY}), scale=(${scaleX}, ${scaleY}), geographic=${isGeographic}`);
 
   return {
     originX,
@@ -274,7 +276,7 @@ function parseGMLJP2(xml: string): GeoInfo | undefined {
       const pixelScaleY = Math.abs(v0y) || Math.abs(v1y);
 
       if (pixelScaleX > 0 && pixelScaleY > 0) {
-        console.log(`GMLJP2: EPSG:${epsgCode}, origin=(${ox}, ${oy}), scale=(${pixelScaleX}, ${pixelScaleY})`);
+        debugLog(`GMLJP2: EPSG:${epsgCode}, origin=(${ox}, ${oy}), scale=(${pixelScaleX}, ${pixelScaleY})`);
         return { originX: ox, originY: oy, pixelScaleX, pixelScaleY, epsgCode };
       }
     }
@@ -284,7 +286,7 @@ function parseGMLJP2(xml: string): GeoInfo | undefined {
     const upperMatch = xml.match(/<gml:upperCorner[^>]*>\s*([\d.eE+-]+)\s+([\d.eE+-]+)/);
     if (lowerMatch && upperMatch) {
       // Store envelope — pixelScale will be computed later with image dimensions
-      console.log(`GMLJP2: EPSG:${epsgCode}, envelope found (pixelScale needs image dimensions)`);
+      debugLog(`GMLJP2: EPSG:${epsgCode}, envelope found (pixelScale needs image dimensions)`);
       // For now, return with placeholder scales — caller should compute
       return {
         originX: parseFloat(lowerMatch[2]),
@@ -402,7 +404,7 @@ export async function parseJP2(url: string): Promise<JP2Info> {
         }
         if (geoInfo) break;
       } catch (e) {
-        console.warn(`Failed to fetch pending geo box at offset ${pending.fileOffset}:`, e);
+        debugWarn(`Failed to fetch pending geo box at offset ${pending.fileOffset}:`, e);
       }
     }
   }
@@ -417,7 +419,7 @@ export async function parseJP2(url: string): Promise<JP2Info> {
   const tilesY = Math.ceil(siz.height / siz.tileHeight);
   const totalTiles = tilesX * tilesY;
 
-  console.log(`JP2 info: ${siz.width}x${siz.height}, tiles ${tilesX}x${tilesY} (${totalTiles}), tile size ${siz.tileWidth}x${siz.tileHeight}`);
+  debugLog(`JP2 info: ${siz.width}x${siz.height}, tiles ${tilesX}x${tilesY} (${totalTiles}), tile size ${siz.tileWidth}x${siz.tileHeight}`);
 
   // Step 2: Sequential SOT scan to build tile index
   const tiles: TileIndex[] = [];
@@ -451,11 +453,11 @@ export async function parseJP2(url: string): Promise<JP2Info> {
     sotOffset += psot;
 
     if ((i + 1) % 50 === 0) {
-      console.log(`Indexed ${i + 1}/${totalTiles} tiles...`);
+      debugLog(`Indexed ${i + 1}/${totalTiles} tiles...`);
     }
   }
 
-  console.log(`Tile index complete: ${tiles.length} tiles indexed`);
+  debugLog(`Tile index complete: ${tiles.length} tiles indexed`);
 
   // If GMLJP2 envelope had placeholder pixelScale, compute from image dimensions
   let finalGeoInfo = geoInfo;

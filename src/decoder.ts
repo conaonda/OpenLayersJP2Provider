@@ -2,6 +2,7 @@ import { decode } from '@abasb75/openjpeg';
 import type { DecodedOpenJPEG } from '@abasb75/openjpeg/types';
 import { decodedBufferToRGBA } from './pixel-conversion';
 import { buildTileCodestream } from './codestream-builder';
+import { debugLog } from './debug-logger';
 
 export interface DecodeResult {
   data: Uint8ClampedArray;
@@ -18,7 +19,7 @@ export class JP2Decoder {
 
     const { width, height, componentCount, bitsPerSample } = result.frameInfo;
     const rgba = decodedBufferToRGBA(new Uint8Array(result.decodedBuffer), width, height, componentCount, bitsPerSample, minValue, maxValue);
-    console.log(`JP2 decoded: ${width}x${height}, ${componentCount}ch, ${bitsPerSample}bps`);
+    debugLog(`JP2 decoded: ${width}x${height}, ${componentCount}ch, ${bitsPerSample}bps`);
     return { data: rgba, width, height };
   }
 

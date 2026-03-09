@@ -2,6 +2,7 @@ import type { TileProvider, TileProviderInfo, DecodedTile, GeoInfo } from './til
 import { parseJP2, fetchTileData, type JP2Info, type TileIndex } from './jp2-parser';
 import { WorkerPool } from './worker-pool';
 import { buildTileCodestream } from './codestream-builder';
+import { debugLog, debugWarn } from './debug-logger';
 
 const IDB_NAME = 'jp2-tile-index';
 const IDB_VERSION = 2;
@@ -134,7 +135,7 @@ export class RangeTileProvider implements TileProvider {
 
     const cached = await getCachedIndex(this.url);
     if (cached) {
-      console.log('Loaded tile index from IndexedDB cache');
+      debugLog('Loaded tile index from IndexedDB cache');
       this.info = {
         width: cached.width,
         height: cached.height,
@@ -148,7 +149,7 @@ export class RangeTileProvider implements TileProvider {
         geoInfo: cached.geoInfo,
       };
     } else {
-      console.log('Parsing JP2 structure and building tile index...');
+      debugLog('Parsing JP2 structure and building tile index...');
       this.info = await parseJP2(this.url);
       await setCachedIndex({
         url: this.url,
@@ -164,7 +165,7 @@ export class RangeTileProvider implements TileProvider {
         componentCount: this.info.componentCount,
         geoInfo: this.info.geoInfo,
       });
-      console.log('Tile index cached to IndexedDB');
+      debugLog('Tile index cached to IndexedDB');
     }
 
     const maxDim = Math.max(this.info.tileWidth, this.info.tileHeight);
@@ -233,10 +234,10 @@ export class RangeTileProvider implements TileProvider {
       if (resp.stats) {
         this.globalMin = resp.stats.min;
         this.globalMax = resp.stats.max;
-        console.log(`Global stats from sample tile: min=${this.globalMin}, max=${this.globalMax}`);
+        debugLog(`Global stats from sample tile: min=${this.globalMin}, max=${this.globalMax}`);
       }
     } catch (err) {
-      console.warn('Failed to compute global stats, using full-range fallback:', err);
+      debugWarn('Failed to compute global stats, using full-range fallback:', err);
     }
   }
 
@@ -256,7 +257,7 @@ export class RangeTileProvider implements TileProvider {
     const resp = await this.pool.decode(codestream.buffer as ArrayBuffer, decodeLevel > 0 ? decodeLevel : undefined, this.globalMin, this.globalMax);
     if (resp.error) throw new Error(resp.error);
 
-    console.log(`Tile (${col},${row}) decoded: ${resp.width}x${resp.height} (decodeLevel=${decodeLevel})`);
+    debugLog(`Tile (${col},${row}) decoded: ${resp.width}x${resp.height} (decodeLevel=${decodeLevel})`);
     return {
       data: new Uint8ClampedArray(resp.data!),
       width: resp.width!,
