@@ -68,6 +68,8 @@ export interface JP2LayerOptions {
   minValue?: number;
   /** 픽셀 정규화 최대값 (16비트 이미지용) */
   maxValue?: number;
+  /** 타일 로드 실패 시 재시도 횟수 (기본값: 0, 재시도 없음) */
+  tileRetryCount?: number;
 }
 
 export interface JP2LayerResult {
@@ -161,6 +163,7 @@ export async function createJP2TileLayer(
   });
 
   const sem = new Semaphore(options?.maxConcurrentTiles ?? 4);
+  const retryCount = options?.tileRetryCount ?? 0;
 
   const source = new TileImage({
     projection,
@@ -201,7 +204,24 @@ export async function createJP2TileLayer(
       (async () => {
         await sem.acquire();
         try {
-          const decoded = await provider.getTile(col, row, decodeLevel);
+          let decoded;
+          let lastErr: unknown;
+          for (let attempt = 0; attempt <= retryCount; attempt++) {
+            try {
+              decoded = await provider.getTile(col, row, decodeLevel);
+              break;
+            } catch (err) {
+              lastErr = err;
+              if (attempt < retryCount) {
+                debugWarn(`Tile (${col},${row}) load failed (attempt ${attempt + 1}/${retryCount + 1}), retrying...`);
+              }
+            }
+          }
+          if (!decoded) {
+            debugError(`Failed to load tile (${col},${row}) sub(${subCol},${subRow}) after ${retryCount + 1} attempts:`, lastErr);
+            tile.setState(3);
+            return;
+          }
 
           const canvas = document.createElement('canvas');
           canvas.width = DISPLAY_TILE_SIZE;
