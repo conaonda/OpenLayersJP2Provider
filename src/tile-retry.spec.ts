@@ -20,13 +20,14 @@ async function loadTileWithRetry(
   return null;
 }
 
-/** source.ts의 backoff + onTileError 로직을 독립적으로 추출한 헬퍼 */
+/** source.ts의 backoff + onTileError/onTileLoad 로직을 독립적으로 추출한 헬퍼 */
 async function loadTileWithBackoff(
   getTile: () => Promise<{ data: Uint8ClampedArray; width: number; height: number }>,
   retryCount: number,
   retryDelay: number,
   retryMaxDelay: number,
   onTileError?: (info: { col: number; row: number; error: unknown }) => void,
+  onTileLoad?: (info: { col: number; row: number; decodeLevel: number }) => void,
 ): Promise<{ data: Uint8ClampedArray; width: number; height: number } | null> {
   let lastErr: unknown;
   let decoded: { data: Uint8ClampedArray; width: number; height: number } | null = null;
@@ -47,6 +48,9 @@ async function loadTileWithBackoff(
       onTileError({ col: 0, row: 0, error: lastErr });
     }
     return null;
+  }
+  if (onTileLoad) {
+    onTileLoad({ col: 0, row: 0, decodeLevel: 0 });
   }
   return decoded;
 }
@@ -199,5 +203,68 @@ describe('onTileError 콜백', () => {
     const delays = setTimeoutSpy.mock.calls.map(call => call[1]);
     expect(delays).toContain(500);
     expect(delays).toContain(1000);
+  });
+});
+
+describe('onTileLoad 콜백', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('디코딩 성공 시 onTileLoad가 정확히 한 번 호출된다', async () => {
+    const tile = { data: new Uint8ClampedArray(4), width: 1, height: 1 };
+    const getTile = vi.fn().mockResolvedValue(tile);
+    const onTileLoad = vi.fn();
+
+    const promise = loadTileWithBackoff(getTile, 2, 100, 5000, undefined, onTileLoad);
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result).toBe(tile);
+    expect(onTileLoad).toHaveBeenCalledTimes(1);
+    expect(onTileLoad).toHaveBeenCalledWith(
+      expect.objectContaining({ col: 0, row: 0, decodeLevel: 0 }),
+    );
+  });
+
+  it('모든 재시도 실패 시 onTileLoad가 호출되지 않는다', async () => {
+    const getTile = vi.fn().mockRejectedValue(new Error('fail'));
+    const onTileLoad = vi.fn();
+
+    const promise = loadTileWithBackoff(getTile, 2, 100, 5000, undefined, onTileLoad);
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(onTileLoad).not.toHaveBeenCalled();
+  });
+
+  it('재시도 후 성공하면 onTileLoad가 호출된다', async () => {
+    const tile = { data: new Uint8ClampedArray(4), width: 1, height: 1 };
+    const getTile = vi.fn()
+      .mockRejectedValueOnce(new Error('fail'))
+      .mockResolvedValueOnce(tile);
+    const onTileLoad = vi.fn();
+
+    const promise = loadTileWithBackoff(getTile, 2, 100, 5000, undefined, onTileLoad);
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result).toBe(tile);
+    expect(onTileLoad).toHaveBeenCalledTimes(1);
+  });
+
+  it('onTileLoad가 없으면 오류 없이 정상 반환한다', async () => {
+    const tile = { data: new Uint8ClampedArray(4), width: 1, height: 1 };
+    const getTile = vi.fn().mockResolvedValue(tile);
+
+    const promise = loadTileWithBackoff(getTile, 0, 100, 5000);
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result).toBe(tile);
   });
 });

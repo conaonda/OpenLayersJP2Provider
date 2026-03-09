@@ -76,6 +76,8 @@ export interface JP2LayerOptions {
   tileRetryMaxDelay?: number;
   /** 모든 재시도 소진 후 최종 실패 시 호출되는 콜백 */
   onTileError?: (info: { col: number; row: number; decodeLevel: number; error: unknown }) => void;
+  /** 타일 디코딩 성공 시 호출되는 콜백 */
+  onTileLoad?: (info: { col: number; row: number; decodeLevel: number }) => void;
 }
 
 export interface JP2LayerResult {
@@ -173,6 +175,7 @@ export async function createJP2TileLayer(
   const retryDelay = options?.tileRetryDelay ?? 500;
   const retryMaxDelay = options?.tileRetryMaxDelay ?? 5000;
   const onTileError = options?.onTileError;
+  const onTileLoad = options?.onTileLoad;
 
   const source = new TileImage({
     projection,
@@ -235,6 +238,10 @@ export async function createJP2TileLayer(
             }
             tile.setState(3);
             return;
+          }
+
+          if (onTileLoad) {
+            onTileLoad({ col, row, decodeLevel });
           }
 
           const canvas = document.createElement('canvas');
