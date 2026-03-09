@@ -39,12 +39,57 @@ npx playwright test  # E2E 테스트
 
 ## API
 
+### `createJP2TileLayer`
+
+```typescript
+const result = await createJP2TileLayer(provider, options);
+```
+
+#### 옵션 (`JP2LayerOptions`)
+
+| 옵션 | 타입 | 기본값 | 설명 |
+|------|------|--------|------|
+| `maxConcurrentTiles` | `number` | `4` | 동시 타일 로드 최대 수 |
+| `projectionResolver` | `(epsgCode: number) => Promise<string \| null>` | epsg.io fetch | EPSG 코드에 대한 proj4 문자열 resolver |
+| `minValue` | `number` | 자동 계산 | 픽셀 정규화 최소값 (16비트 이미지용) |
+| `maxValue` | `number` | 자동 계산 | 픽셀 정규화 최대값 (16비트 이미지용) |
+| `tileRetryCount` | `number` | `0` | 타일 로드 실패 시 재시도 횟수 |
+
+#### 반환값 (`JP2LayerResult`)
+
+| 속성 | 타입 | 설명 |
+|------|------|------|
+| `layer` | `TileLayer<TileImage>` | OpenLayers 레이어 |
+| `info` | `TileProviderInfo` | JP2 파일 메타데이터 |
+| `projection` | `Projection` | 좌표계 |
+| `extent` | `[number, number, number, number]` | 범위 |
+| `resolutions` | `number[]` | 해상도 목록 |
+| `destroy` | `() => void` | 내부 리소스(WebWorker 풀) 해제 |
+
+```typescript
+const { layer, projection, extent, destroy } = await createJP2TileLayer(provider);
+
+// 사용 완료 후 리소스 해제
+destroy();
+```
+
 ### `RangeTileProvider`
 
 JP2 파일을 Range 요청으로 분할 조회하는 타일 프로바이더.
 
 ```typescript
 const provider = new RangeTileProvider(url, options);
+```
+
+#### 생성자 옵션
+
+| 옵션 | 타입 | 기본값 | 설명 |
+|------|------|--------|------|
+| `cacheTTL` | `number` | `86400000` (24시간) | IndexedDB 캐시 TTL (밀리초) |
+
+```typescript
+// TTL을 1시간으로 설정
+const provider = new RangeTileProvider(url, { cacheTTL: 60 * 60 * 1000 });
 ```
 
 #### 정적 메서드
@@ -58,6 +103,7 @@ await RangeTileProvider.invalidateCache(url: string): Promise<void>
 
 - JP2 타일 인덱스를 `jp2-tile-index` DB (버전 2)에 저장
 - 기본 TTL: 24시간 (만료 시 자동 삭제 후 재파싱)
+- `cacheTTL` 옵션으로 TTL 커스텀 가능
 - `invalidateCache(url)`로 수동 무효화 가능
 
 ### `WorkerPool`
@@ -95,12 +141,29 @@ setDebug(false); // 콘솔 출력 비활성화 (기본값)
 라이브러리로 사용 시 `src/index.ts`를 통해 공개 API를 import합니다.
 
 ```typescript
-import { setDebug, createJP2TileLayer, RangeTileProvider } from 'openlayers-jp2provider';
-import type { JP2LayerResult, TileProvider, TileProviderInfo, GeoInfo } from 'openlayers-jp2provider';
+import { setDebug, createJP2TileLayer, RangeTileProvider, JP2Decoder } from 'openlayers-jp2provider';
+import type {
+  JP2LayerResult,
+  JP2LayerOptions,
+  TileProvider,
+  TileProviderInfo,
+  GeoInfo,
+  DecodeResult,
+} from 'openlayers-jp2provider';
 
 // 디버그 로그 활성화
 setDebug(true);
 
-// JP2 레이어 생성
-const { layer, view } = createJP2TileLayer({ url: 'path/to/file.jp2' });
+// JP2 레이어 생성 (커스텀 TTL 및 동시 로드 수 설정)
+const provider = new RangeTileProvider('path/to/file.jp2', { cacheTTL: 60 * 60 * 1000 });
+const { layer, projection, extent, destroy } = await createJP2TileLayer(provider, {
+  maxConcurrentTiles: 8,
+});
+
+// 사용 완료 후 리소스 해제
+destroy();
+
+// JP2Decoder 직접 사용
+const decoder = new JP2Decoder();
+const result: DecodeResult = await decoder.decode(jp2Data);
 ```

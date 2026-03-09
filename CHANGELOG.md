@@ -4,6 +4,48 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 7
+
+### Added
+- **`JP2LayerOptions.minValue` / `maxValue`**: 픽셀 정규화 최소/최대값 옵션 추가 (closes #32, PR #34)
+  - 16비트 이미지 등 사용자 정의 정규화 범위 지정 가능
+  - 미지정 시 자동 계산(픽셀 데이터 min/max 추론) 폴백 동작
+- **`JP2LayerOptions.tileRetryCount`**: 타일 로드 실패 시 자동 재시도 옵션 추가 (closes #33, PR #35)
+  - 기본값: `0` (재시도 없음), 양의 정수로 재시도 횟수 지정
+
+---
+
+## [Unreleased] — Sprint 6
+
+### Added
+- **`JP2LayerResult.destroy()`**: `createJP2TileLayer()`가 반환하는 결과에 `destroy()` 메서드 추가 (closes #28, PR #30)
+  - `destroy()` 호출 시 내부 `TileProvider.destroy()` → `WorkerPool.destroy()` 연쇄 호출로 WebWorker 풀 해제
+- **`RangeTileProvider` `cacheTTL` 옵션**: 생성자 옵션에 `cacheTTL` 추가 (closes #29, PR #30)
+  - `new RangeTileProvider(url, { cacheTTL: ms })` 형태로 IndexedDB 캐시 TTL 커스텀 설정 가능
+  - 기본값은 기존과 동일한 24시간
+
+---
+
+## [Unreleased] — Sprint 5
+
+### Added
+- **`JP2Decoder` public export**: `JP2Decoder` 클래스와 `DecodeResult` 타입을 공개 API로 export (#25, PR #25)
+  - 소비자가 직접 JP2 파일을 디코딩할 수 있도록 `JP2Decoder` 직접 인스턴스화 지원
+- **`JP2LayerOptions`**: `createJP2TileLayer()` 두 번째 인자로 옵션 객체 추가 (#26, PR #26)
+  - `maxConcurrentTiles`: 동시 타일 로드 최대 수 (기본값: 4)
+  - `projectionResolver`: EPSG 코드에 대한 proj4 문자열을 반환하는 커스텀 resolver
+
+---
+
+## [Unreleased] — Sprint 4
+
+### Added
+- **Vite lib mode 빌드**: `vite.config.ts` lib 모드 설정, `package.json` entry points 구성 (#21)
+  - `dist/openlayers-jp2provider.js` (ESM), `dist/openlayers-jp2provider.umd.cjs` (UMD) 번들 생성
+  - `package.json`에 `main`, `module`, `exports` 필드 추가
+
+---
+
 ## [Unreleased] — Sprint 3
 
 ### Fixed
