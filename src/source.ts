@@ -7,6 +7,7 @@ import proj4 from 'proj4';
 import type Tile from 'ol/Tile';
 import ImageTile from 'ol/ImageTile';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
+import { debugLog, debugWarn } from './debug-logger';
 
 async function ensureProjection(epsgCode: number): Promise<void> {
   const code = `EPSG:${epsgCode}`;
@@ -17,10 +18,10 @@ async function ensureProjection(epsgCode: number): Promise<void> {
     if (def.trim().startsWith('+')) {
       proj4.defs(code, def.trim());
       register(proj4);
-      console.log(`Registered projection ${code} from epsg.io`);
+      debugLog(`Registered projection ${code} from epsg.io`);
     }
   } catch (e) {
-    console.warn(`Failed to fetch projection ${code} from epsg.io:`, e);
+    debugWarn(`Failed to fetch projection ${code} from epsg.io:`, e);
   }
 }
 
@@ -89,7 +90,7 @@ export async function createJP2TileLayer(
       const computedMinY = originY - height * pixelScaleY;
       // If Y values are out of latitude range but X values look like latitude, swap
       if ((Math.abs(originY) > 90 || Math.abs(computedMinY) > 90) && Math.abs(originX) <= 90) {
-        console.log('Detected lat/lon axis swap in geo info, correcting...');
+        debugLog('Detected lat/lon axis swap in geo info, correcting...');
         [originX, originY] = [originY, originX];
         [pixelScaleX, pixelScaleY] = [pixelScaleY, pixelScaleX];
       }
