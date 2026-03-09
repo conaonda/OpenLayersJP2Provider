@@ -243,12 +243,16 @@ export async function createJP2TileLayer(
             try {
               const tilePromise = provider.getTile(col, row, decodeLevel);
               if (tileLoadTimeout != null) {
-                decoded = await Promise.race([
-                  tilePromise,
-                  new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error('Tile load timeout')), tileLoadTimeout),
-                  ),
-                ]);
+                decoded = await new Promise<typeof decoded>((resolve, reject) => {
+                  const timer = setTimeout(
+                    () => reject(new Error('Tile load timeout')),
+                    tileLoadTimeout,
+                  );
+                  tilePromise.then(
+                    v => { clearTimeout(timer); resolve(v); },
+                    e => { clearTimeout(timer); reject(e); },
+                  );
+                });
               } else {
                 decoded = await tilePromise;
               }
