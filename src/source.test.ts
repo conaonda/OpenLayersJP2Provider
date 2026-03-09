@@ -285,5 +285,27 @@ describe('visible option', () => {
     // Default behavior: visible ?? true === true
     expect(opts.visible ?? true).toBe(true);
   });
+
+  describe('resolveVisible logic (options?.visible ?? true)', () => {
+    function resolveVisible(options?: JP2LayerOptions): boolean {
+      return options?.visible ?? true;
+    }
+
+    it('returns false when visible: false', () => {
+      expect(resolveVisible({ visible: false })).toBe(false);
+    });
+
+    it('returns true when visible: true', () => {
+      expect(resolveVisible({ visible: true })).toBe(true);
+    });
+
+    it('returns true when visible is omitted', () => {
+      expect(resolveVisible({})).toBe(true);
+    });
+
+    it('returns true when options is undefined', () => {
+      expect(resolveVisible(undefined)).toBe(true);
+    });
+  });
 });
 
