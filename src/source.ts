@@ -87,6 +87,8 @@ export interface JP2LayerOptions {
   initialOpacity?: number;
   /** HTTP 요청에 추가할 커스텀 헤더 (URL 문자열로 호출 시 RangeTileProvider에 전달) */
   requestHeaders?: Record<string, string>;
+  /** 단채널(grayscale) 이미지에 적용할 컬러맵 함수. 0~255 값을 [r, g, b]로 변환 */
+  colormap?: (value: number) => [r: number, g: number, b: number];
   /** 타일 로드 시작 시 호출되는 콜백 (sem.acquire 이후, getTile 직전) */
   onTileLoadStart?: (info: { col: number; row: number; decodeLevel: number }) => void;
 }
@@ -198,6 +200,7 @@ export async function createJP2TileLayer(
   const onTileLoad = options?.onTileLoad;
   const onTileLoadStart = options?.onTileLoadStart;
   const onProgress = options?.onProgress;
+  const colormap = options?.colormap;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -254,13 +257,13 @@ export async function createJP2TileLayer(
           if (onTileLoadStart) {
             onTileLoadStart({ col, row, decodeLevel });
           }
-          let decoded;
+          let decoded: Awaited<ReturnType<TileProvider['getTile']>> | undefined;
           let lastErr: unknown;
           for (let attempt = 0; attempt <= retryCount; attempt++) {
             try {
               const tilePromise = provider.getTile(col, row, decodeLevel);
               if (tileLoadTimeout != null) {
-                decoded = await new Promise<typeof decoded>((resolve, reject) => {
+                decoded = await new Promise<Awaited<ReturnType<TileProvider['getTile']>>>((resolve, reject) => {
                   const timer = setTimeout(
                     () => reject(new Error('Tile load timeout')),
                     tileLoadTimeout,
@@ -292,6 +295,16 @@ export async function createJP2TileLayer(
             emitProgress();
             tile.setState(3);
             return;
+          }
+
+          if (colormap && info.componentCount === 1) {
+            const d = decoded.data;
+            for (let p = 0; p < d.length; p += 4) {
+              const [r, g, b] = colormap(d[p]);
+              d[p] = r;
+              d[p + 1] = g;
+              d[p + 2] = b;
+            }
           }
 
           if (onTileLoad) {
