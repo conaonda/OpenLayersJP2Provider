@@ -93,10 +93,16 @@ const provider = new RangeTileProvider(url, options);
 | 옵션 | 타입 | 기본값 | 설명 |
 |------|------|--------|------|
 | `cacheTTL` | `number` | `86400000` (24시간) | IndexedDB 캐시 TTL (밀리초) |
+| `requestHeaders` | `Record<string, string>` | - | JP2 파일 fetch 시 추가할 HTTP 헤더 (인증 토큰 등). `Range` 헤더는 항상 마지막에 적용되어 덮어쓸 수 없음 |
 
 ```typescript
 // TTL을 1시간으로 설정
 const provider = new RangeTileProvider(url, { cacheTTL: 60 * 60 * 1000 });
+
+// 인증 헤더 추가
+const provider = new RangeTileProvider(url, {
+  requestHeaders: { Authorization: 'Bearer <token>' },
+});
 ```
 
 #### 정적 메서드
