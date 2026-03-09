@@ -1,0 +1,46 @@
+{
+  "sprint": 1,
+  "repo": "conaonda/OpenLayersJP2Provider",
+  "date": "2026-03-09",
+  "start_time": 1773065932,
+  "end_time": 1773067073,
+  "elapsed_seconds": 1141,
+  "closed_issues": [
+    {
+      "number": 4,
+      "title": "feat: IndexedDB 타일 인덱스 캐시에 TTL 및 URL 기반 무효화 추가"
+    },
+    {
+      "number": 3,
+      "title": "refactor: decoder.ts의 decodeTile()과 range-tile-provider.ts의 코드스트림 조립 로직 중복 제거"
+    },
+    {
+      "number": 2,
+      "title": "fix: WorkerPool onerror에서 pending task가 reject되지 않아 메모리 누수 발생"
+    }
+  ],
+  "merged_prs": [
+    {
+      "headRefName": "feat/4-indexeddb-cache-ttl",
+      "number": 7,
+      "title": "feat(cache): add TTL and URL-based invalidation to IndexedDB cache"
+    },
+    {
+      "headRefName": "refactor/3-extract-build-tile-codestream",
+      "number": 6,
+      "title": "refactor(codestream): extract buildTileCodestream to remove duplication"
+    },
+    {
+      "headRefName": "fix/2-workerpool-onerror-pending-reject",
+      "number": 5,
+      "title": "fix(worker-pool): reject pending tasks on worker error and destroy"
+    },
+    {
+      "headRefName": "fix/16bit-jp2-crosshatch",
+      "number": 1,
+      "title": "Fix 16-bit JP2 crosshatch/black screen rendering"
+    }
+  ],
+  "issue_count": 3,
+  "pr_count": 4
+}

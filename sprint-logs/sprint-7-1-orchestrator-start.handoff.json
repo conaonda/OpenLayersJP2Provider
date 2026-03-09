@@ -1,0 +1,16 @@
+{
+  "role": "orchestrator-start",
+  "sprint": 7,
+  "status": "success",
+  "selected_issues": [
+    {"number": 8, "title": "research: Kakadu JPIP 서버 연동을 통한 서버사이드 JP2 스트리밍 도입 검토", "labels": ["agent/researcher"]},
+    {"number": 32, "title": "feat: JP2LayerOptions에 minValue/maxValue 픽셀 정규화 옵션 추가", "labels": ["enhancement", "agent/developer"]},
+    {"number": 33, "title": "feat: 타일 로드 실패 시 자동 재시도(retry) 옵션 추가", "labels": ["enhancement", "agent/developer"]}
+  ],
+  "researcher_needed": true,
+  "issues": [
+    "미할당 오픈 이슈가 #8(researcher) 1개뿐이었으므로 developer 이슈 2개(#32, #33) 신규 생성",
+    "docs 브랜치(docs/sprint-6-update-docs)가 아직 열려 있음 — sprint 7 문서 PR에서 통합 필요"
+  ],
+  "next_action": "agent/developer: 이슈 #32(minValue/maxValue 옵션)와 #33(tile retry 옵션)을 feature 브랜치에서 구현 후 PR 제출; agent/researcher: 이슈 #8 JPIP 서버 조사 진행"
+}

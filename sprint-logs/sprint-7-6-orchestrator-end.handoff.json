@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 7,
+  "status": "success",
+  "merged_prs": [34, 35, 36],
+  "closed_issues": [32, 33],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter: PR #34(minValue/maxValue), PR #35(tileRetryCount) 내용을 바탕으로 sprint-7 문서 최종 정리 및 sprint-7-summary.json 작성"
+}

@@ -1,0 +1,14 @@
+{
+  "role": "reviewer",
+  "sprint": 5,
+  "status": "success",
+  "reviewed_prs": [25, 26],
+  "approved_prs": [],
+  "change_requested_prs": [],
+  "issues": [
+    "자신의 PR은 GitHub 정책상 승인 불가 — 코멘트(LGTM)로 대체",
+    "PR #25: JP2Decoder/DecodeResult export 및 테스트 모킹 정상",
+    "PR #26: JP2LayerOptions 인터페이스 설계 적절, null 체크 개선 확인"
+  ],
+  "next_action": "Tester는 feature/23-export-jp2decoder-decoderesult, feature/24-create-jp2tilelayer-options 브랜치에서 npm test 및 tsc 통과 여부 확인"
+}

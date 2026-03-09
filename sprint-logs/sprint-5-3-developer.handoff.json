@@ -1,0 +1,16 @@
+{
+  "role": "developer",
+  "sprint": 5,
+  "status": "success",
+  "completed": [
+    "feat: JP2Decoder 클래스와 DecodeResult 타입을 public API(index.ts)에서 export",
+    "feat: createJP2TileLayer에 options 파라미터 추가 (동시성 설정, projection resolver)"
+  ],
+  "pr_numbers": [25, 26],
+  "branch_names": [
+    "feature/23-export-jp2decoder-decoderesult",
+    "feature/24-create-jp2tilelayer-options"
+  ],
+  "issues": [],
+  "next_action": "Reviewer가 PR #25, #26의 코드 품질과 타입 안전성을 검토하고, Tester가 npm test 및 tsc 통과를 확인"
+}

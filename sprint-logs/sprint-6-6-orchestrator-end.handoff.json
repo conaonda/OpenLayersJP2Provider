@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 6,
+  "status": "success",
+  "merged_prs": [30],
+  "closed_issues": [28, 29],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter는 PR #30(destroy() 메서드, cacheTTL 옵션)의 변경사항을 CHANGELOG와 README에 반영하는 sprint-6 문서 PR을 생성하세요 (PR #27 내용도 통합 포함)"
+}

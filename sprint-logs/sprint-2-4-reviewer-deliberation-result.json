@@ -1,0 +1,8 @@
+{
+  "stage": "reviewer",
+  "sprint": 2,
+  "rounds": 2,
+  "consensus": false,
+  "early_exit": false,
+  "gemini_model": "gemini-2.5-flash-lite"
+}

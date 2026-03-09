@@ -1,0 +1,13 @@
+{
+  "role": "documenter",
+  "sprint": 3,
+  "status": "success",
+  "documented_prs": [17, 18, 14],
+  "updated_files": [
+    "CHANGELOG.md",
+    "README.md",
+    "src/debug-logger.ts"
+  ],
+  "doc_pr_number": 20,
+  "issues": []
+}

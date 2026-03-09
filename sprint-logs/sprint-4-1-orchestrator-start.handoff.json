@@ -1,0 +1,15 @@
+{
+  "role": "orchestrator-start",
+  "sprint": 4,
+  "status": "success",
+  "selected_issues": [
+    {"number": 19, "title": "chore: package.json main 필드와 vite.config.ts lib.entry를 src/index.ts로 업데이트", "labels": ["agent/developer"]},
+    {"number": 8, "title": "research: Kakadu JPIP 서버 연동을 통한 서버사이드 JP2 스트리밍 도입 검토", "labels": ["agent/researcher"]}
+  ],
+  "researcher_needed": true,
+  "issues": [
+    "현재 vite.config.ts에 lib 모드 설정이 없어 라이브러리 빌드가 불가능한 상태",
+    "package.json main 필드가 'index.js'로 잘못 설정됨 (src/index.ts 빌드 출력 경로와 불일치)"
+  ],
+  "next_action": "Developer: 이슈 #19에서 vite.config.ts lib 모드 및 package.json exports 필드 설정 후 빌드 검증; Researcher: 이슈 #8에서 JPIP 프로토콜 및 Kakadu 대안 기술 조사"
+}

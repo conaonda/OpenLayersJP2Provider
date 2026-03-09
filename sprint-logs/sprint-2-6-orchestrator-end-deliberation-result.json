@@ -1,0 +1,8 @@
+{
+  "stage": "orchestrator-end",
+  "sprint": 2,
+  "rounds": 1,
+  "consensus": true,
+  "early_exit": false,
+  "gemini_model": "gemini-2.5-flash-lite"
+}

@@ -1,0 +1,19 @@
+{
+  "role": "developer",
+  "sprint": 7,
+  "status": "success",
+  "completed": [
+    "feat: JP2LayerOptions에 minValue/maxValue 픽셀 정규화 옵션 추가",
+    "feat: 타일 로드 실패 시 자동 재시도(retry) 옵션 추가"
+  ],
+  "pr_numbers": [34, 35],
+  "branch_names": [
+    "feature/32-minvalue-maxvalue-options",
+    "feature/33-tile-retry-option"
+  ],
+  "issues": [
+    "#32와 #33은 별도 브랜치/PR로 분리하여 독립적으로 머지 가능",
+    "두 PR 모두 JP2LayerOptions 인터페이스를 수정하므로 머지 시 충돌 가능 — 순차 머지 권장"
+  ],
+  "next_action": "Reviewer: PR #34(minValue/maxValue)와 #35(tileRetryCount) 코드 리뷰, Tester: 단위 테스트 통과 확인 및 E2E 검증"
+}
