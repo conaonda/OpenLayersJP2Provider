@@ -10,6 +10,7 @@ export class WorkerPool {
   private queue: Array<{ request: DecodeRequest; resolve: (r: DecodeResponse) => void; reject: (e: Error) => void }> = [];
   private busy = new Set<Worker>();
   private pending = new Map<number, PendingTask>();
+  private activeTask = new Map<Worker, number>();
   private nextId = 0;
 
   constructor(private size: number = Math.min(navigator.hardwareConcurrency || 4, 4)) {}
@@ -24,11 +25,21 @@ export class WorkerPool {
           this.pending.delete(resp.id);
           task.resolve(resp);
         }
+        this.activeTask.delete(worker);
         this.busy.delete(worker);
         this.dispatch();
       };
       worker.onerror = (e) => {
         console.error('Worker error:', e);
+        const taskId = this.activeTask.get(worker);
+        if (taskId != null) {
+          const task = this.pending.get(taskId);
+          if (task) {
+            this.pending.delete(taskId);
+            task.reject(new Error(`Worker error: ${e.message || 'unknown error'}`));
+          }
+          this.activeTask.delete(worker);
+        }
         this.busy.delete(worker);
         this.dispatch();
       };
@@ -61,6 +72,7 @@ export class WorkerPool {
       const task = this.queue.shift()!;
       this.busy.add(idle);
       this.pending.set(task.request.id, { resolve: task.resolve, reject: task.reject });
+      this.activeTask.set(idle, task.request.id);
       idle.postMessage(task.request, [task.request.codestream]);
     }
   }
@@ -68,8 +80,15 @@ export class WorkerPool {
   destroy() {
     for (const w of this.workers) w.terminate();
     this.workers = [];
+    for (const task of this.queue) {
+      task.reject(new Error('WorkerPool destroyed'));
+    }
     this.queue = [];
+    for (const task of this.pending.values()) {
+      task.reject(new Error('WorkerPool destroyed'));
+    }
     this.pending.clear();
+    this.activeTask.clear();
     this.busy.clear();
   }
 }
