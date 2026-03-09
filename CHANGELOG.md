@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 11
+
+### Added
+- **`JP2LayerOptions.tileLoadTimeout`**: 개별 타일 로드 타임아웃 옵션 추가 (closes #48)
+  - 지정된 시간(ms) 초과 시 `Error('Tile load timeout')` throw
+  - 타임아웃 오류도 기존 `tileRetryCount` 재시도 로직에 포함
+  - 미지정 시 기존 동작과 동일 (타임아웃 없음)
+
+---
+
 ## [Unreleased] — Sprint 9
 
 ### Added
