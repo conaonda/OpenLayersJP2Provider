@@ -66,6 +66,10 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `tileLoadTimeout` | `number` | - | 개별 타일 로드 타임아웃 (ms). 초과 시 `Error('Tile load timeout')` throw. 미지정 시 타임아웃 없음 |
 | `initialOpacity` | `number` | `1.0` | 레이어 초기 투명도 (0.0 ~ 1.0) |
 | `requestHeaders` | `Record<string, string>` | - | HTTP 요청에 추가할 커스텀 헤더. URL 문자열로 호출 시 `RangeTileProvider`에 전달 |
+| `colormap` | `(value: number) => [r, g, b]` | - | 단채널(grayscale) 이미지에 적용할 컬러맵 함수. 0~255 픽셀 값을 RGB로 변환 (`componentCount === 1`에만 적용) |
+| `onTileLoadStart` | `(info: { col, row, decodeLevel }) => void` | - | 타일 로드 시작 시 호출되는 콜백 (`sem.acquire` 이후, `getTile` 직전) |
+| `attributions` | `string \| string[]` | - | OpenLayers TileImage 소스에 표시할 저작권/출처 정보 |
+| `bands` | `[r, g, b]` | - | 다중 채널 이미지에서 RGB에 매핑할 밴드 인덱스 (0-based). 예: `[3, 2, 1]`. `componentCount >= 3`에만 적용 |
 
 #### 반환값 (`JP2LayerResult`)
 
