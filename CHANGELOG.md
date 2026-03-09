@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 10
+
+### Added
+- **`JP2LayerOptions.onProgress`**: 타일 로드 진행률 콜백 옵션 추가 (closes #44, PR #46)
+  - 콜백 시그니처: `(info: { loaded: number; total: number; failed: number }) => void`
+  - `loaded + failed === total` 조건으로 렌더링 완료 시점 감지 가능
+  - 프로그레스 바 등 UI 구현에 활용 가능
+- **`JP2LayerOptions.initialOpacity`**: 레이어 생성 시 초기 투명도 설정 옵션 추가 (closes #45, PR #46)
+  - 범위: 0.0 ~ 1.0 (범위 밖 값은 자동 클램프)
+  - 기본값: `1.0` (완전 불투명)
+
+---
+
 ## [Unreleased] — Sprint 9
 
 ### Added
