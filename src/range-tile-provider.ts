@@ -1,6 +1,7 @@
 import type { TileProvider, TileProviderInfo, DecodedTile, GeoInfo } from './tile-provider';
 import { parseJP2, fetchTileData, type JP2Info, type TileIndex } from './jp2-parser';
 import { WorkerPool } from './worker-pool';
+import { buildTileCodestream } from './codestream-builder';
 
 const IDB_NAME = 'jp2-tile-index';
 const IDB_VERSION = 1;
@@ -194,31 +195,11 @@ export class RangeTileProvider implements TileProvider {
       const actualW = Math.min(tileWidth, imgW - col * tileWidth);
       const actualH = Math.min(tileHeight, imgH - row * tileHeight);
 
-      const header = new Uint8Array(mainHeader);
-      const hv = new DataView(header.buffer, header.byteOffset, header.byteLength);
-      const xsizOff = 8;
-      hv.setUint32(xsizOff, actualW, false);
-      hv.setUint32(xsizOff + 4, actualH, false);
-      hv.setUint32(xsizOff + 8, 0, false);
-      hv.setUint32(xsizOff + 12, 0, false);
-      hv.setUint32(xsizOff + 16, actualW, false);
-      hv.setUint32(xsizOff + 20, actualH, false);
-      hv.setUint32(xsizOff + 24, 0, false);
-      hv.setUint32(xsizOff + 28, 0, false);
-
-      const tile = new Uint8Array(tileData);
-      const tv = new DataView(tile.buffer, tile.byteOffset, tile.byteLength);
-      tv.setUint16(4, 0, false);
-
-      const eoc = new Uint8Array([0xFF, 0xD9]);
-      const codestream = new Uint8Array(header.length + tile.length + 2);
-      codestream.set(header, 0);
-      codestream.set(tile, header.length);
-      codestream.set(eoc, header.length + tile.length);
+      const codestream = buildTileCodestream(mainHeader, new Uint8Array(tileData), actualW, actualH);
 
       // Decode at highest reduction level for speed
       const statsLevel = Math.max(this.maxDecodeLevel, 2);
-      const resp = await this.pool.computeStats(codestream.buffer, statsLevel > 0 ? statsLevel : undefined);
+      const resp = await this.pool.computeStats(codestream.buffer as ArrayBuffer, statsLevel > 0 ? statsLevel : undefined);
       if (resp.stats) {
         this.globalMin = resp.stats.min;
         this.globalMax = resp.stats.max;
@@ -240,29 +221,9 @@ export class RangeTileProvider implements TileProvider {
     const actualW = Math.min(tileWidth, imgW - col * tileWidth);
     const actualH = Math.min(tileHeight, imgH - row * tileHeight);
 
-    const header = new Uint8Array(mainHeader);
-    const hv = new DataView(header.buffer, header.byteOffset, header.byteLength);
-    const xsizOff = 8;
-    hv.setUint32(xsizOff, actualW, false);
-    hv.setUint32(xsizOff + 4, actualH, false);
-    hv.setUint32(xsizOff + 8, 0, false);
-    hv.setUint32(xsizOff + 12, 0, false);
-    hv.setUint32(xsizOff + 16, actualW, false);
-    hv.setUint32(xsizOff + 20, actualH, false);
-    hv.setUint32(xsizOff + 24, 0, false);
-    hv.setUint32(xsizOff + 28, 0, false);
+    const codestream = buildTileCodestream(mainHeader, new Uint8Array(tileData), actualW, actualH);
 
-    const tile = new Uint8Array(tileData);
-    const tv = new DataView(tile.buffer, tile.byteOffset, tile.byteLength);
-    tv.setUint16(4, 0, false);
-
-    const eoc = new Uint8Array([0xFF, 0xD9]);
-    const codestream = new Uint8Array(header.length + tile.length + 2);
-    codestream.set(header, 0);
-    codestream.set(tile, header.length);
-    codestream.set(eoc, header.length + tile.length);
-
-    const resp = await this.pool.decode(codestream.buffer, decodeLevel > 0 ? decodeLevel : undefined, this.globalMin, this.globalMax);
+    const resp = await this.pool.decode(codestream.buffer as ArrayBuffer, decodeLevel > 0 ? decodeLevel : undefined, this.globalMin, this.globalMax);
     if (resp.error) throw new Error(resp.error);
 
     console.log(`Tile (${col},${row}) decoded: ${resp.width}x${resp.height} (decodeLevel=${decodeLevel})`);
