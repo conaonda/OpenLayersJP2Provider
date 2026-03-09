@@ -34,6 +34,7 @@ npx playwright test  # E2E 테스트
 | `src/worker-pool.ts` | WebWorker 풀 관리 |
 | `src/jp2-parser.ts` | JP2/JPEG2000 파일 파싱 |
 | `src/pixel-conversion.ts` | 픽셀 데이터 변환 유틸리티 |
+| `src/debug-logger.ts` | 조건부 디버그 로거 (`setDebug`로 on/off) |
 
 ## API
 
@@ -74,3 +75,16 @@ const codestream = buildTileCodestream(mainHeader, tileData, width, height);
 ```
 
 SIZ 마커를 패치하고 EOC를 추가하여 단일 타일 JP2 codestream을 조립합니다.
+
+### `setDebug` / `debugLog` / `debugWarn`
+
+```typescript
+import { setDebug } from './debug-logger';
+
+setDebug(true);  // [JP2] 프리픽스로 콘솔 출력 활성화
+setDebug(false); // 콘솔 출력 비활성화 (기본값)
+```
+
+- 기본값 `false` — 프로덕션 빌드에서 콘솔 출력 없음
+- `setDebug(true)` 호출 후 라이브러리 내부의 `debugLog`/`debugWarn`이 `[JP2]` 프리픽스와 함께 출력됨
+- 실제 오류(`console.error`)는 항상 출력됨
