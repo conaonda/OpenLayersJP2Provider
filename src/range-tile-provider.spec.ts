@@ -87,4 +87,39 @@ describe('RangeTileProvider', () => {
       expect(provider).toBeInstanceOf(RangeTileProvider);
     });
   });
+
+  describe('requestHeaders 옵션', () => {
+    it('requestHeaders 없이 생성하면 정상적으로 초기화된다', () => {
+      const provider = new RangeTileProvider('https://example.com/test.jp2');
+      expect(provider).toBeInstanceOf(RangeTileProvider);
+    });
+
+    it('requestHeaders를 지정하면 정상적으로 초기화된다', () => {
+      const provider = new RangeTileProvider('https://example.com/test.jp2', {
+        requestHeaders: { Authorization: 'Bearer token123' },
+      });
+      expect(provider).toBeInstanceOf(RangeTileProvider);
+    });
+
+    it('여러 헤더를 requestHeaders로 지정해도 오류가 발생하지 않는다', () => {
+      const provider = new RangeTileProvider('https://example.com/test.jp2', {
+        requestHeaders: {
+          Authorization: 'Bearer token123',
+          'X-Api-Key': 'mykey',
+          'X-Custom-Header': 'value',
+        },
+      });
+      expect(provider).toBeInstanceOf(RangeTileProvider);
+    });
+
+    it('requestHeaders와 다른 옵션을 함께 지정해도 오류가 발생하지 않는다', () => {
+      const provider = new RangeTileProvider('https://example.com/test.jp2', {
+        cacheTTL: 5000,
+        minValue: 0,
+        maxValue: 65535,
+        requestHeaders: { Authorization: 'Bearer token123' },
+      });
+      expect(provider).toBeInstanceOf(RangeTileProvider);
+    });
+  });
 });

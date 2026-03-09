@@ -133,10 +133,13 @@ export class RangeTileProvider implements TileProvider {
   private userMin?: number;
   private userMax?: number;
 
-  constructor(private url: string, options?: { cacheTTL?: number; minValue?: number; maxValue?: number }) {
+  private requestHeaders?: Record<string, string>;
+
+  constructor(private url: string, options?: { cacheTTL?: number; minValue?: number; maxValue?: number; requestHeaders?: Record<string, string> }) {
     this.cacheTTL = options?.cacheTTL ?? DEFAULT_TTL_MS;
     this.userMin = options?.minValue;
     this.userMax = options?.maxValue;
+    this.requestHeaders = options?.requestHeaders;
   }
 
   async init(): Promise<TileProviderInfo> {
@@ -159,7 +162,7 @@ export class RangeTileProvider implements TileProvider {
       };
     } else {
       debugLog('Parsing JP2 structure and building tile index...');
-      this.info = await parseJP2(this.url);
+      this.info = await parseJP2(this.url, this.requestHeaders);
       await setCachedIndex({
         url: this.url,
         cachedAt: Date.now(),
@@ -237,7 +240,7 @@ export class RangeTileProvider implements TileProvider {
       const col = tileIndex.tileId % this.info.tilesX;
       const row = Math.floor(tileIndex.tileId / this.info.tilesX);
 
-      const tileData = await fetchTileData(this.url, tileIndex);
+      const tileData = await fetchTileData(this.url, tileIndex, this.requestHeaders);
       const actualW = Math.min(tileWidth, imgW - col * tileWidth);
       const actualH = Math.min(tileHeight, imgH - row * tileHeight);
 
