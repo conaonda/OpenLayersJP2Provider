@@ -1,6 +1,7 @@
 import { decode } from '@abasb75/openjpeg';
 import type { DecodedOpenJPEG } from '@abasb75/openjpeg/types';
 import { decodedBufferToRGBA } from './pixel-conversion';
+import { buildTileCodestream } from './codestream-builder';
 
 export interface DecodeResult {
   data: Uint8ClampedArray;
@@ -33,35 +34,11 @@ export class JP2Decoder {
     tileHeight: number,
     imageWidth: number,
     imageHeight: number,
-    tilesX: number,
   ): Promise<DecodeResult> {
     const actualW = Math.min(tileWidth, imageWidth - tileCol * tileWidth);
     const actualH = Math.min(tileHeight, imageHeight - tileRow * tileHeight);
 
-    const header = new Uint8Array(mainHeader);
-    const hv = new DataView(header.buffer, header.byteOffset, header.byteLength);
-
-    const sizOffset = 4;
-    const xsizOff = sizOffset + 4;
-    hv.setUint32(xsizOff, actualW, false);
-    hv.setUint32(xsizOff + 4, actualH, false);
-    hv.setUint32(xsizOff + 8, 0, false);
-    hv.setUint32(xsizOff + 12, 0, false);
-    hv.setUint32(xsizOff + 16, actualW, false);
-    hv.setUint32(xsizOff + 20, actualH, false);
-    hv.setUint32(xsizOff + 24, 0, false);
-    hv.setUint32(xsizOff + 28, 0, false);
-
-    const tile = new Uint8Array(tileData);
-    const tv = new DataView(tile.buffer, tile.byteOffset, tile.byteLength);
-    tv.setUint16(4, 0, false);
-
-    const eoc = new Uint8Array([0xFF, 0xD9]);
-    const codestream = new Uint8Array(header.length + tile.length + 2);
-    codestream.set(header, 0);
-    codestream.set(tile, header.length);
-    codestream.set(eoc, header.length + tile.length);
-
-    return this.decode(codestream.buffer);
+    const codestream = buildTileCodestream(mainHeader, tileData, actualW, actualH);
+    return this.decode(codestream.buffer as ArrayBuffer);
   }
 }
