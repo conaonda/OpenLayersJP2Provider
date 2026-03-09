@@ -27,9 +27,9 @@ export interface JP2Info {
   geoInfo?: GeoInfo;
 }
 
-async function fetchRange(url: string, start: number, end: number): Promise<ArrayBuffer> {
+async function fetchRange(url: string, start: number, end: number, extraHeaders?: Record<string, string>): Promise<ArrayBuffer> {
   const resp = await fetch(url, {
-    headers: { Range: `bytes=${start}-${end}` },
+    headers: { ...extraHeaders, Range: `bytes=${start}-${end}` },
   });
   if (!resp.ok && resp.status !== 206) {
     throw new Error(`Range request failed: ${resp.status}`);
@@ -376,10 +376,10 @@ function findFirstSOT(data: Uint8Array, afterSIZ: number, csOffset: number): num
 /**
  * Parse JP2 file via HTTP Range requests and build tile index.
  */
-export async function parseJP2(url: string): Promise<JP2Info> {
+export async function parseJP2(url: string, extraHeaders?: Record<string, string>): Promise<JP2Info> {
   // Step 1: Read initial chunk to find jp2c, geo info, and parse SIZ
   const initialSize = 262144; // 256KB to capture geo metadata boxes
-  const initialData = new Uint8Array(await fetchRange(url, 0, initialSize - 1));
+  const initialData = new Uint8Array(await fetchRange(url, 0, initialSize - 1, extraHeaders));
   const { jp2cOffset, geoInfo: initialGeoInfo, pendingGeoBoxes } = scanJP2Boxes(initialData);
 
   // If geo info not found but there are truncated geo boxes, fetch and parse them
@@ -387,7 +387,7 @@ export async function parseJP2(url: string): Promise<JP2Info> {
   if (!geoInfo && pendingGeoBoxes.length > 0) {
     for (const pending of pendingGeoBoxes) {
       try {
-        const boxData = new Uint8Array(await fetchRange(url, pending.fileOffset, pending.fileOffset + pending.length - 1));
+        const boxData = new Uint8Array(await fetchRange(url, pending.fileOffset, pending.fileOffset + pending.length - 1, extraHeaders));
         const view = new DataView(boxData.buffer, boxData.byteOffset, boxData.byteLength);
         let headerSize = 8;
         const boxLen = readUint32(view, 0);
@@ -427,7 +427,7 @@ export async function parseJP2(url: string): Promise<JP2Info> {
 
   for (let i = 0; i < totalTiles; i++) {
     // Read 12 bytes of SOT marker segment
-    const sotData = new Uint8Array(await fetchRange(url, sotOffset, sotOffset + 11));
+    const sotData = new Uint8Array(await fetchRange(url, sotOffset, sotOffset + 11, extraHeaders));
     const view = new DataView(sotData.buffer);
 
     const marker = readUint16(view, 0);
@@ -484,7 +484,7 @@ export async function parseJP2(url: string): Promise<JP2Info> {
 /**
  * Fetch tile data for a specific tile by its index entry.
  */
-export async function fetchTileData(url: string, tile: TileIndex): Promise<Uint8Array> {
-  const data = await fetchRange(url, tile.offset, tile.offset + tile.length - 1);
+export async function fetchTileData(url: string, tile: TileIndex, extraHeaders?: Record<string, string>): Promise<Uint8Array> {
+  const data = await fetchRange(url, tile.offset, tile.offset + tile.length - 1, extraHeaders);
   return new Uint8Array(data);
 }
