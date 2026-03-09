@@ -87,6 +87,8 @@ export interface JP2LayerOptions {
   initialOpacity?: number;
   /** HTTP 요청에 추가할 커스텀 헤더 (URL 문자열로 호출 시 RangeTileProvider에 전달) */
   requestHeaders?: Record<string, string>;
+  /** 타일 로드 시작 시 호출되는 콜백 (sem.acquire 이후, getTile 직전) */
+  onTileLoadStart?: (info: { col: number; row: number; decodeLevel: number }) => void;
 }
 
 export interface JP2LayerResult {
@@ -194,6 +196,7 @@ export async function createJP2TileLayer(
   const tileLoadTimeout = options?.tileLoadTimeout;
   const onTileError = options?.onTileError;
   const onTileLoad = options?.onTileLoad;
+  const onTileLoadStart = options?.onTileLoadStart;
   const onProgress = options?.onProgress;
 
   // Progress tracking state
@@ -248,6 +251,9 @@ export async function createJP2TileLayer(
         emitProgress();
         await sem.acquire();
         try {
+          if (onTileLoadStart) {
+            onTileLoadStart({ col, row, decodeLevel });
+          }
           let decoded;
           let lastErr: unknown;
           for (let attempt = 0; attempt <= retryCount; attempt++) {
