@@ -1,0 +1,9 @@
+{
+  "role": "documenter",
+  "sprint": 9,
+  "status": "success",
+  "documented_prs": [42, 39],
+  "updated_files": ["CHANGELOG.md", "README.md"],
+  "doc_pr_number": 43,
+  "issues": []
+}

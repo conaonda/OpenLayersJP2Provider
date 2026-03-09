@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 9
+
+### Added
+- **`JP2LayerOptions.onTileLoad`**: 타일 디코딩 성공 시 호출되는 콜백 옵션 추가 (closes #41, PR #42)
+  - 콜백 시그니처: `(info: { col, row, decodeLevel }) => void`
+  - `onTileError`와 대칭적인 인터페이스 제공, 로딩 진행률 UI 구현에 활용 가능
+
+---
+
+## [Unreleased] — Sprint 8
+
+### Added
+- **`JP2LayerOptions.onTileError`**: 모든 재시도 소진 후 최종 실패 시 호출되는 콜백 옵션 추가 (closes #39, PR #39)
+  - 콜백 시그니처: `(info: { col, row, decodeLevel, error }) => void`
+- **`JP2LayerOptions.tileRetryDelay`**: 재시도 초기 delay 옵션 추가 (기본값: 500ms) (closes #39, PR #39)
+  - exponential backoff 적용: `delay * 2^attempt`
+- **`JP2LayerOptions.tileRetryMaxDelay`**: 재시도 최대 delay 상한 옵션 추가 (기본값: 5000ms) (closes #39, PR #39)
+
+---
+
 ## [Unreleased] — Sprint 7
 
 ### Added

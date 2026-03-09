@@ -54,6 +54,10 @@ const result = await createJP2TileLayer(provider, options);
 | `minValue` | `number` | 자동 계산 | 픽셀 정규화 최소값 (16비트 이미지용) |
 | `maxValue` | `number` | 자동 계산 | 픽셀 정규화 최대값 (16비트 이미지용) |
 | `tileRetryCount` | `number` | `0` | 타일 로드 실패 시 재시도 횟수 |
+| `tileRetryDelay` | `number` | `500` | 재시도 초기 delay (ms). exponential backoff 적용: `delay * 2^attempt` |
+| `tileRetryMaxDelay` | `number` | `5000` | 재시도 최대 delay 상한 (ms) |
+| `onTileError` | `(info: { col, row, decodeLevel, error }) => void` | - | 모든 재시도 소진 후 최종 실패 시 호출되는 콜백 |
+| `onTileLoad` | `(info: { col, row, decodeLevel }) => void` | - | 타일 디코딩 성공 시 호출되는 콜백 |
 
 #### 반환값 (`JP2LayerResult`)
 
