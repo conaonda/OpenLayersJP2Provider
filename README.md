@@ -26,6 +26,7 @@ npx playwright test  # E2E 테스트
 
 | 파일 | 설명 |
 |------|------|
+| `src/index.ts` | 라이브러리 공개 API 진입점 (`createJP2TileLayer`, `RangeTileProvider`, `setDebug` export) |
 | `src/source.ts` | OpenLayers TileSource 생성 |
 | `src/range-tile-provider.ts` | HTTP Range 요청으로 JP2 타일 데이터 조회, IndexedDB 캐시 관리 |
 | `src/codestream-builder.ts` | JP2 단일 타일 codestream 조립 유틸리티 |
@@ -76,15 +77,35 @@ const codestream = buildTileCodestream(mainHeader, tileData, width, height);
 
 SIZ 마커를 패치하고 EOC를 추가하여 단일 타일 JP2 codestream을 조립합니다.
 
-### `setDebug` / `debugLog` / `debugWarn`
+### `createJP2TileLayer`
 
 ```typescript
-import { setDebug } from './debug-logger';
+import { createJP2TileLayer } from 'openlayersjp2provider';
+
+const { layer, info, projection, extent, resolutions } = await createJP2TileLayer(provider);
+```
+
+JP2 파일의 GeoInfo를 읽어 OpenLayers `TileLayer`와 투영 정보를 생성합니다.
+
+### `setDebug`
+
+```typescript
+import { setDebug } from 'openlayersjp2provider';
 
 setDebug(true);  // [JP2] 프리픽스로 콘솔 출력 활성화
 setDebug(false); // 콘솔 출력 비활성화 (기본값)
 ```
 
 - 기본값 `false` — 프로덕션 빌드에서 콘솔 출력 없음
-- `setDebug(true)` 호출 후 라이브러리 내부의 `debugLog`/`debugWarn`이 `[JP2]` 프리픽스와 함께 출력됨
-- 실제 오류(`console.error`)는 항상 출력됨
+- `setDebug(true)` 호출 후 라이브러리 내부의 `debugLog`/`debugWarn`/`debugError`가 `[JP2]` 프리픽스와 함께 출력됨
+
+## 패키징
+
+라이브러리는 ES 모듈 단일 번들로 빌드됩니다.
+
+- 빌드 출력: `dist/openlayersjp2provider.mjs`, `dist/index.d.ts`
+- Peer dependencies (`ol`, `proj4`)는 번들에서 제외됩니다. 사용 환경에서 별도 설치 필요합니다.
+
+```bash
+npm install ol proj4 openlayersjp2provider
+```

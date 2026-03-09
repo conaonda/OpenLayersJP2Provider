@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 4
+
+### Changed
+- **빌드**: Vite lib 모드 설정 추가 — `src/index.ts`를 진입점으로 ES 포맷 단일 번들 출력 (#19)
+  - `vite.config.ts`에 `build.lib` 설정 추가 (`entry: src/index.ts`, `formats: ['es']`)
+  - `ol/*` 및 `proj4` peer dependency를 external 처리하여 번들에서 제외
+  - `package.json`에 `main`, `module`, `exports`, `types`, `files` 필드 추가
+  - 빌드 출력 파일: `dist/openlayersjp2provider.mjs`, `dist/index.d.ts`
+
+---
+
+## [Unreleased] — Sprint 3
+
+### Fixed
+- **debug-logger**: `debugError()` 함수 추가 — `console.error` 직접 호출을 `debugError`로 교체 (#17)
+
+### Added
+- **Public API**: `setDebug`를 `src/index.ts`에서 공개 API로 export (#18)
+  - `import { setDebug } from 'openlayersjp2provider'`로 외부에서 접근 가능
+
+---
+
 ## [Unreleased] — Sprint 2
 
 ### Fixed
