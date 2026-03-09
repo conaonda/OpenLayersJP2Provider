@@ -4,6 +4,6 @@
   "status": "success",
   "documented_prs": [42, 39],
   "updated_files": ["CHANGELOG.md", "README.md"],
-  "doc_pr_number": null,
+  "doc_pr_number": 43,
   "issues": []
 }
