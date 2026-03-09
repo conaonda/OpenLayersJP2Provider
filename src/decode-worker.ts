@@ -31,15 +31,15 @@ self.onmessage = async (e: MessageEvent<DecodeRequest>) => {
     const { width, height, componentCount, bitsPerSample } = result.frameInfo;
 
     if (statsOnly) {
-      const stats = computeMinMax(result.decodedBuffer, width * height, componentCount, bitsPerSample);
+      const stats = computeMinMax(new Uint8Array(result.decodedBuffer), width * height, componentCount, bitsPerSample);
       const resp: DecodeResponse = { id, width, height, stats: stats ?? undefined };
       (self as unknown as Worker).postMessage(resp);
       return;
     }
 
-    const rgba = decodedBufferToRGBA(result.decodedBuffer, width, height, componentCount, bitsPerSample, minValue, maxValue);
+    const rgba = decodedBufferToRGBA(new Uint8Array(result.decodedBuffer), width, height, componentCount, bitsPerSample, minValue, maxValue);
 
-    const resp: DecodeResponse = { id, data: rgba.buffer, width, height };
+    const resp: DecodeResponse = { id, data: rgba.buffer as ArrayBuffer, width, height };
     (self as unknown as Worker).postMessage(resp, [rgba.buffer]);
   } catch (err: any) {
     const resp: DecodeResponse = { id, error: err?.message ?? String(err) };

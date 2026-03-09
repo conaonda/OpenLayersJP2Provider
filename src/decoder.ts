@@ -17,7 +17,7 @@ export class JP2Decoder {
     const result: DecodedOpenJPEG = await decode(data, decodeLevel != null ? { decodeLevel } : undefined);
 
     const { width, height, componentCount, bitsPerSample } = result.frameInfo;
-    const rgba = decodedBufferToRGBA(result.decodedBuffer, width, height, componentCount, bitsPerSample, minValue, maxValue);
+    const rgba = decodedBufferToRGBA(new Uint8Array(result.decodedBuffer), width, height, componentCount, bitsPerSample, minValue, maxValue);
     console.log(`JP2 decoded: ${width}x${height}, ${componentCount}ch, ${bitsPerSample}bps`);
     return { data: rgba, width, height };
   }
