@@ -9,19 +9,27 @@ import ImageTile from 'ol/ImageTile';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
 
-async function ensureProjection(epsgCode: number): Promise<void> {
+async function ensureProjection(
+  epsgCode: number,
+  resolver?: (epsgCode: number) => Promise<string | null>,
+): Promise<void> {
   const code = `EPSG:${epsgCode}`;
   if (getProjection(code)) return;
   try {
-    const resp = await fetch(`https://epsg.io/${epsgCode}.proj4`);
-    const def = await resp.text();
-    if (def.trim().startsWith('+')) {
+    let def: string | null = null;
+    if (resolver) {
+      def = await resolver(epsgCode);
+    } else {
+      const resp = await fetch(`https://epsg.io/${epsgCode}.proj4`);
+      def = await resp.text();
+    }
+    if (def && def.trim().startsWith('+')) {
       proj4.defs(code, def.trim());
       register(proj4);
-      debugLog(`Registered projection ${code} from epsg.io`);
+      debugLog(`Registered projection ${code}`);
     }
   } catch (e) {
-    debugWarn(`Failed to fetch projection ${code} from epsg.io:`, e);
+    debugWarn(`Failed to fetch projection ${code}:`, e);
   }
 }
 
@@ -51,6 +59,13 @@ class Semaphore {
 
 const DISPLAY_TILE_SIZE = 256;
 
+export interface JP2LayerOptions {
+  /** 동시 타일 로드 최대 수 (기본값: 4) */
+  maxConcurrentTiles?: number;
+  /** EPSG 코드에 대한 proj4 문자열을 반환하는 커스텀 resolver (기본값: epsg.io fetch) */
+  projectionResolver?: (epsgCode: number) => Promise<string | null>;
+}
+
 export interface JP2LayerResult {
   layer: TileLayer<TileImage>;
   info: TileProviderInfo;
@@ -61,6 +76,7 @@ export interface JP2LayerResult {
 
 export async function createJP2TileLayer(
   provider: TileProvider,
+  options?: JP2LayerOptions,
 ): Promise<JP2LayerResult> {
   const info = await provider.init();
   const { width, height, tileWidth, tileHeight, tilesX, tilesY, geoInfo } = info;
@@ -78,7 +94,7 @@ export async function createJP2TileLayer(
   let projection: Projection;
 
   if (geoInfo) {
-    await ensureProjection(geoInfo.epsgCode);
+    await ensureProjection(geoInfo.epsgCode, options?.projectionResolver);
 
     // For geographic CRS (e.g. EPSG:4326), origin may have lat/lon order.
     // OpenLayers expects X=lon, Y=lat. Detect and swap if needed.
@@ -138,7 +154,7 @@ export async function createJP2TileLayer(
     tileSize: [DISPLAY_TILE_SIZE, DISPLAY_TILE_SIZE],
   });
 
-  const sem = new Semaphore(4);
+  const sem = new Semaphore(options?.maxConcurrentTiles ?? 4);
 
   const source = new TileImage({
     projection,

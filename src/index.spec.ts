@@ -25,4 +25,10 @@ describe('public API (index.ts)', () => {
     expect(() => publicApi.setDebug(true)).not.toThrow();
     expect(() => publicApi.setDebug(false)).not.toThrow();
   });
+
+  it('createJP2TileLayer가 options 파라미터를 받는다 (arity 확인)', () => {
+    // JP2LayerOptions는 타입만 export되므로 런타임 값으로 직접 접근 불가.
+    // createJP2TileLayer(provider, options?) — 파라미터 2개 선언
+    expect(publicApi.createJP2TileLayer.length).toBe(2);
+  });
 });
