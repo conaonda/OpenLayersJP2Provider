@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 12
+
+### Added
+- **`RangeTileProvider` 생성자 옵션 `requestHeaders`**: JP2 파일 Range 요청 시 커스텀 HTTP 헤더 전달 기능 추가 (closes #51, PR #52)
+  - 인증 토큰(`Authorization`) 등 서버 인증이 필요한 환경에서 활용 가능
+  - `Range` 헤더는 항상 마지막에 적용되어 커스텀 헤더로 덮어쓸 수 없음
+  - `parseJP2` 및 `fetchTileData` 내부 함수에 `extraHeaders` 파라미터로 전파
+
+---
+
 ## [Unreleased] — Sprint 11
 
 ### Added

@@ -115,6 +115,15 @@ class DecodedTileCache {
   }
 }
 
+/**
+ * HTTP Range 요청을 사용하여 JP2 파일을 타일 단위로 부분 조회하는 타일 프로바이더.
+ *
+ * @example
+ * const provider = new RangeTileProvider('path/to/file.jp2', {
+ *   cacheTTL: 60 * 60 * 1000,
+ *   requestHeaders: { Authorization: 'Bearer <token>' },
+ * });
+ */
 export class RangeTileProvider implements TileProvider {
   private info!: JP2Info;
   private pool = new WorkerPool();
@@ -135,6 +144,13 @@ export class RangeTileProvider implements TileProvider {
 
   private requestHeaders?: Record<string, string>;
 
+  /**
+   * @param url - JP2 파일 URL
+   * @param options.cacheTTL - IndexedDB 캐시 TTL (밀리초, 기본값: 24시간)
+   * @param options.minValue - 픽셀 정규화 최소값 (미지정 시 자동 계산)
+   * @param options.maxValue - 픽셀 정규화 최대값 (미지정 시 자동 계산)
+   * @param options.requestHeaders - fetch 요청에 추가할 HTTP 헤더. `Range` 헤더는 덮어쓸 수 없음
+   */
   constructor(private url: string, options?: { cacheTTL?: number; minValue?: number; maxValue?: number; requestHeaders?: Record<string, string> }) {
     this.cacheTTL = options?.cacheTTL ?? DEFAULT_TTL_MS;
     this.userMin = options?.minValue;
