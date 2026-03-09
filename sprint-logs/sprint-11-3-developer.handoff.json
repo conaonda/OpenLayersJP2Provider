@@ -1,0 +1,10 @@
+{
+  "role": "developer",
+  "sprint": 11,
+  "status": "success",
+  "completed": ["feat: JP2LayerOptions에 tileLoadTimeout 옵션 추가 (타일 로드 타임아웃)"],
+  "pr_numbers": [49],
+  "branch_names": ["feature/48-tile-load-timeout"],
+  "issues": [],
+  "next_action": "Reviewer는 PR #49의 tileLoadTimeout 구현을 리뷰하고, Tester는 타임아웃 동작과 재시도 통합을 검증한다"
+}

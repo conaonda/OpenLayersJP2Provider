@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 11,
+  "status": "success",
+  "merged_prs": [49, 47],
+  "closed_issues": [48],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter는 PR #49(tileLoadTimeout)와 PR #47(docs sprint-10) 머지 결과를 반영하여 스프린트 11 문서 PR을 생성한다"
+}
