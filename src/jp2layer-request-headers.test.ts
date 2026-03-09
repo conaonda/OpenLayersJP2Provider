@@ -44,8 +44,9 @@ describe('createJP2TileLayer with URL string and requestHeaders', () => {
     const { createJP2TileLayer } = await import('./source');
     const mockProvider = {
       init: vi.fn().mockRejectedValue(new Error('stop')),
+      getTile: vi.fn(),
       destroy: vi.fn(),
-    };
+    } as any;
 
     await expect(
       createJP2TileLayer(mockProvider, { requestHeaders: { 'X-Key': 'val' } }),
