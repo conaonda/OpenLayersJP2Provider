@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 4,
+  "status": "success",
+  "merged_prs": [21, 20],
+  "closed_issues": [19],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter: PR #21(build entry 통일) 및 PR #20(sprint-3 docs) 머지 완료 — CHANGELOG와 README에 빌드 설정 변경사항 반영 필요"
+}
