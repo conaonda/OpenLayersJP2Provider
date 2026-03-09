@@ -265,7 +265,7 @@ export class RangeTileProvider implements TileProvider {
     const tileIndex = this.info.tiles.find(t => t.tileId === tileId);
     if (!tileIndex) throw new Error(`Tile ${tileId} not found`);
 
-    const tileData = await fetchTileData(this.url, tileIndex);
+    const tileData = await fetchTileData(this.url, tileIndex, this.requestHeaders);
 
     const actualW = Math.min(tileWidth, imgW - col * tileWidth);
     const actualH = Math.min(tileHeight, imgH - row * tileHeight);
