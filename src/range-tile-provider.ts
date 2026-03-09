@@ -130,8 +130,13 @@ export class RangeTileProvider implements TileProvider {
 
   private cacheTTL: number;
 
-  constructor(private url: string, options?: { cacheTTL?: number }) {
+  private userMin?: number;
+  private userMax?: number;
+
+  constructor(private url: string, options?: { cacheTTL?: number; minValue?: number; maxValue?: number }) {
     this.cacheTTL = options?.cacheTTL ?? DEFAULT_TTL_MS;
+    this.userMin = options?.minValue;
+    this.userMax = options?.maxValue;
   }
 
   async init(): Promise<TileProviderInfo> {
@@ -176,8 +181,14 @@ export class RangeTileProvider implements TileProvider {
     this.maxDecodeLevel = Math.floor(Math.log2(maxDim / 64));
     if (this.maxDecodeLevel < 0) this.maxDecodeLevel = 0;
 
-    // Compute global min/max from a sample tile for proper 16-bit normalization
-    await this._computeGlobalStats();
+    // Use user-provided min/max or compute from a sample tile
+    if (this.userMin !== undefined && this.userMax !== undefined) {
+      this.globalMin = this.userMin;
+      this.globalMax = this.userMax;
+      debugLog(`Using user-provided pixel range: min=${this.globalMin}, max=${this.globalMax}`);
+    } else {
+      await this._computeGlobalStats();
+    }
 
     return {
       width: this.info.width,

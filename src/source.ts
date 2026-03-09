@@ -64,6 +64,10 @@ export interface JP2LayerOptions {
   maxConcurrentTiles?: number;
   /** EPSG 코드에 대한 proj4 문자열을 반환하는 커스텀 resolver (기본값: epsg.io fetch) */
   projectionResolver?: (epsgCode: number) => Promise<string | null>;
+  /** 픽셀 정규화 최소값 (16비트 이미지용) */
+  minValue?: number;
+  /** 픽셀 정규화 최대값 (16비트 이미지용) */
+  maxValue?: number;
 }
 
 export interface JP2LayerResult {
