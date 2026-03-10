@@ -103,6 +103,10 @@ export interface JP2LayerOptions {
   preload?: number;
   /** 레이어 DOM 요소에 적용할 CSS 클래스명 (기본값: OpenLayers 기본값 'ol-layer') */
   className?: string;
+  /** 레이어가 표시되는 최소 줌 레벨 (이 레벨 미만에서는 숨김) */
+  minZoom?: number;
+  /** 레이어가 표시되는 최대 줌 레벨 (이 레벨 초과 시 숨김) */
+  maxZoom?: number;
 }
 
 export interface JP2LayerResult {
@@ -434,10 +438,12 @@ export async function createJP2TileLayer(
   const zIndex = options?.zIndex;
   const preload = options?.preload ?? 0;
   const className = options?.className;
+  const minZoom = options?.minZoom;
+  const maxZoom = options?.maxZoom;
 
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex, preload, className })
-    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className });
+    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom })
+    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom });
 
   const destroy = () => {
     provider.destroy();
