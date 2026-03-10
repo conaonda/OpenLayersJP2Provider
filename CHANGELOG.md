@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 16
+
+### Added
+- **`JP2LayerOptions.visible`**: 레이어 초기 가시성 옵션 추가 (closes #68, PR #69)
+  - 타입: `boolean`, 기본값: `true`
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `visible` 옵션에 전달
+  - `false`로 설정 시 레이어가 초기에 숨겨진 상태로 생성됨
+
+---
+
 ## [Unreleased] — Sprint 15
 
 ### Added
