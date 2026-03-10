@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 19
+
+### Added
+- **`JP2LayerOptions.className`**: 레이어 DOM 요소에 적용할 CSS 클래스명 옵션 추가 (closes #77, PR #78)
+  - 타입: `string`, 기본값: OpenLayers 기본값 `'ol-layer'`
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `className` 옵션에 전달
+  - 복수 JP2 레이어를 CSS로 개별 제어하거나 커스텀 스타일 적용 시 활용
+
+---
+
 ## [Unreleased] — Sprint 18
 
 ### Added
