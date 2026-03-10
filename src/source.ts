@@ -99,6 +99,8 @@ export interface JP2LayerOptions {
   visible?: boolean;
   /** 레이어 렌더링 순서 (숫자가 클수록 위에 렌더링, OpenLayers 표준 옵션) */
   zIndex?: number;
+  /** 저해상도 타일 미리 로드 레벨 수 (기본값: 0, 미리 로드 없음). Infinity로 전체 피라미드 미리 로드 가능 */
+  preload?: number;
 }
 
 export interface JP2LayerResult {
@@ -428,10 +430,11 @@ export async function createJP2TileLayer(
   const visible = options?.visible ?? true;
 
   const zIndex = options?.zIndex;
+  const preload = options?.preload ?? 0;
 
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex })
-    : new TileLayer({ source, extent, opacity, visible, zIndex });
+    ? new TileLayer({ source, opacity, visible, zIndex, preload })
+    : new TileLayer({ source, extent, opacity, visible, zIndex, preload });
 
   const destroy = () => {
     provider.destroy();
