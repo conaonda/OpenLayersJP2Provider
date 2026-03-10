@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 18,
+  "status": "success",
+  "merged_prs": [75, 73],
+  "closed_issues": [74],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter는 PR #75(preload 옵션)에 대한 CHANGELOG 및 README 업데이트 문서 PR을 생성하세요."
+}
