@@ -72,6 +72,7 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `bands` | `[r, g, b]` | - | 다중 채널 이미지에서 RGB에 매핑할 밴드 인덱스 (0-based). 예: `[3, 2, 1]`. `componentCount >= 3`에만 적용 |
 | `visible` | `boolean` | `true` | 레이어 초기 가시성. `false`로 설정 시 레이어가 숨겨진 상태로 생성됨 |
 | `zIndex` | `number` | - | 레이어 렌더링 순서. 숫자가 클수록 위에 렌더링 (OpenLayers 표준 `zIndex` 옵션) |
+| `preload` | `number` | `0` | 저해상도 타일 미리 로드 레벨 수. `Infinity`로 전체 피라미드 미리 로드 가능 |
 
 #### 반환값 (`JP2LayerResult`)
 

@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 18
+
+### Added
+- **`JP2LayerOptions.preload`**: 저해상도 타일 미리 로드 레벨 수 옵션 추가 (closes #74, PR #75)
+  - 타입: `number`, 기본값: `0` (미리 로드 없음)
+  - `Infinity`로 설정 시 전체 피라미드 미리 로드
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `preload` 옵션에 전달
+  - 줌 변경 시 저해상도 타일을 먼저 표시하여 빈 타일 영역 감소에 활용
+
+---
+
 ## [Unreleased] — Sprint 17
 
 ### Added
