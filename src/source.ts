@@ -101,6 +101,8 @@ export interface JP2LayerOptions {
   zIndex?: number;
   /** 저해상도 타일 미리 로드 레벨 수 (기본값: 0, 미리 로드 없음). Infinity로 전체 피라미드 미리 로드 가능 */
   preload?: number;
+  /** 레이어 DOM 요소에 적용할 CSS 클래스명 (기본값: OpenLayers 기본값 'ol-layer') */
+  className?: string;
 }
 
 export interface JP2LayerResult {
@@ -431,10 +433,11 @@ export async function createJP2TileLayer(
 
   const zIndex = options?.zIndex;
   const preload = options?.preload ?? 0;
+  const className = options?.className;
 
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex, preload })
-    : new TileLayer({ source, extent, opacity, visible, zIndex, preload });
+    ? new TileLayer({ source, opacity, visible, zIndex, preload, className })
+    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className });
 
   const destroy = () => {
     provider.destroy();
