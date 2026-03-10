@@ -496,3 +496,88 @@ describe('zIndex option', () => {
   });
 });
 
+describe('updateWhileAnimating option', () => {
+  it('should accept updateWhileAnimating: true', () => {
+    const opts: JP2LayerOptions = { updateWhileAnimating: true };
+    expect(opts.updateWhileAnimating).toBe(true);
+  });
+
+  it('should accept updateWhileAnimating: false', () => {
+    const opts: JP2LayerOptions = { updateWhileAnimating: false };
+    expect(opts.updateWhileAnimating).toBe(false);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.updateWhileAnimating).toBeUndefined();
+  });
+
+  describe('resolveUpdateWhileAnimating logic', () => {
+    function resolveUpdateWhileAnimating(options?: JP2LayerOptions): boolean | undefined {
+      return options?.updateWhileAnimating;
+    }
+
+    it('returns true when set to true', () => {
+      expect(resolveUpdateWhileAnimating({ updateWhileAnimating: true })).toBe(true);
+    });
+
+    it('returns false when set to false', () => {
+      expect(resolveUpdateWhileAnimating({ updateWhileAnimating: false })).toBe(false);
+    });
+
+    it('returns undefined when omitted', () => {
+      expect(resolveUpdateWhileAnimating({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveUpdateWhileAnimating(undefined)).toBeUndefined();
+    });
+  });
+});
+
+describe('updateWhileInteracting option', () => {
+  it('should accept updateWhileInteracting: true', () => {
+    const opts: JP2LayerOptions = { updateWhileInteracting: true };
+    expect(opts.updateWhileInteracting).toBe(true);
+  });
+
+  it('should accept updateWhileInteracting: false', () => {
+    const opts: JP2LayerOptions = { updateWhileInteracting: false };
+    expect(opts.updateWhileInteracting).toBe(false);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.updateWhileInteracting).toBeUndefined();
+  });
+
+  describe('resolveUpdateWhileInteracting logic', () => {
+    function resolveUpdateWhileInteracting(options?: JP2LayerOptions): boolean | undefined {
+      return options?.updateWhileInteracting;
+    }
+
+    it('returns true when set to true', () => {
+      expect(resolveUpdateWhileInteracting({ updateWhileInteracting: true })).toBe(true);
+    });
+
+    it('returns false when set to false', () => {
+      expect(resolveUpdateWhileInteracting({ updateWhileInteracting: false })).toBe(false);
+    });
+
+    it('returns undefined when omitted', () => {
+      expect(resolveUpdateWhileInteracting({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveUpdateWhileInteracting(undefined)).toBeUndefined();
+    });
+  });
+});
+
+describe('updateWhileAnimating and updateWhileInteracting combined', () => {
+  it('should accept both options together', () => {
+    const opts: JP2LayerOptions = { updateWhileAnimating: true, updateWhileInteracting: true };
+    expect(opts.updateWhileAnimating).toBe(true);
+    expect(opts.updateWhileInteracting).toBe(true);
+  });
+});

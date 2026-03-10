@@ -107,6 +107,10 @@ export interface JP2LayerOptions {
   minZoom?: number;
   /** 레이어가 표시되는 최대 줌 레벨 (이 레벨 초과 시 숨김) */
   maxZoom?: number;
+  /** 애니메이션 중 타일 업데이트 여부 (기본값: false) */
+  updateWhileAnimating?: boolean;
+  /** 사용자 인터랙션 중 타일 업데이트 여부 (기본값: false) */
+  updateWhileInteracting?: boolean;
 }
 
 export interface JP2LayerResult {
@@ -440,10 +444,20 @@ export async function createJP2TileLayer(
   const className = options?.className;
   const minZoom = options?.minZoom;
   const maxZoom = options?.maxZoom;
+  const updateWhileAnimating = options?.updateWhileAnimating;
+  const updateWhileInteracting = options?.updateWhileInteracting;
 
+  // updateWhileAnimating/updateWhileInteracting are not in TileLayer's type definition
+  // but are recognized at runtime by OpenLayers' Layer base class.
+  const extraOpts = {
+    ...(updateWhileAnimating !== undefined && { updateWhileAnimating }),
+    ...(updateWhileInteracting !== undefined && { updateWhileInteracting }),
+  };
+
+  const baseLayerOpts = { source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, ...extraOpts };
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom })
-    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom });
+    ? new TileLayer(baseLayerOpts as Parameters<typeof TileLayer.prototype.setProperties>[0] & { source: TileImage })
+    : new TileLayer({ ...baseLayerOpts, extent } as Parameters<typeof TileLayer.prototype.setProperties>[0] & { source: TileImage });
 
   const destroy = () => {
     provider.destroy();
