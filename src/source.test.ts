@@ -383,6 +383,84 @@ describe('className option', () => {
   });
 });
 
+describe('minZoom option', () => {
+  it('should accept a numeric minZoom', () => {
+    const opts: JP2LayerOptions = { minZoom: 5 };
+    expect(opts.minZoom).toBe(5);
+  });
+
+  it('should accept minZoom: 0', () => {
+    const opts: JP2LayerOptions = { minZoom: 0 };
+    expect(opts.minZoom).toBe(0);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.minZoom).toBeUndefined();
+  });
+
+  describe('resolveMinZoom logic (options?.minZoom)', () => {
+    function resolveMinZoom(options?: JP2LayerOptions): number | undefined {
+      return options?.minZoom;
+    }
+
+    it('returns the value when minZoom is set', () => {
+      expect(resolveMinZoom({ minZoom: 3 })).toBe(3);
+    });
+
+    it('returns undefined when minZoom is omitted', () => {
+      expect(resolveMinZoom({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveMinZoom(undefined)).toBeUndefined();
+    });
+  });
+});
+
+describe('maxZoom option', () => {
+  it('should accept a numeric maxZoom', () => {
+    const opts: JP2LayerOptions = { maxZoom: 18 };
+    expect(opts.maxZoom).toBe(18);
+  });
+
+  it('should accept maxZoom: 0', () => {
+    const opts: JP2LayerOptions = { maxZoom: 0 };
+    expect(opts.maxZoom).toBe(0);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.maxZoom).toBeUndefined();
+  });
+
+  describe('resolveMaxZoom logic (options?.maxZoom)', () => {
+    function resolveMaxZoom(options?: JP2LayerOptions): number | undefined {
+      return options?.maxZoom;
+    }
+
+    it('returns the value when maxZoom is set', () => {
+      expect(resolveMaxZoom({ maxZoom: 15 })).toBe(15);
+    });
+
+    it('returns undefined when maxZoom is omitted', () => {
+      expect(resolveMaxZoom({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveMaxZoom(undefined)).toBeUndefined();
+    });
+  });
+});
+
+describe('minZoom and maxZoom combined', () => {
+  it('should accept both minZoom and maxZoom together', () => {
+    const opts: JP2LayerOptions = { minZoom: 3, maxZoom: 15 };
+    expect(opts.minZoom).toBe(3);
+    expect(opts.maxZoom).toBe(15);
+  });
+});
+
 describe('zIndex option', () => {
   it('should accept a numeric zIndex', () => {
     const opts: JP2LayerOptions = { zIndex: 10 };
