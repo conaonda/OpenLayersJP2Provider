@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 17
+
+### Added
+- **`JP2LayerOptions.zIndex`**: 레이어 렌더링 순서 옵션 추가 (closes #71, PR #72)
+  - 타입: `number`
+  - 숫자가 클수록 위에 렌더링 (OpenLayers 표준 `zIndex` 옵션과 동일)
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `zIndex` 옵션에 전달
+  - 복수 JP2 레이어 간 렌더링 순서 제어에 활용
+
+---
+
 ## [Unreleased] — Sprint 16
 
 ### Added
