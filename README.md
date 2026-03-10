@@ -73,6 +73,7 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `visible` | `boolean` | `true` | 레이어 초기 가시성. `false`로 설정 시 레이어가 숨겨진 상태로 생성됨 |
 | `zIndex` | `number` | - | 레이어 렌더링 순서. 숫자가 클수록 위에 렌더링 (OpenLayers 표준 `zIndex` 옵션) |
 | `preload` | `number` | `0` | 저해상도 타일 미리 로드 레벨 수. `Infinity`로 전체 피라미드 미리 로드 가능 |
+| `className` | `string` | `'ol-layer'` | 레이어 DOM 요소에 적용할 CSS 클래스명. 복수 레이어 CSS 개별 제어에 활용 |
 
 #### 반환값 (`JP2LayerResult`)
 
