@@ -353,6 +353,36 @@ describe('preload option', () => {
   });
 });
 
+describe('className option', () => {
+  it('should accept a string className', () => {
+    const opts: JP2LayerOptions = { className: 'my-custom-layer' };
+    expect(opts.className).toBe('my-custom-layer');
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.className).toBeUndefined();
+  });
+
+  describe('resolveClassName logic (options?.className)', () => {
+    function resolveClassName(options?: JP2LayerOptions): string | undefined {
+      return options?.className;
+    }
+
+    it('returns the value when className is set', () => {
+      expect(resolveClassName({ className: 'jp2-overlay' })).toBe('jp2-overlay');
+    });
+
+    it('returns undefined when className is omitted (OL uses default ol-layer)', () => {
+      expect(resolveClassName({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveClassName(undefined)).toBeUndefined();
+    });
+  });
+});
+
 describe('zIndex option', () => {
   it('should accept a numeric zIndex', () => {
     const opts: JP2LayerOptions = { zIndex: 10 };
