@@ -71,6 +71,7 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `attributions` | `string \| string[]` | - | OpenLayers TileImage 소스에 표시할 저작권/출처 정보 |
 | `bands` | `[r, g, b]` | - | 다중 채널 이미지에서 RGB에 매핑할 밴드 인덱스 (0-based). 예: `[3, 2, 1]`. `componentCount >= 3`에만 적용 |
 | `visible` | `boolean` | `true` | 레이어 초기 가시성. `false`로 설정 시 레이어가 숨겨진 상태로 생성됨 |
+| `zIndex` | `number` | - | 레이어 렌더링 순서. 숫자가 클수록 위에 렌더링 (OpenLayers 표준 `zIndex` 옵션) |
 
 #### 반환값 (`JP2LayerResult`)
 
