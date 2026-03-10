@@ -309,3 +309,38 @@ describe('visible option', () => {
   });
 });
 
+describe('zIndex option', () => {
+  it('should accept a numeric zIndex', () => {
+    const opts: JP2LayerOptions = { zIndex: 10 };
+    expect(opts.zIndex).toBe(10);
+  });
+
+  it('should accept zIndex: 0', () => {
+    const opts: JP2LayerOptions = { zIndex: 0 };
+    expect(opts.zIndex).toBe(0);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.zIndex).toBeUndefined();
+  });
+
+  describe('resolveZIndex logic (options?.zIndex)', () => {
+    function resolveZIndex(options?: JP2LayerOptions): number | undefined {
+      return options?.zIndex;
+    }
+
+    it('returns the value when zIndex is set', () => {
+      expect(resolveZIndex({ zIndex: 5 })).toBe(5);
+    });
+
+    it('returns undefined when zIndex is omitted', () => {
+      expect(resolveZIndex({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveZIndex(undefined)).toBeUndefined();
+    });
+  });
+});
+

@@ -97,6 +97,8 @@ export interface JP2LayerOptions {
   bands?: [r: number, g: number, b: number];
   /** 레이어 초기 가시성 (기본값: true) */
   visible?: boolean;
+  /** 레이어 렌더링 순서 (숫자가 클수록 위에 렌더링, OpenLayers 표준 옵션) */
+  zIndex?: number;
 }
 
 export interface JP2LayerResult {
@@ -425,9 +427,11 @@ export async function createJP2TileLayer(
   const opacity = Math.max(0, Math.min(1, options?.initialOpacity ?? 1.0));
   const visible = options?.visible ?? true;
 
+  const zIndex = options?.zIndex;
+
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible })
-    : new TileLayer({ source, extent, opacity, visible });
+    ? new TileLayer({ source, opacity, visible, zIndex })
+    : new TileLayer({ source, extent, opacity, visible, zIndex });
 
   const destroy = () => {
     provider.destroy();
