@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 20
+
+### Added
+- **`JP2LayerOptions.minZoom`**: 레이어가 표시되는 최소 줌 레벨 옵션 추가 (closes #80, PR #81)
+  - 타입: `number`
+  - 이 레벨 미만의 줌에서는 레이어가 숨겨짐
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `minZoom` 옵션에 전달
+- **`JP2LayerOptions.maxZoom`**: 레이어가 표시되는 최대 줌 레벨 옵션 추가 (closes #80, PR #81)
+  - 타입: `number`
+  - 이 레벨 초과 시 레이어가 숨겨짐
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `maxZoom` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 19
 
 ### Added

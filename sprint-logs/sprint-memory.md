@@ -20,6 +20,10 @@
 - JP2LayerOptions.attributions: OL TileImage에 저작권 표기 전달 옵션 (string | string[])
 - JP2LayerOptions.bands: 다중 채널 이미지에서 렌더링할 밴드 인덱스 배열 옵션, 유효 범위 벗어나면 무시
 - JP2LayerOptions.visible: 레이어 초기 가시성 옵션 (boolean, 기본값 true), OL TileLayer의 visible 옵션에 전달 (PR #69)
+- JP2LayerOptions.zIndex: 레이어 z-인덱스 옵션 (number), OL TileLayer의 zIndex 옵션에 전달 (PR #72)
+- JP2LayerOptions.preload: 레이어 프리로드 옵션 (number), OL TileLayer의 preload 옵션에 전달 (PR #75)
+- JP2LayerOptions.className: 레이어 CSS 클래스명 옵션 (string), OL TileLayer의 className 옵션에 전달 (PR #78)
+- JP2LayerOptions.minZoom/maxZoom: 레이어 표시 줌 레벨 범위 옵션 (number), OL TileLayer의 minZoom/maxZoom 옵션에 전달 (PR #81)
 
 ## 반복 패턴 & 주의사항
 - 동일 작성자 PR은 GitHub 정책상 공식 approve 불가 → 리뷰 코멘트로 대체
@@ -37,14 +41,14 @@
 - [x] JP2LayerOptions에 requestHeaders 옵션 미포함 — PR #55로 해결 (Sprint 13)
 
 ## 최근 3개 스프린트 요약
+### Sprint 20 (2026-03-10)
+- 완료: PR #81(minZoom/maxZoom 옵션), PR #79(docs sprint-19) 머지, 이슈 #80 닫힘, 단위 테스트 101개 전체 통과
+- 발견된 문제: 없음
+
+### Sprint 19 (2026-03-10)
+- 완료: PR #78(className 옵션), PR #76(docs sprint-18) 머지, 이슈 #77 닫힘, 단위 테스트 51개 전체 통과
+- 발견된 문제: 없음
+
 ### Sprint 16 (2026-03-10)
 - 완료: PR #69(visible 옵션), PR #67(docs sprint-15) 머지, 이슈 #68 닫힘, 단위 테스트 118개 전체 통과
 - 발견된 문제: docs PR #67이 feature PR 머지 후 충돌 → rebase 후 force-with-lease push로 해결
-
-### Sprint 15 (2026-03-10)
-- 완료: PR #66(attributions + bands 옵션), PR #63(docs sprint-14) 머지, 이슈 #64 #65 닫힘, 단위 테스트 111개 전체 통과
-- 발견된 문제: docs PR이 feature PR 머지 후 충돌 → rebase 후 force-with-lease push로 해결
-
-### Sprint 13 (2026-03-10)
-- 완료: PR #55(JP2LayerOptions.requestHeaders + URL string 오버로드 + _decodeTile 버그 수정), PR #54(docs sprint-12) 머지, 이슈 #53 닫힘, 단위 테스트 93개 전체 통과
-- 발견된 문제: 없음
