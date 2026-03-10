@@ -309,6 +309,50 @@ describe('visible option', () => {
   });
 });
 
+describe('preload option', () => {
+  it('should accept a numeric preload value', () => {
+    const opts: JP2LayerOptions = { preload: 2 };
+    expect(opts.preload).toBe(2);
+  });
+
+  it('should accept preload: 0', () => {
+    const opts: JP2LayerOptions = { preload: 0 };
+    expect(opts.preload).toBe(0);
+  });
+
+  it('should accept preload: Infinity', () => {
+    const opts: JP2LayerOptions = { preload: Infinity };
+    expect(opts.preload).toBe(Infinity);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.preload).toBeUndefined();
+  });
+
+  describe('resolvePreload logic (options?.preload ?? 0)', () => {
+    function resolvePreload(options?: JP2LayerOptions): number {
+      return options?.preload ?? 0;
+    }
+
+    it('returns the value when preload is set', () => {
+      expect(resolvePreload({ preload: 3 })).toBe(3);
+    });
+
+    it('returns 0 when preload is omitted', () => {
+      expect(resolvePreload({})).toBe(0);
+    });
+
+    it('returns 0 when options is undefined', () => {
+      expect(resolvePreload(undefined)).toBe(0);
+    });
+
+    it('returns Infinity when preload is Infinity', () => {
+      expect(resolvePreload({ preload: Infinity })).toBe(Infinity);
+    });
+  });
+});
+
 describe('zIndex option', () => {
   it('should accept a numeric zIndex', () => {
     const opts: JP2LayerOptions = { zIndex: 10 };
