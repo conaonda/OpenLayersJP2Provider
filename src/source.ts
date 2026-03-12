@@ -6,6 +6,7 @@ import { register } from 'ol/proj/proj4';
 import proj4 from 'proj4';
 import type Tile from 'ol/Tile';
 import ImageTile from 'ol/ImageTile';
+import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
@@ -115,6 +116,8 @@ export interface JP2LayerOptions {
   updateWhileAnimating?: boolean;
   /** 인터랙션 중 타일 업데이트 여부 (기본값: false) */
   updateWhileInteracting?: boolean;
+  /** 레이어 배경색. 타일이 없는 영역에 표시할 색상 (CSS 색상 문자열 또는 줌 레벨별 함수) */
+  background?: BackgroundColor;
 }
 
 export interface JP2LayerResult {
@@ -452,10 +455,11 @@ export async function createJP2TileLayer(
   const minResolution = options?.minResolution;
   const updateWhileAnimating = options?.updateWhileAnimating;
   const updateWhileInteracting = options?.updateWhileInteracting;
+  const background = options?.background;
 
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting })
-    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting });
+    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background })
+    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background });
 
   const destroy = () => {
     provider.destroy();
