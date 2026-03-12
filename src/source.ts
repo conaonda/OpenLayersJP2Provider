@@ -111,6 +111,10 @@ export interface JP2LayerOptions {
   maxResolution?: number;
   /** 레이어가 표시되는 최소 해상도 (map units per pixel). 이 해상도 미만 시 숨김 */
   minResolution?: number;
+  /** 애니메이션 중 타일 업데이트 여부 (기본값: false) */
+  updateWhileAnimating?: boolean;
+  /** 인터랙션 중 타일 업데이트 여부 (기본값: false) */
+  updateWhileInteracting?: boolean;
 }
 
 export interface JP2LayerResult {
@@ -446,10 +450,12 @@ export async function createJP2TileLayer(
   const maxZoom = options?.maxZoom;
   const maxResolution = options?.maxResolution;
   const minResolution = options?.minResolution;
+  const updateWhileAnimating = options?.updateWhileAnimating;
+  const updateWhileInteracting = options?.updateWhileInteracting;
 
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution })
-    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution });
+    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting })
+    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting });
 
   const destroy = () => {
     provider.destroy();

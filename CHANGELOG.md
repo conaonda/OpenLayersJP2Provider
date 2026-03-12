@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 23
+
+### Added
+- **`JP2LayerOptions.updateWhileAnimating`**: 애니메이션 중 타일 업데이트 여부 옵션 추가 (closes #88)
+  - 타입: `boolean`, 기본값: `false`
+  - `true`로 설정하면 지도 애니메이션(패닝/줌) 중에도 타일을 계속 업데이트
+- **`JP2LayerOptions.updateWhileInteracting`**: 인터랙션 중 타일 업데이트 여부 옵션 추가 (closes #88)
+  - 타입: `boolean`, 기본값: `false`
+  - `true`로 설정하면 사용자 인터랙션(드래그/핀치 줌) 중에도 타일을 계속 업데이트
+
+---
+
 ## [Unreleased] — Sprint 20
 
 ### Added
