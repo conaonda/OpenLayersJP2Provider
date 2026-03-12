@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 25
+
+### Added
+- **`JP2LayerOptions.useInterimTilesOnError`**: 타일 로드 오류 시 임시 타일(하위 해상도) 표시 여부 옵션 추가 (closes #93, PR #94)
+  - 타입: `boolean`, 기본값: `true` (OpenLayers TileLayer 기본값)
+  - `false`로 설정 시 타일 오류 발생 시 하위 해상도 타일 대신 빈 타일 표시
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `useInterimTilesOnError` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 24
 
 ### Added
