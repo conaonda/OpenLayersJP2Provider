@@ -84,6 +84,7 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `useInterimTilesOnError` | `boolean` | `true` | 타일 로드 오류 시 임시 타일(하위 해상도) 표시 여부. `false` 시 오류 타일 대신 빈 타일 표시 |
 | `properties` | `Record<string, unknown>` | - | 레이어에 설정할 임의의 키-값 속성. `layer.get(key)`로 조회 가능 |
 | `renderBuffer` | `number` | `100` | 뷰포트 경계 바깥으로 미리 렌더링할 픽셀 수. 빠른 패닝 시 타일 공백을 줄인다 |
+| `interpolate` | `boolean` | `true` | 타일 렌더링 시 보간(interpolation) 방식 제어. `false` 설정 시 nearest-neighbor 보간 적용 (픽셀 선명도 유지) |
 
 #### 반환값 (`JP2LayerResult`)
 
