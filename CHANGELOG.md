@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 22
+
+### Added
+- **`JP2LayerOptions.maxResolution`**: 레이어가 표시되는 최대 해상도 옵션 추가 (closes #85, PR #86)
+  - 타입: `number` (map units per pixel)
+  - 이 해상도 초과 시 레이어가 숨겨짐
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `maxResolution` 옵션에 전달
+- **`JP2LayerOptions.minResolution`**: 레이어가 표시되는 최소 해상도 옵션 추가 (closes #85, PR #86)
+  - 타입: `number` (map units per pixel)
+  - 이 해상도 미만 시 레이어가 숨겨짐
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `minResolution` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 20
 
 ### Added
