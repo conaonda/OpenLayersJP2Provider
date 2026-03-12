@@ -14,6 +14,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — Sprint 29
+
+### Added
+- **`JP2LayerOptions.cacheTTL`**: `createJP2TileLayer`에 IndexedDB 타일 인덱스 캐시 TTL 옵션 추가 (closes #104, PR #105)
+  - 타입: `number` (밀리초), 기본값: `86400000` (24시간)
+  - URL 문자열로 호출 시 내부 생성되는 `RangeTileProvider`에 자동 전달
+  - `TileProvider` 객체 직접 전달 시에는 무시됨 (프로바이더에서 직접 설정 필요)
+
+---
+
 ## [Unreleased] — Sprint 28
 
 ### Added
