@@ -829,6 +829,36 @@ describe('cacheTTL option', () => {
   });
 });
 
+describe('maxConcurrency option', () => {
+  it('should accept a numeric maxConcurrency', () => {
+    const opts: JP2LayerOptions = { maxConcurrency: 2 };
+    expect(opts.maxConcurrency).toBe(2);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.maxConcurrency).toBeUndefined();
+  });
+
+  describe('resolveMaxConcurrency logic (options?.maxConcurrency)', () => {
+    function resolveMaxConcurrency(options?: JP2LayerOptions): number | undefined {
+      return options?.maxConcurrency;
+    }
+
+    it('returns the value when maxConcurrency is set', () => {
+      expect(resolveMaxConcurrency({ maxConcurrency: 4 })).toBe(4);
+    });
+
+    it('returns undefined when maxConcurrency is omitted', () => {
+      expect(resolveMaxConcurrency({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveMaxConcurrency(undefined)).toBeUndefined();
+    });
+  });
+});
+
 describe('renderBuffer option', () => {
   it('should accept a numeric renderBuffer', () => {
     const opts: JP2LayerOptions = { renderBuffer: 200 };

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 30
+
+### Added
+- **`JP2LayerOptions.maxConcurrency`**: 디코딩 WebWorker 풀 크기를 외부에서 제어하는 옵션 추가 (closes #107)
+  - 타입: `number`, 기본값: `WorkerPool` 기본값
+  - URL 문자열로 `createJP2TileLayer` 호출 시 `RangeTileProvider`에 전달
+  - 기존 `maxConcurrentTiles`(세마포어 제한)와 별개로, 실제 WebWorker 수를 제한
+
+---
+
 ## [Unreleased] — Sprint 28
 
 ### Added
