@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 24
+
+### Added
+- **`JP2LayerOptions.background`**: 레이어 배경색 옵션 추가 (closes #90, PR #91)
+  - 타입: `BackgroundColor` (CSS 색상 문자열 또는 줌 레벨별 함수)
+  - 타일이 없는 영역에 표시할 배경색 지정
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `background` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 23
 
 ### Added
