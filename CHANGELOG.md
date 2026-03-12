@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 28
+
+### Added
+- **`JP2LayerOptions.interpolate`**: 타일 렌더링 시 보간 방식을 제어하는 옵션 추가 (closes #101, PR #102)
+  - 타입: `boolean`, 기본값: `true` (OpenLayers TileLayer 기본값, bilinear 보간)
+  - `false`로 설정 시 nearest-neighbor 보간 적용 — 픽셀 아트, 위성 이미지 등 선명한 픽셀 경계가 필요한 경우에 유용
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `interpolate` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 27
 
 ### Added
