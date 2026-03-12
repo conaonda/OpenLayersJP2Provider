@@ -124,6 +124,8 @@ export interface JP2LayerOptions {
   properties?: Record<string, unknown>;
   /** 뷰포트 경계 바깥으로 미리 렌더링할 픽셀 수 (기본값: OL 기본값 100). 빠른 패닝 시 타일 공백을 줄인다 */
   renderBuffer?: number;
+  /** 타일 렌더링 시 보간(interpolation) 방식 제어 (기본값: true). false로 설정하면 nearest-neighbor 보간 적용 */
+  interpolate?: boolean;
 }
 
 export interface JP2LayerResult {
@@ -465,10 +467,11 @@ export async function createJP2TileLayer(
   const useInterimTilesOnError = options?.useInterimTilesOnError;
   const properties = options?.properties;
   const renderBuffer = options?.renderBuffer;
+  const interpolate = options?.interpolate;
 
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer })
-    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer });
+    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer, interpolate })
+    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer, interpolate });
 
   const destroy = () => {
     provider.destroy();
