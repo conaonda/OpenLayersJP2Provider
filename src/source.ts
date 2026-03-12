@@ -130,6 +130,8 @@ export interface JP2LayerOptions {
   cacheTTL?: number;
   /** 디코딩 WebWorker 풀 크기. URL 문자열로 호출 시 RangeTileProvider에 전달 (기본값: WorkerPool 기본값) */
   maxConcurrency?: number;
+  /** 타일 페이드인 애니메이션 지속 시간 (ms, 기본값: OL 기본값 250). 0으로 설정하면 즉시 표시 */
+  transition?: number;
 }
 
 export interface JP2LayerResult {
@@ -274,10 +276,12 @@ export async function createJP2TileLayer(
   };
 
   const bands = options?.bands;
+  const transition = options?.transition;
   const source = new TileImage({
     projection,
     tileGrid,
     attributions: options?.attributions,
+    transition,
     tileUrlFunction: (tileCoord) => {
       const [z, x, y] = tileCoord;
       const subtilesPerAxis = tileWidth / DISPLAY_TILE_SIZE / pixelResolutions[z];

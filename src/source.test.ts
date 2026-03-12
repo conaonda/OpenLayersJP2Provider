@@ -859,6 +859,45 @@ describe('maxConcurrency option', () => {
   });
 });
 
+describe('transition option', () => {
+  it('should accept a numeric transition', () => {
+    const opts: JP2LayerOptions = { transition: 500 };
+    expect(opts.transition).toBe(500);
+  });
+
+  it('should accept transition: 0 (no fade-in)', () => {
+    const opts: JP2LayerOptions = { transition: 0 };
+    expect(opts.transition).toBe(0);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.transition).toBeUndefined();
+  });
+
+  describe('resolveTransition logic (options?.transition)', () => {
+    function resolveTransition(options?: JP2LayerOptions): number | undefined {
+      return options?.transition;
+    }
+
+    it('returns the value when transition is set', () => {
+      expect(resolveTransition({ transition: 300 })).toBe(300);
+    });
+
+    it('returns 0 when transition is 0', () => {
+      expect(resolveTransition({ transition: 0 })).toBe(0);
+    });
+
+    it('returns undefined when transition is omitted (OL defaults to 250)', () => {
+      expect(resolveTransition({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveTransition(undefined)).toBeUndefined();
+    });
+  });
+});
+
 describe('renderBuffer option', () => {
   it('should accept a numeric renderBuffer', () => {
     const opts: JP2LayerOptions = { renderBuffer: 200 };
