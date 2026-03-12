@@ -725,3 +725,38 @@ describe('useInterimTilesOnError option', () => {
   });
 });
 
+describe('properties option', () => {
+  it('should accept a properties object', () => {
+    const opts: JP2LayerOptions = { properties: { id: 'my-layer', name: 'test' } };
+    expect(opts.properties).toEqual({ id: 'my-layer', name: 'test' });
+  });
+
+  it('should accept an empty properties object', () => {
+    const opts: JP2LayerOptions = { properties: {} };
+    expect(opts.properties).toEqual({});
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.properties).toBeUndefined();
+  });
+
+  describe('resolveProperties logic (options?.properties)', () => {
+    function resolveProperties(options?: JP2LayerOptions): Record<string, unknown> | undefined {
+      return options?.properties;
+    }
+
+    it('returns the properties object when set', () => {
+      expect(resolveProperties({ properties: { id: 'layer-1' } })).toEqual({ id: 'layer-1' });
+    });
+
+    it('returns undefined when omitted', () => {
+      expect(resolveProperties({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveProperties(undefined)).toBeUndefined();
+    });
+  });
+});
+
