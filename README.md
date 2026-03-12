@@ -80,6 +80,7 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `minResolution` | `number` | - | 레이어가 표시되는 최소 해상도 (map units per pixel). 이 해상도 미만 시 숨김 |
 | `updateWhileAnimating` | `boolean` | `false` | 애니메이션 중 타일 업데이트 여부. `true` 시 패닝/줌 애니메이션 중에도 타일 업데이트 |
 | `updateWhileInteracting` | `boolean` | `false` | 인터랙션 중 타일 업데이트 여부. `true` 시 드래그/핀치 줌 중에도 타일 업데이트 |
+| `background` | `BackgroundColor` | - | 레이어 배경색. 타일이 없는 영역에 표시할 색상 (CSS 색상 문자열 또는 줌 레벨별 함수) |
 
 #### 반환값 (`JP2LayerResult`)
 
