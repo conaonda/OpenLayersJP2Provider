@@ -118,6 +118,8 @@ export interface JP2LayerOptions {
   updateWhileInteracting?: boolean;
   /** 레이어 배경색. 타일이 없는 영역에 표시할 색상 (CSS 색상 문자열 또는 줌 레벨별 함수) */
   background?: BackgroundColor;
+  /** 타일 로드 오류 시 임시 타일(하위 해상도) 표시 여부 (기본값: true) */
+  useInterimTilesOnError?: boolean;
 }
 
 export interface JP2LayerResult {
@@ -456,10 +458,11 @@ export async function createJP2TileLayer(
   const updateWhileAnimating = options?.updateWhileAnimating;
   const updateWhileInteracting = options?.updateWhileInteracting;
   const background = options?.background;
+  const useInterimTilesOnError = options?.useInterimTilesOnError;
 
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background })
-    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background });
+    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError })
+    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError });
 
   const destroy = () => {
     provider.destroy();
