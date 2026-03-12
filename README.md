@@ -85,6 +85,7 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `properties` | `Record<string, unknown>` | - | 레이어에 설정할 임의의 키-값 속성. `layer.get(key)`로 조회 가능 |
 | `renderBuffer` | `number` | `100` | 뷰포트 경계 바깥으로 미리 렌더링할 픽셀 수. 빠른 패닝 시 타일 공백을 줄인다 |
 | `interpolate` | `boolean` | `true` | 타일 렌더링 시 보간(interpolation) 방식 제어. `false` 설정 시 nearest-neighbor 보간 적용 (픽셀 선명도 유지) |
+| `cacheTTL` | `number` | `86400000` (24시간) | IndexedDB 타일 인덱스 캐시 TTL (밀리초). URL 문자열로 호출 시 `RangeTileProvider`에 전달 |
 | `maxConcurrency` | `number` | WorkerPool 기본값 | 디코딩 WebWorker 풀 크기. URL 문자열로 호출 시 `RangeTileProvider`에 전달 |
 
 #### 반환값 (`JP2LayerResult`)
