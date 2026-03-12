@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 27
+
+### Added
+- **`JP2LayerOptions.renderBuffer`**: 뷰포트 경계 바깥으로 미리 렌더링할 픽셀 수 옵션 추가 (closes #99)
+  - 타입: `number`, 기본값: OL 기본값 `100`
+  - 빠른 패닝 시 타일 공백을 줄이기 위해 렌더 버퍼 크기를 조정 가능
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `renderBuffer` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 25
 
 ### Added

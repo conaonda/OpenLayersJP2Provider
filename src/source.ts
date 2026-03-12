@@ -122,6 +122,8 @@ export interface JP2LayerOptions {
   useInterimTilesOnError?: boolean;
   /** 레이어에 설정할 임의의 키-값 속성. layer.get(key)로 조회 가능 */
   properties?: Record<string, unknown>;
+  /** 뷰포트 경계 바깥으로 미리 렌더링할 픽셀 수 (기본값: OL 기본값 100). 빠른 패닝 시 타일 공백을 줄인다 */
+  renderBuffer?: number;
 }
 
 export interface JP2LayerResult {
@@ -462,10 +464,11 @@ export async function createJP2TileLayer(
   const background = options?.background;
   const useInterimTilesOnError = options?.useInterimTilesOnError;
   const properties = options?.properties;
+  const renderBuffer = options?.renderBuffer;
 
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties })
-    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties });
+    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer })
+    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer });
 
   const destroy = () => {
     provider.destroy();
