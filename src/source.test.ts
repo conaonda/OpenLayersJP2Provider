@@ -461,6 +461,74 @@ describe('minZoom and maxZoom combined', () => {
   });
 });
 
+describe('maxResolution option', () => {
+  it('should accept a numeric maxResolution', () => {
+    const opts: JP2LayerOptions = { maxResolution: 1000 };
+    expect(opts.maxResolution).toBe(1000);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.maxResolution).toBeUndefined();
+  });
+
+  describe('resolveMaxResolution logic (options?.maxResolution)', () => {
+    function resolveMaxResolution(options?: JP2LayerOptions): number | undefined {
+      return options?.maxResolution;
+    }
+
+    it('returns the value when maxResolution is set', () => {
+      expect(resolveMaxResolution({ maxResolution: 500 })).toBe(500);
+    });
+
+    it('returns undefined when maxResolution is omitted', () => {
+      expect(resolveMaxResolution({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveMaxResolution(undefined)).toBeUndefined();
+    });
+  });
+});
+
+describe('minResolution option', () => {
+  it('should accept a numeric minResolution', () => {
+    const opts: JP2LayerOptions = { minResolution: 0.5 };
+    expect(opts.minResolution).toBe(0.5);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.minResolution).toBeUndefined();
+  });
+
+  describe('resolveMinResolution logic (options?.minResolution)', () => {
+    function resolveMinResolution(options?: JP2LayerOptions): number | undefined {
+      return options?.minResolution;
+    }
+
+    it('returns the value when minResolution is set', () => {
+      expect(resolveMinResolution({ minResolution: 0.1 })).toBe(0.1);
+    });
+
+    it('returns undefined when minResolution is omitted', () => {
+      expect(resolveMinResolution({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveMinResolution(undefined)).toBeUndefined();
+    });
+  });
+});
+
+describe('maxResolution and minResolution combined', () => {
+  it('should accept both maxResolution and minResolution together', () => {
+    const opts: JP2LayerOptions = { maxResolution: 1000, minResolution: 0.5 };
+    expect(opts.maxResolution).toBe(1000);
+    expect(opts.minResolution).toBe(0.5);
+  });
+});
+
 describe('zIndex option', () => {
   it('should accept a numeric zIndex', () => {
     const opts: JP2LayerOptions = { zIndex: 10 };

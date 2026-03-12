@@ -107,6 +107,10 @@ export interface JP2LayerOptions {
   minZoom?: number;
   /** 레이어가 표시되는 최대 줌 레벨 (이 레벨 초과 시 숨김) */
   maxZoom?: number;
+  /** 레이어가 표시되는 최대 해상도 (map units per pixel). 이 해상도 초과 시 숨김 */
+  maxResolution?: number;
+  /** 레이어가 표시되는 최소 해상도 (map units per pixel). 이 해상도 미만 시 숨김 */
+  minResolution?: number;
 }
 
 export interface JP2LayerResult {
@@ -440,10 +444,12 @@ export async function createJP2TileLayer(
   const className = options?.className;
   const minZoom = options?.minZoom;
   const maxZoom = options?.maxZoom;
+  const maxResolution = options?.maxResolution;
+  const minResolution = options?.minResolution;
 
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom })
-    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom });
+    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution })
+    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution });
 
   const destroy = () => {
     provider.destroy();
