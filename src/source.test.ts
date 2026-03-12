@@ -686,3 +686,42 @@ describe('background option', () => {
   });
 });
 
+describe('useInterimTilesOnError option', () => {
+  it('should accept useInterimTilesOnError: true', () => {
+    const opts: JP2LayerOptions = { useInterimTilesOnError: true };
+    expect(opts.useInterimTilesOnError).toBe(true);
+  });
+
+  it('should accept useInterimTilesOnError: false', () => {
+    const opts: JP2LayerOptions = { useInterimTilesOnError: false };
+    expect(opts.useInterimTilesOnError).toBe(false);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.useInterimTilesOnError).toBeUndefined();
+  });
+
+  describe('resolveUseInterimTilesOnError logic (options?.useInterimTilesOnError)', () => {
+    function resolveUseInterimTilesOnError(options?: JP2LayerOptions): boolean | undefined {
+      return options?.useInterimTilesOnError;
+    }
+
+    it('returns true when set to true', () => {
+      expect(resolveUseInterimTilesOnError({ useInterimTilesOnError: true })).toBe(true);
+    });
+
+    it('returns false when set to false', () => {
+      expect(resolveUseInterimTilesOnError({ useInterimTilesOnError: false })).toBe(false);
+    });
+
+    it('returns undefined when omitted', () => {
+      expect(resolveUseInterimTilesOnError({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveUseInterimTilesOnError(undefined)).toBeUndefined();
+    });
+  });
+});
+
