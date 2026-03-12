@@ -650,3 +650,39 @@ describe('zIndex option', () => {
   });
 });
 
+describe('background option', () => {
+  it('should accept background as a string', () => {
+    const opts: JP2LayerOptions = { background: 'rgba(0, 0, 0, 1)' };
+    expect(opts.background).toBe('rgba(0, 0, 0, 1)');
+  });
+
+  it('should accept background as a function', () => {
+    const fn = (zoom: number) => `rgba(0,0,0,${zoom})`;
+    const opts: JP2LayerOptions = { background: fn };
+    expect(opts.background).toBe(fn);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.background).toBeUndefined();
+  });
+
+  describe('resolveBackground logic (options?.background)', () => {
+    function resolveBackground(options?: JP2LayerOptions) {
+      return options?.background;
+    }
+
+    it('returns the value when background is set', () => {
+      expect(resolveBackground({ background: '#ff0000' })).toBe('#ff0000');
+    });
+
+    it('returns undefined when background is omitted', () => {
+      expect(resolveBackground({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveBackground(undefined)).toBeUndefined();
+    });
+  });
+});
+
