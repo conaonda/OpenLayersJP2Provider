@@ -760,6 +760,45 @@ describe('properties option', () => {
   });
 });
 
+describe('interpolate option', () => {
+  it('should accept interpolate: true', () => {
+    const opts: JP2LayerOptions = { interpolate: true };
+    expect(opts.interpolate).toBe(true);
+  });
+
+  it('should accept interpolate: false', () => {
+    const opts: JP2LayerOptions = { interpolate: false };
+    expect(opts.interpolate).toBe(false);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.interpolate).toBeUndefined();
+  });
+
+  describe('resolveInterpolate logic (options?.interpolate)', () => {
+    function resolveInterpolate(options?: JP2LayerOptions): boolean | undefined {
+      return options?.interpolate;
+    }
+
+    it('returns true when set to true', () => {
+      expect(resolveInterpolate({ interpolate: true })).toBe(true);
+    });
+
+    it('returns false when set to false', () => {
+      expect(resolveInterpolate({ interpolate: false })).toBe(false);
+    });
+
+    it('returns undefined when omitted (OL defaults to true)', () => {
+      expect(resolveInterpolate({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveInterpolate(undefined)).toBeUndefined();
+    });
+  });
+});
+
 describe('renderBuffer option', () => {
   it('should accept a numeric renderBuffer', () => {
     const opts: JP2LayerOptions = { renderBuffer: 200 };
