@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 26
+
+### Added
+- **`JP2LayerOptions.properties`**: 레이어에 임의의 키-값 속성을 설정하는 옵션 추가 (closes #96, PR #97)
+  - 타입: `Record<string, unknown>`
+  - `layer.get(key)`로 설정한 속성 조회 가능
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `properties` 옵션에 전달
+
+---
+
+## [Unreleased] — Sprint 25
+
+### Added
+- **`JP2LayerOptions.useInterimTilesOnError`**: 타일 로드 오류 시 임시 타일 표시 여부 옵션 추가 (closes #93, PR #94)
+  - 타입: `boolean`, 기본값: `true`
+  - `false`로 설정하면 타일 로드 오류 시 임시 타일(하위 해상도)을 표시하지 않음
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `useInterimTilesOnError` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 24
 
 ### Added

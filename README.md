@@ -81,6 +81,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `updateWhileAnimating` | `boolean` | `false` | 애니메이션 중 타일 업데이트 여부. `true` 시 패닝/줌 애니메이션 중에도 타일 업데이트 |
 | `updateWhileInteracting` | `boolean` | `false` | 인터랙션 중 타일 업데이트 여부. `true` 시 드래그/핀치 줌 중에도 타일 업데이트 |
 | `background` | `BackgroundColor` | - | 레이어 배경색. 타일이 없는 영역에 표시할 색상 (CSS 색상 문자열 또는 줌 레벨별 함수) |
+| `useInterimTilesOnError` | `boolean` | `true` | 타일 로드 오류 시 임시 타일(하위 해상도) 표시 여부 |
+| `properties` | `Record<string, unknown>` | - | 레이어에 설정할 임의의 키-값 속성. `layer.get(key)`로 조회 가능 |
 
 #### 반환값 (`JP2LayerResult`)
 
