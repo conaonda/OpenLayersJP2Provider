@@ -126,6 +126,8 @@ export interface JP2LayerOptions {
   renderBuffer?: number;
   /** 타일 렌더링 시 보간(interpolation) 방식 제어 (기본값: true). false로 설정하면 nearest-neighbor 보간 적용 */
   interpolate?: boolean;
+  /** IndexedDB 타일 인덱스 캐시 TTL (밀리초, 기본값: 24시간). URL 문자열로 호출 시 RangeTileProvider에 전달 */
+  cacheTTL?: number;
 }
 
 export interface JP2LayerResult {
@@ -167,6 +169,7 @@ export async function createJP2TileLayer(
           minValue: options?.minValue,
           maxValue: options?.maxValue,
           requestHeaders: options?.requestHeaders,
+          cacheTTL: options?.cacheTTL,
         })
       : providerOrUrl;
   const info = await provider.init();

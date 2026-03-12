@@ -799,6 +799,36 @@ describe('interpolate option', () => {
   });
 });
 
+describe('cacheTTL option', () => {
+  it('should accept a numeric cacheTTL', () => {
+    const opts: JP2LayerOptions = { cacheTTL: 3600000 };
+    expect(opts.cacheTTL).toBe(3600000);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.cacheTTL).toBeUndefined();
+  });
+
+  describe('resolveCacheTTL logic (options?.cacheTTL)', () => {
+    function resolveCacheTTL(options?: JP2LayerOptions): number | undefined {
+      return options?.cacheTTL;
+    }
+
+    it('returns the value when cacheTTL is set', () => {
+      expect(resolveCacheTTL({ cacheTTL: 60000 })).toBe(60000);
+    });
+
+    it('returns undefined when cacheTTL is omitted', () => {
+      expect(resolveCacheTTL({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveCacheTTL(undefined)).toBeUndefined();
+    });
+  });
+});
+
 describe('renderBuffer option', () => {
   it('should accept a numeric renderBuffer', () => {
     const opts: JP2LayerOptions = { renderBuffer: 200 };
