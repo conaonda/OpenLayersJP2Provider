@@ -760,3 +760,38 @@ describe('properties option', () => {
   });
 });
 
+describe('renderBuffer option', () => {
+  it('should accept a numeric renderBuffer', () => {
+    const opts: JP2LayerOptions = { renderBuffer: 200 };
+    expect(opts.renderBuffer).toBe(200);
+  });
+
+  it('should accept renderBuffer: 0', () => {
+    const opts: JP2LayerOptions = { renderBuffer: 0 };
+    expect(opts.renderBuffer).toBe(0);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.renderBuffer).toBeUndefined();
+  });
+
+  describe('resolveRenderBuffer logic (options?.renderBuffer)', () => {
+    function resolveRenderBuffer(options?: JP2LayerOptions): number | undefined {
+      return options?.renderBuffer;
+    }
+
+    it('returns the value when renderBuffer is set', () => {
+      expect(resolveRenderBuffer({ renderBuffer: 200 })).toBe(200);
+    });
+
+    it('returns undefined when renderBuffer is omitted (OL uses default 100)', () => {
+      expect(resolveRenderBuffer({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveRenderBuffer(undefined)).toBeUndefined();
+    });
+  });
+});
+
