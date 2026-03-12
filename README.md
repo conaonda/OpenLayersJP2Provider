@@ -76,6 +76,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `className` | `string` | `'ol-layer'` | 레이어 DOM 요소에 적용할 CSS 클래스명. 복수 레이어 CSS 개별 제어에 활용 |
 | `minZoom` | `number` | - | 레이어가 표시되는 최소 줌 레벨. 이 레벨 미만에서는 레이어가 숨김 |
 | `maxZoom` | `number` | - | 레이어가 표시되는 최대 줌 레벨. 이 레벨 초과 시 레이어가 숨김 |
+| `maxResolution` | `number` | - | 레이어가 표시되는 최대 해상도 (map units per pixel). 이 해상도 초과 시 숨김 |
+| `minResolution` | `number` | - | 레이어가 표시되는 최소 해상도 (map units per pixel). 이 해상도 미만 시 숨김 |
 | `updateWhileAnimating` | `boolean` | `false` | 애니메이션 중 타일 업데이트 여부. `true` 시 패닝/줌 애니메이션 중에도 타일 업데이트 |
 | `updateWhileInteracting` | `boolean` | `false` | 인터랙션 중 타일 업데이트 여부. `true` 시 드래그/핀치 줌 중에도 타일 업데이트 |
 
