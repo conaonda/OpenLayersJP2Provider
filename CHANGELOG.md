@@ -14,6 +14,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — Sprint 26
+
+### Added
+- **`JP2LayerOptions.properties`**: 레이어에 임의의 키-값 속성을 설정하는 옵션 추가 (closes #96, PR #97)
+  - 타입: `Record<string, unknown>`
+  - `layer.get(key)`로 설정한 속성 조회 가능
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileLayer`의 `properties` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 25
 
 ### Added
