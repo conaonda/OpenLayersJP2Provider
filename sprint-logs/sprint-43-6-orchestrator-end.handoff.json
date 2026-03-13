@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 43,
+  "status": "success",
+  "merged_prs": [149, 146],
+  "closed_issues": [147, 148],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter는 PR #149(saturation/hue 옵션)와 PR #146(docs sprint-41-42) 머지를 반영하여 CHANGELOG 및 API 문서를 업데이트하세요."
+}
