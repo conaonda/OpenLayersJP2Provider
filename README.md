@@ -90,7 +90,9 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `transition` | `number` | `250` | 타일 페이드인 애니메이션 지속 시간 (ms). `0`으로 설정 시 애니메이션 없이 즉시 표시 |
 | `cacheSize` | `number` | `512` | 레이어 내부 인메모리 타일 캐시 크기. 대용량 JP2나 고해상도 뷰에서 재디코딩을 줄이려면 값을 늘린다 |
 | `wrapX` | `boolean` | `true` | 타일 소스의 경도 방향(X축) 반복 렌더링 여부. `false`로 설정하면 원본 범위 외부에서 타일이 반복 표시되지 않음 |
-| `extent` | `[number, number, number, number]` | JP2 파일 범위 | 레이어가 렌더링될 지리 범위 `[minX, minY, maxX, maxY]`. 지정 시 해당 범위 내에서만 타일이 렌더링됨. 좌표는 레이어의 투영계 단위를 따름 |
+| `crossOrigin` | `string \| null` | `undefined` | CORS 크로스오리진 설정. 다른 오리진에서 JP2 파일을 서빙할 때 canvas 픽셀 접근을 위해 필요 (예: `'anonymous'`, `'use-credentials'`) |
+| `extent` | `[number, number, number, number]` | JP2 파일 범위 | 레이어가 렌더링될 지리 범위 `[minX, minY, maxX, maxY]`. 지정 시 해당 범위 내에서만 타일이 렌더링되며, 좌표는 레이어 투영계 단위를 따름 |
+| `tilePixelRatio` | `number` | `1` | HiDPI/Retina 디스플레이용 타일 픽셀 비율. `2`로 설정 시 2배 해상도 타일 요청. `TileImage` 소스의 `tilePixelRatio` 옵션에 전달 |
 
 #### 반환값 (`JP2LayerResult`)
 
