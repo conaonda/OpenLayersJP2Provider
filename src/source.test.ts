@@ -993,6 +993,50 @@ describe('JP2LayerOptions — extent', () => {
   });
 });
 
+describe('JP2LayerOptions — crossOrigin', () => {
+  it('should accept crossOrigin: "anonymous"', () => {
+    const opts: JP2LayerOptions = { crossOrigin: 'anonymous' };
+    expect(opts.crossOrigin).toBe('anonymous');
+  });
+
+  it('should accept crossOrigin: "use-credentials"', () => {
+    const opts: JP2LayerOptions = { crossOrigin: 'use-credentials' };
+    expect(opts.crossOrigin).toBe('use-credentials');
+  });
+
+  it('should accept crossOrigin: null', () => {
+    const opts: JP2LayerOptions = { crossOrigin: null };
+    expect(opts.crossOrigin).toBeNull();
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.crossOrigin).toBeUndefined();
+  });
+
+  describe('resolveCrossOrigin logic (options?.crossOrigin)', () => {
+    function resolveCrossOrigin(options?: JP2LayerOptions): string | null | undefined {
+      return options?.crossOrigin;
+    }
+
+    it('returns "anonymous" when set', () => {
+      expect(resolveCrossOrigin({ crossOrigin: 'anonymous' })).toBe('anonymous');
+    });
+
+    it('returns null when set to null', () => {
+      expect(resolveCrossOrigin({ crossOrigin: null })).toBeNull();
+    });
+
+    it('returns undefined when omitted', () => {
+      expect(resolveCrossOrigin({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveCrossOrigin(undefined)).toBeUndefined();
+    });
+  });
+});
+
 describe('JP2LayerOptions — wrapX', () => {
   it('should accept wrapX: false', () => {
     const opts: JP2LayerOptions = { wrapX: false };
