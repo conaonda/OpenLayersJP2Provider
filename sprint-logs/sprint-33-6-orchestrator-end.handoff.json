@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 33,
+  "status": "success",
+  "merged_prs": [116],
+  "closed_issues": [115],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter는 PR #116(wrapX 옵션)을 CHANGELOG 및 README에 반영하는 docs/sprint-33 PR을 생성하세요."
+}

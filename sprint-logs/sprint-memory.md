@@ -35,6 +35,7 @@
 - JP2LayerOptions.maxConcurrency: 디코딩 WebWorker 풀 크기 옵션 (number), 기존 maxConcurrentTiles(세마포어)와 별개로 실제 워커 수 제어, createJP2TileLayer에서 WorkerPool로 전달 (PR #108, closes #107)
 - JP2LayerOptions.transition: 타일 페이드인 애니메이션 지속 시간 옵션 (number, ms), OL TileLayer의 transition 옵션에 전달, 0이면 애니메이션 비활성화 (PR #110, closes #109)
 - JP2LayerOptions.cacheSize: 레이어 내부 인메모리 타일 캐시 크기 옵션 (number, 기본값 OL 기본값 512), TileImage 소스의 cacheSize 옵션에 전달, 대용량 JP2에서 재디코딩 방지 (PR #113, closes #112)
+- JP2LayerOptions.wrapX: 타일 경도 방향 반복 렌더링 옵션 (boolean, 기본값 true), OL TileImage 소스의 wrapX 옵션에 전달, false 시 지도 범위 밖 타일 미표시 (PR #116, closes #115)
 
 ## 반복 패턴 & 주의사항
 - 동일 작성자 PR은 GitHub 정책상 공식 approve 불가 → 리뷰 코멘트로 대체
@@ -52,6 +53,10 @@
 - [x] JP2LayerOptions에 requestHeaders 옵션 미포함 — PR #55로 해결 (Sprint 13)
 
 ## 최근 3개 스프린트 요약
+### Sprint 33 (2026-03-14)
+- 완료: PR #116(wrapX 옵션) 머지, 이슈 #115 닫힘
+- 발견된 문제: 없음
+
 ### Sprint 32 (2026-03-14)
 - 완료: PR #113(cacheSize 옵션) 머지, PR #111(docs sprint-31) 충돌 해결 후 머지, 이슈 #112 닫힘, 단위 테스트 50개 전체 통과
 - 발견된 문제: docs PR #111이 feature PR 머지 후 충돌 → rebase로 해결
@@ -59,7 +64,3 @@
 ### Sprint 31 (2026-03-13)
 - 완료: PR #110(transition 옵션) 머지, 이슈 #109 닫힘, 단위 테스트 11개 전체 통과
 - 발견된 문제: 없음
-
-### Sprint 30 (2026-03-13)
-- 완료: PR #108(maxConcurrency 옵션) 머지, PR #106(docs sprint-29) 충돌 해결 후 머지, 이슈 #107 닫힘, 단위 테스트 221개 전체 통과
-- 발견된 문제: docs PR #106이 feature PR 머지 후 충돌 → rebase로 해결
