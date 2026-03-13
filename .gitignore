@@ -18,7 +18,3 @@ public/*.jp2
 sprint-logs/*.log
 sprint-logs/.sprint.lock
 sprint-logs/sprint-tools/
-!sprint-logs/*.handoff.json
-!sprint-logs/sprint-memory.md
-!sprint-logs/*-summary.json
-!sprint-logs/*-deliberation-result.json
