@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 42
+
+### Added
+- **`JP2LayerOptions.brightness`**: 픽셀 밝기 조정 옵션 추가 (closes #143, PR #145)
+  - 타입: `number`, 기본값: `0` (조정 없음)
+  - 범위: `-1` ~ `1`. 양수면 밝아지고 음수면 어두워짐
+  - `pixel-conversion.ts`의 `applyBrightness()` 함수로 처리: `out = in + brightness * 255`
+- **`JP2LayerOptions.contrast`**: 픽셀 대비 조정 옵션 추가 (closes #144, PR #145)
+  - 타입: `number`, 기본값: `1.0` (조정 없음)
+  - `1`보다 크면 대비 증가, `0`~`1`이면 대비 감소, `0`이면 회색
+  - `pixel-conversion.ts`의 `applyContrast()` 함수로 처리: `out = (in - 128) * contrast + 128`
+  - 적용 순서: nodata → gamma → brightness → contrast → colormap/bands
+
+---
+
+## [Unreleased] — Sprint 41
+
+### Added
+- **`JP2LayerOptions.gamma`**: 픽셀 감마 보정 옵션 추가 (closes #140, PR #142)
+  - 타입: `number`, 기본값: `1.0` (보정 없음)
+  - `1`보다 크면 밝아지고 `1`보다 작으면 어두워짐
+  - `pixel-conversion.ts`의 `applyGamma()` 함수로 처리
+- **`JP2LayerOptions.nodataTolerance`**: nodata 값 매칭 허용 오차 옵션 추가 (closes #141, PR #142)
+  - 타입: `number`, 기본값: `0` (정확히 일치해야 함)
+  - `|pixel - nodata| <= tolerance` 조건으로 nodata 판별
+
+---
+
 ## [Unreleased] — Sprint 40
 
 ### Added
