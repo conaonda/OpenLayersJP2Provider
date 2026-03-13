@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 32
+
+### Added
+- **`JP2LayerOptions.cacheSize`**: 레이어 내부 인메모리 타일 캐시 크기를 제어하는 옵션 추가 (closes #112)
+  - 타입: `number`, 기본값: OL 기본값 `512`
+  - `TileImage` 소스의 `cacheSize` 옵션에 전달
+  - 대용량 JP2 파일이나 고해상도 뷰에서 캐시 부족으로 인한 불필요한 재디코딩 방지
+
+---
+
 ## [Unreleased] — Sprint 30
 
 ### Added
