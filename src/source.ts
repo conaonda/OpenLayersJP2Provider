@@ -136,6 +136,8 @@ export interface JP2LayerOptions {
   cacheSize?: number;
   /** 타일 소스의 경도 방향(X축) 반복 렌더링 여부 (기본값: OL 기본값 true). false로 설정하면 원본 범위 외부에서 타일이 반복 표시되지 않음 */
   wrapX?: boolean;
+  /** 레이어가 렌더링될 지리 범위 [minX, minY, maxX, maxY]. 지정 시 해당 범위 내에서만 타일이 표시된다 */
+  extent?: [number, number, number, number];
 }
 
 export interface JP2LayerResult {
@@ -487,9 +489,10 @@ export async function createJP2TileLayer(
   const renderBuffer = options?.renderBuffer;
   const interpolate = options?.interpolate;
 
+  const layerExtent = options?.extent;
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer, interpolate })
-    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer, interpolate });
+    ? new TileLayer({ source, extent: layerExtent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer, interpolate })
+    : new TileLayer({ source, extent: layerExtent ?? extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer, interpolate });
 
   const destroy = () => {
     provider.destroy();
