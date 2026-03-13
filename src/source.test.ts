@@ -1137,3 +1137,81 @@ describe('JP2LayerOptions — tilePixelRatio', () => {
   });
 });
 
+describe('JP2LayerOptions — reprojectionErrorThreshold', () => {
+  it('should accept reprojectionErrorThreshold: 0.5 (default)', () => {
+    const opts: JP2LayerOptions = { reprojectionErrorThreshold: 0.5 };
+    expect(opts.reprojectionErrorThreshold).toBe(0.5);
+  });
+
+  it('should accept reprojectionErrorThreshold: 0.1 (high precision)', () => {
+    const opts: JP2LayerOptions = { reprojectionErrorThreshold: 0.1 };
+    expect(opts.reprojectionErrorThreshold).toBe(0.1);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.reprojectionErrorThreshold).toBeUndefined();
+  });
+
+  describe('resolveReprojectionErrorThreshold logic', () => {
+    function resolveReprojectionErrorThreshold(options?: JP2LayerOptions): number | undefined {
+      return options?.reprojectionErrorThreshold;
+    }
+
+    it('returns 0.5 when set to 0.5', () => {
+      expect(resolveReprojectionErrorThreshold({ reprojectionErrorThreshold: 0.5 })).toBe(0.5);
+    });
+
+    it('returns 0.1 when set to 0.1', () => {
+      expect(resolveReprojectionErrorThreshold({ reprojectionErrorThreshold: 0.1 })).toBe(0.1);
+    });
+
+    it('returns undefined when omitted', () => {
+      expect(resolveReprojectionErrorThreshold({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveReprojectionErrorThreshold(undefined)).toBeUndefined();
+    });
+  });
+});
+
+describe('JP2LayerOptions — opaque', () => {
+  it('should accept opaque: true', () => {
+    const opts: JP2LayerOptions = { opaque: true };
+    expect(opts.opaque).toBe(true);
+  });
+
+  it('should accept opaque: false', () => {
+    const opts: JP2LayerOptions = { opaque: false };
+    expect(opts.opaque).toBe(false);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.opaque).toBeUndefined();
+  });
+
+  describe('resolveOpaque logic', () => {
+    function resolveOpaque(options?: JP2LayerOptions): boolean | undefined {
+      return options?.opaque;
+    }
+
+    it('returns true when set to true', () => {
+      expect(resolveOpaque({ opaque: true })).toBe(true);
+    });
+
+    it('returns false when set to false', () => {
+      expect(resolveOpaque({ opaque: false })).toBe(false);
+    });
+
+    it('returns undefined when omitted', () => {
+      expect(resolveOpaque({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveOpaque(undefined)).toBeUndefined();
+    });
+  });
+});
+
