@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -224,5 +224,87 @@ describe('applyGamma', () => {
     applyGamma(rgba, 1, 1, 2.2);
     expect(rgba[0]).toBe(0);
     expect(rgba[1]).toBe(255);
+  });
+});
+
+describe('applyBrightness', () => {
+  it('brightness=0: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyBrightness(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('brightness=1: all pixels become 255', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyBrightness(rgba, 1, 1, 1);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(255);
+    expect(rgba[2]).toBe(255);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('brightness=-1: all pixels become 0', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyBrightness(rgba, 1, 1, -1);
+    expect(rgba[0]).toBe(0);
+    expect(rgba[1]).toBe(0);
+    expect(rgba[2]).toBe(0);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('positive brightness increases pixel values', () => {
+    const rgba = new Uint8ClampedArray([100, 100, 100, 255]);
+    applyBrightness(rgba, 1, 1, 0.5);
+    // 100 + 128 = 228
+    expect(rgba[0]).toBe(228);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('clamps to 0-255 range', () => {
+    const rgba = new Uint8ClampedArray([200, 50, 100, 255]);
+    applyBrightness(rgba, 1, 1, 0.5);
+    expect(rgba[0]).toBe(255); // 200+128 clamped
+    expect(rgba[1]).toBe(178); // 50+128
+  });
+});
+
+describe('applyContrast', () => {
+  it('contrast=1.0: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyContrast(rgba, 1, 1, 1.0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('contrast=0: all pixels become 128 (mid-gray)', () => {
+    const rgba = new Uint8ClampedArray([0, 100, 255, 255]);
+    applyContrast(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(128);
+    expect(rgba[1]).toBe(128);
+    expect(rgba[2]).toBe(128);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('contrast=2: doubles contrast', () => {
+    const rgba = new Uint8ClampedArray([192, 64, 128, 255]);
+    applyContrast(rgba, 1, 1, 2);
+    // (192-128)*2+128 = 256 → clamped to 255
+    expect(rgba[0]).toBe(255);
+    // (64-128)*2+128 = 0
+    expect(rgba[1]).toBe(0);
+    // (128-128)*2+128 = 128
+    expect(rgba[2]).toBe(128);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 100, 100, 200]);
+    applyContrast(rgba, 1, 1, 2);
+    expect(rgba[3]).toBe(200);
   });
 });
