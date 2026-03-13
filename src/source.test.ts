@@ -933,3 +933,33 @@ describe('renderBuffer option', () => {
   });
 });
 
+describe('cacheSize option', () => {
+  it('should accept a numeric cacheSize', () => {
+    const opts: JP2LayerOptions = { cacheSize: 1024 };
+    expect(opts.cacheSize).toBe(1024);
+  });
+
+  it('should be optional (undefined when not specified, OL defaults to 512)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.cacheSize).toBeUndefined();
+  });
+
+  describe('resolveCacheSize logic (options?.cacheSize)', () => {
+    function resolveCacheSize(options?: JP2LayerOptions): number | undefined {
+      return options?.cacheSize;
+    }
+
+    it('returns the value when cacheSize is set', () => {
+      expect(resolveCacheSize({ cacheSize: 2048 })).toBe(2048);
+    });
+
+    it('returns undefined when cacheSize is omitted (OL defaults to 512)', () => {
+      expect(resolveCacheSize({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveCacheSize(undefined)).toBeUndefined();
+    });
+  });
+});
+

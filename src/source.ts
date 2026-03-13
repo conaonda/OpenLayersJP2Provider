@@ -132,6 +132,8 @@ export interface JP2LayerOptions {
   maxConcurrency?: number;
   /** 타일 페이드인 애니메이션 지속 시간 (ms, 기본값: OL 기본값 250). 0으로 설정하면 즉시 표시 */
   transition?: number;
+  /** 레이어 내부 인메모리 타일 캐시 크기 (기본값: OL 기본값 512) */
+  cacheSize?: number;
 }
 
 export interface JP2LayerResult {
@@ -277,11 +279,13 @@ export async function createJP2TileLayer(
 
   const bands = options?.bands;
   const transition = options?.transition;
+  const cacheSize = options?.cacheSize;
   const source = new TileImage({
     projection,
     tileGrid,
     attributions: options?.attributions,
     transition,
+    cacheSize,
     tileUrlFunction: (tileCoord) => {
       const [z, x, y] = tileCoord;
       const subtilesPerAxis = tileWidth / DISPLAY_TILE_SIZE / pixelResolutions[z];
