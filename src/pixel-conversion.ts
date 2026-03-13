@@ -91,6 +91,27 @@ export function decodedBufferToRGBA(
 }
 
 /**
+ * Applies gamma correction to RGB channels: out = 255 * (in/255)^(1/gamma).
+ * Alpha channel is not modified.
+ */
+export function applyGamma(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  gamma: number,
+): void {
+  if (gamma === 1.0) return;
+  const invGamma = 1 / gamma;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = Math.round(255 * Math.pow(rgba[off] / 255, invGamma));
+    rgba[off + 1] = Math.round(255 * Math.pow(rgba[off + 1] / 255, invGamma));
+    rgba[off + 2] = Math.round(255 * Math.pow(rgba[off + 2] / 255, invGamma));
+  }
+}
+
+/**
  * Applies nodata transparency: sets alpha=0 for pixels matching any nodata value.
  * For single-channel images, the grayscale value is checked.
  * For multi-channel images, all RGB channels must match a nodata value.
@@ -101,17 +122,22 @@ export function applyNodata(
   height: number,
   componentCount: number,
   nodataValues: number[],
+  tolerance: number = 0,
 ): void {
   const pixelCount = width * height;
+  const matchesNodata = tolerance > 0
+    ? (v: number) => nodataValues.some(nd => Math.abs(v - nd) <= tolerance)
+    : (v: number) => nodataValues.includes(v);
+
   for (let i = 0; i < pixelCount; i++) {
     const off = i * 4;
     let isNodata: boolean;
     if (componentCount === 1) {
-      isNodata = nodataValues.includes(rgba[off]);
+      isNodata = matchesNodata(rgba[off]);
     } else {
-      isNodata = nodataValues.includes(rgba[off])
-        && nodataValues.includes(rgba[off + 1])
-        && nodataValues.includes(rgba[off + 2]);
+      isNodata = matchesNodata(rgba[off])
+        && matchesNodata(rgba[off + 1])
+        && matchesNodata(rgba[off + 2]);
     }
     if (isNodata) {
       rgba[off + 3] = 0;
