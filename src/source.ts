@@ -94,6 +94,8 @@ export interface JP2LayerOptions {
   onTileLoadStart?: (info: { col: number; row: number; decodeLevel: number }) => void;
   /** OpenLayers 소스에 표시할 저작권/출처 정보 */
   attributions?: string | string[];
+  /** 저작권 표기 패널의 접기 버튼 표시 여부 (기본값: true, 접기 가능) */
+  attributionsCollapsible?: boolean;
   /** 다중 채널 이미지에서 RGB에 매핑할 밴드 인덱스 (0-based). 예: [3, 2, 1] */
   bands?: [r: number, g: number, b: number];
   /** 레이어 초기 가시성 (기본값: true) */
@@ -307,6 +309,7 @@ export async function createJP2TileLayer(
     projection,
     tileGrid,
     attributions: options?.attributions,
+    attributionsCollapsible: options?.attributionsCollapsible,
     transition,
     cacheSize,
     wrapX,
