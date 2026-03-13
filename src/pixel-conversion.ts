@@ -291,6 +291,77 @@ export function applyThreshold(
 }
 
 /**
+ * Applies colorization to grayscale RGBA data.
+ * Computes luminance and multiplies by the given RGB color.
+ * Formula: out_ch = lum/255 * color_ch
+ * Alpha channel is not modified.
+ */
+export function applyColorize(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  color: [number, number, number],
+): void {
+  const [cr, cg, cb] = color;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const lum = 0.2126 * rgba[off] + 0.7152 * rgba[off + 1] + 0.0722 * rgba[off + 2];
+    const t = lum / 255;
+    rgba[off]     = Math.round(t * cr);
+    rgba[off + 1] = Math.round(t * cg);
+    rgba[off + 2] = Math.round(t * cb);
+  }
+}
+
+/**
+ * Applies unsharp masking sharpening to RGBA data.
+ * Uses a 3x3 Gaussian blur, then: out = clamp(original + amount * (original - blurred)).
+ * Alpha channel is not modified.
+ */
+export function applySharpen(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  amount: number,
+): void {
+  if (amount === 0) return;
+  const pixelCount = width * height;
+  // Create blurred copy using 3x3 Gaussian kernel [1,2,1; 2,4,2; 1,2,1] / 16
+  const blurred = new Float32Array(pixelCount * 3);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sumR = 0, sumG = 0, sumB = 0;
+      let wSum = 0;
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          const ny = y + ky, nx = x + kx;
+          if (ny < 0 || ny >= height || nx < 0 || nx >= width) continue;
+          const w = (kx === 0 && ky === 0) ? 4 : (kx === 0 || ky === 0) ? 2 : 1;
+          const off = (ny * width + nx) * 4;
+          sumR += rgba[off] * w;
+          sumG += rgba[off + 1] * w;
+          sumB += rgba[off + 2] * w;
+          wSum += w;
+        }
+      }
+      const idx = (y * width + x) * 3;
+      blurred[idx]     = sumR / wSum;
+      blurred[idx + 1] = sumG / wSum;
+      blurred[idx + 2] = sumB / wSum;
+    }
+  }
+  // Apply unsharp mask
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const bIdx = i * 3;
+    rgba[off]     = Math.round(Math.max(0, Math.min(255, rgba[off]     + amount * (rgba[off]     - blurred[bIdx]))));
+    rgba[off + 1] = Math.round(Math.max(0, Math.min(255, rgba[off + 1] + amount * (rgba[off + 1] - blurred[bIdx + 1]))));
+    rgba[off + 2] = Math.round(Math.max(0, Math.min(255, rgba[off + 2] + amount * (rgba[off + 2] - blurred[bIdx + 2]))));
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(

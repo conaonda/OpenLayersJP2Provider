@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -186,6 +186,10 @@ export interface JP2LayerOptions {
   invert?: boolean;
   /** 픽셀 임계값 이진화 (0~255 범위). 지정 시 luminance 기준으로 흑백 이진화 적용 */
   threshold?: number;
+  /** 그레이스케일 이미지 색상화 RGB 값 [r, g, b] (0~255). luminance 기반 착색 적용 */
+  colorize?: [number, number, number];
+  /** 언샤프 마스킹 선명화 강도 (0.0~1.0, 기본값: 0). 3x3 가우시안 블러 기반 선명화 */
+  sharpen?: number;
 }
 
 export interface JP2LayerResult {
@@ -331,6 +335,8 @@ export async function createJP2TileLayer(
   const hue = options?.hue;
   const invert = options?.invert;
   const threshold = options?.threshold;
+  const colorize = options?.colorize;
+  const sharpen = options?.sharpen;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -474,6 +480,14 @@ export async function createJP2TileLayer(
 
           if (threshold != null) {
             applyThreshold(decoded.data, decoded.width, decoded.height, threshold);
+          }
+
+          if (colorize) {
+            applyColorize(decoded.data, decoded.width, decoded.height, colorize);
+          }
+
+          if (sharpen != null && sharpen !== 0) {
+            applySharpen(decoded.data, decoded.width, decoded.height, sharpen);
           }
 
           if (colormap && info.componentCount === 1) {
