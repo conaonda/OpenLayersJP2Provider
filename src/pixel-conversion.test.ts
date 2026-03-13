@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -121,5 +121,51 @@ describe('computeMinMax', () => {
     const src = new Uint8Array([100, 200]);
     const result = computeMinMax(src.buffer, 2, 1, 8);
     expect(result).toBeNull();
+  });
+});
+
+describe('applyNodata', () => {
+  it('single nodata value on grayscale: matching pixels become transparent', () => {
+    const rgba = new Uint8ClampedArray([
+      0, 0, 0, 255,
+      128, 128, 128, 255,
+      0, 0, 0, 255,
+      255, 255, 255, 255,
+    ]);
+    applyNodata(rgba, 2, 2, 1, [0]);
+    expect(rgba[3]).toBe(0);    // pixel 0: nodata
+    expect(rgba[7]).toBe(255);  // pixel 1: kept
+    expect(rgba[11]).toBe(0);   // pixel 2: nodata
+    expect(rgba[15]).toBe(255); // pixel 3: kept
+  });
+
+  it('array of nodata values on grayscale', () => {
+    const rgba = new Uint8ClampedArray([
+      0, 0, 0, 255,
+      128, 128, 128, 255,
+      255, 255, 255, 255,
+    ]);
+    applyNodata(rgba, 3, 1, 1, [0, 255]);
+    expect(rgba[3]).toBe(0);    // 0 is nodata
+    expect(rgba[7]).toBe(255);  // 128 is not nodata
+    expect(rgba[11]).toBe(0);   // 255 is nodata
+  });
+
+  it('multi-channel: transparent only when all RGB match nodata', () => {
+    const rgba = new Uint8ClampedArray([
+      0, 0, 0, 255,     // all match → transparent
+      0, 128, 0, 255,   // not all match → opaque
+      10, 10, 10, 255,  // all match → transparent
+    ]);
+    applyNodata(rgba, 3, 1, 3, [0, 10]);
+    expect(rgba[3]).toBe(0);
+    expect(rgba[7]).toBe(255);
+    expect(rgba[11]).toBe(0);
+  });
+
+  it('undefined/empty nodata: no change (caller guards)', () => {
+    const rgba = new Uint8ClampedArray([0, 0, 0, 255]);
+    applyNodata(rgba, 1, 1, 1, []);
+    expect(rgba[3]).toBe(255);
   });
 });

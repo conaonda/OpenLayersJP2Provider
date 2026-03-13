@@ -91,6 +91,35 @@ export function decodedBufferToRGBA(
 }
 
 /**
+ * Applies nodata transparency: sets alpha=0 for pixels matching any nodata value.
+ * For single-channel images, the grayscale value is checked.
+ * For multi-channel images, all RGB channels must match a nodata value.
+ */
+export function applyNodata(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  componentCount: number,
+  nodataValues: number[],
+): void {
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    let isNodata: boolean;
+    if (componentCount === 1) {
+      isNodata = nodataValues.includes(rgba[off]);
+    } else {
+      isNodata = nodataValues.includes(rgba[off])
+        && nodataValues.includes(rgba[off + 1])
+        && nodataValues.includes(rgba[off + 2]);
+    }
+    if (isNodata) {
+      rgba[off + 3] = 0;
+    }
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(

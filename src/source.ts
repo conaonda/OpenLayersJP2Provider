@@ -10,6 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
+import { applyNodata } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -162,6 +163,13 @@ export interface JP2LayerOptions {
   opaque?: boolean;
   /** 디스플레이 타일 크기 (px, 기본값: 256). 512로 설정하면 네트워크 왕복 감소, 128로 설정하면 HiDPI에서 선명도 향상 */
   tileSize?: number;
+  /**
+   * 투명으로 처리할 픽셀 값 (no-data value).
+   * 이 값과 정확히 일치하는 픽셀은 alpha=0으로 설정된다.
+   * 다중 채널 이미지: 모든 채널이 nodata 값과 일치할 때만 투명 처리.
+   * 배열로 전달 시 여러 값을 동시에 지정 가능.
+   */
+  nodata?: number | number[];
 }
 
 export interface JP2LayerResult {
@@ -295,6 +303,10 @@ export async function createJP2TileLayer(
   const onTileLoadStart = options?.onTileLoadStart;
   const onProgress = options?.onProgress;
   const colormap = options?.colormap;
+  const nodata = options?.nodata;
+  const nodataValues: number[] | undefined = nodata != null
+    ? (Array.isArray(nodata) ? nodata : [nodata])
+    : undefined;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -406,6 +418,10 @@ export async function createJP2TileLayer(
             emitProgress();
             tile.setState(3);
             return;
+          }
+
+          if (nodataValues && nodataValues.length > 0) {
+            applyNodata(decoded.data, decoded.width, decoded.height, info.componentCount, nodataValues);
           }
 
           if (colormap && info.componentCount === 1) {
