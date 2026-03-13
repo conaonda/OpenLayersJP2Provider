@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 36,
+  "status": "success",
+  "merged_prs": [125, 123],
+  "closed_issues": [124],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter: PR #125(tilePixelRatio 옵션)와 PR #123(docs sprint-35, CHANGELOG/README 업데이트) 머지 완료를 스프린트 36 문서로 정리하세요."
+}
