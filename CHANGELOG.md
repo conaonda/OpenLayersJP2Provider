@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 40
+
+### Added
+- **`JP2LayerOptions.nodata`**: 투명하게 처리할 픽셀 값 옵션 추가 (closes #136, PR #137)
+  - 타입: `number`, 기본값: `undefined`
+  - 지정된 값과 일치하는 픽셀의 알파 채널을 0으로 설정하여 투명하게 렌더링
+  - `pixel-conversion.ts`의 `applyNodata()` 함수로 처리
+
+---
+
+## [Unreleased] — Sprint 39
+
+### Added
+- **`JP2LayerOptions.tileSize`**: 디스플레이 타일 크기 옵션 추가 (closes #133, PR #134)
+  - 타입: `number`, 기본값: `256`
+  - 기존 `source.ts`의 `DISPLAY_TILE_SIZE` 상수를 대체하여 동적으로 타일 크기 변경 가능
+  - `TileGrid` 생성 시 `tileSize` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 38
 
 ### Added
