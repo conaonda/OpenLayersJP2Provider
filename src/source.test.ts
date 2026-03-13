@@ -963,3 +963,42 @@ describe('cacheSize option', () => {
   });
 });
 
+describe('JP2LayerOptions — wrapX', () => {
+  it('should accept wrapX: false', () => {
+    const opts: JP2LayerOptions = { wrapX: false };
+    expect(opts.wrapX).toBe(false);
+  });
+
+  it('should accept wrapX: true', () => {
+    const opts: JP2LayerOptions = { wrapX: true };
+    expect(opts.wrapX).toBe(true);
+  });
+
+  it('should be optional (undefined when not specified, OL defaults to true)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.wrapX).toBeUndefined();
+  });
+
+  describe('resolveWrapX logic (options?.wrapX)', () => {
+    function resolveWrapX(options?: JP2LayerOptions): boolean | undefined {
+      return options?.wrapX;
+    }
+
+    it('returns false when wrapX is false', () => {
+      expect(resolveWrapX({ wrapX: false })).toBe(false);
+    });
+
+    it('returns true when wrapX is true', () => {
+      expect(resolveWrapX({ wrapX: true })).toBe(true);
+    });
+
+    it('returns undefined when wrapX is omitted (OL defaults to true)', () => {
+      expect(resolveWrapX({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveWrapX(undefined)).toBeUndefined();
+    });
+  });
+});
+

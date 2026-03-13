@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 33
+
+### Added
+- **`JP2LayerOptions.wrapX`**: 타일 소스의 경도 방향(X축) 반복 렌더링을 제어하는 옵션 추가 (closes #115)
+  - 타입: `boolean`, 기본값: OL 기본값 `true`
+  - `TileImage` 소스의 `wrapX` 옵션에 전달
+  - `false`로 설정하면 원본 범위 외부에서 JP2 타일이 반복 표시되지 않음
+
+---
+
 ## [Unreleased] — Sprint 32
 
 ### Added

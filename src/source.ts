@@ -134,6 +134,8 @@ export interface JP2LayerOptions {
   transition?: number;
   /** 레이어 내부 인메모리 타일 캐시 크기 (기본값: OL 기본값 512) */
   cacheSize?: number;
+  /** 타일 소스의 경도 방향(X축) 반복 렌더링 여부 (기본값: OL 기본값 true). false로 설정하면 원본 범위 외부에서 타일이 반복 표시되지 않음 */
+  wrapX?: boolean;
 }
 
 export interface JP2LayerResult {
@@ -280,12 +282,14 @@ export async function createJP2TileLayer(
   const bands = options?.bands;
   const transition = options?.transition;
   const cacheSize = options?.cacheSize;
+  const wrapX = options?.wrapX;
   const source = new TileImage({
     projection,
     tileGrid,
     attributions: options?.attributions,
     transition,
     cacheSize,
+    wrapX,
     tileUrlFunction: (tileCoord) => {
       const [z, x, y] = tileCoord;
       const subtilesPerAxis = tileWidth / DISPLAY_TILE_SIZE / pixelResolutions[z];
