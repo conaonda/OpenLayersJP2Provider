@@ -59,7 +59,7 @@ class Semaphore {
   }
 }
 
-const DISPLAY_TILE_SIZE = 256;
+const DEFAULT_DISPLAY_TILE_SIZE = 256;
 
 export interface JP2LayerOptions {
   /** 동시 타일 로드 최대 수 (기본값: 4) */
@@ -160,6 +160,8 @@ export interface JP2LayerOptions {
   reprojectionErrorThreshold?: number;
   /** 타일 소스가 불투명(opaque)함을 렌더러에 알리는 힌트 (기본값: OL 기본값 false). true로 설정하면 하위 레이어 렌더링 생략 최적화 가능 */
   opaque?: boolean;
+  /** 디스플레이 타일 크기 (px, 기본값: 256). 512로 설정하면 네트워크 왕복 감소, 128로 설정하면 HiDPI에서 선명도 향상 */
+  tileSize?: number;
 }
 
 export interface JP2LayerResult {
@@ -207,6 +209,8 @@ export async function createJP2TileLayer(
       : providerOrUrl;
   const info = await provider.init();
   const { width, height, tileWidth, tileHeight, tilesX, tilesY, geoInfo } = info;
+
+  const DISPLAY_TILE_SIZE = options?.tileSize ?? DEFAULT_DISPLAY_TILE_SIZE;
 
   // Compute resolutions in pixel space
   const maxRes = tileWidth / DISPLAY_TILE_SIZE;

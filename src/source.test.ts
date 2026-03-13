@@ -1176,6 +1176,40 @@ describe('JP2LayerOptions — reprojectionErrorThreshold', () => {
   });
 });
 
+describe('JP2LayerOptions — tileSize', () => {
+  it('should accept a numeric tileSize', () => {
+    const opts: JP2LayerOptions = { tileSize: 512 };
+    expect(opts.tileSize).toBe(512);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.tileSize).toBeUndefined();
+  });
+
+  describe('resolveTileSize logic (options?.tileSize ?? 256)', () => {
+    function resolveTileSize(options?: JP2LayerOptions): number {
+      return options?.tileSize ?? 256;
+    }
+
+    it('returns 512 when tileSize is 512', () => {
+      expect(resolveTileSize({ tileSize: 512 })).toBe(512);
+    });
+
+    it('returns 128 when tileSize is 128', () => {
+      expect(resolveTileSize({ tileSize: 128 })).toBe(128);
+    });
+
+    it('returns 256 (default) when tileSize is omitted', () => {
+      expect(resolveTileSize({})).toBe(256);
+    });
+
+    it('returns 256 (default) when options is undefined', () => {
+      expect(resolveTileSize(undefined)).toBe(256);
+    });
+  });
+});
+
 describe('JP2LayerOptions — opaque', () => {
   it('should accept opaque: true', () => {
     const opts: JP2LayerOptions = { opaque: true };
