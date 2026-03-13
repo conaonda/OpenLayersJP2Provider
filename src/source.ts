@@ -156,6 +156,10 @@ export interface JP2LayerOptions {
   extent?: [number, number, number, number];
   /** 타일 이미지 픽셀과 CSS 픽셀의 비율 (기본값: OL 기본값 1). HiDPI/Retina 디스플레이에서 고해상도 타일을 렌더링하려면 2로 설정 */
   tilePixelRatio?: number;
+  /** 타일 재투영(reprojection) 시 허용되는 최대 픽셀 오차 임계값 (기본값: OL 기본값 0.5). 낮을수록 정확하지만 성능 비용 증가 */
+  reprojectionErrorThreshold?: number;
+  /** 타일 소스가 불투명(opaque)함을 렌더러에 알리는 힌트 (기본값: OL 기본값 false). true로 설정하면 하위 레이어 렌더링 생략 최적화 가능 */
+  opaque?: boolean;
 }
 
 export interface JP2LayerResult {
@@ -305,6 +309,8 @@ export async function createJP2TileLayer(
   const wrapX = options?.wrapX;
   const crossOrigin = options?.crossOrigin;
   const tilePixelRatio = options?.tilePixelRatio;
+  const reprojectionErrorThreshold = options?.reprojectionErrorThreshold;
+  const opaque = options?.opaque;
   const source = new TileImage({
     projection,
     tileGrid,
@@ -315,6 +321,8 @@ export async function createJP2TileLayer(
     wrapX,
     crossOrigin,
     tilePixelRatio,
+    reprojectionErrorThreshold,
+    opaque,
     tileUrlFunction: (tileCoord) => {
       const [z, x, y] = tileCoord;
       const subtilesPerAxis = tileWidth / DISPLAY_TILE_SIZE / pixelResolutions[z];
