@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 34
+
+### Added
+- **`JP2LayerOptions.extent`**: 레이어가 렌더링될 지리 범위를 제한하는 옵션 추가 (closes #117, PR #118)
+  - 타입: `[minX, minY, maxX, maxY]`, 기본값: JP2 파일에서 계산된 범위 (Geographic mode) 또는 전체 픽셀 범위 (Pixel mode)
+  - 지정 시 해당 범위 내에서만 타일이 렌더링되며, 범위 바깥의 타일은 표시되지 않음
+  - Geographic mode(지리 정보 포함 JP2)에서는 JP2에서 계산된 extent를 대체하여 `TileLayer`의 `extent`로 사용
+  - Pixel mode(지리 정보 없는 JP2)에서도 `TileLayer`의 `extent`를 명시적으로 제한 가능
+  - 좌표는 레이어가 사용하는 투영계(projection) 단위를 따름 (예: EPSG:4326이면 경위도 도(degree))
+
+---
+
 ## [Unreleased] — Sprint 33
 
 ### Added
