@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -306,5 +306,81 @@ describe('applyContrast', () => {
     const rgba = new Uint8ClampedArray([100, 100, 100, 200]);
     applyContrast(rgba, 1, 1, 2);
     expect(rgba[3]).toBe(200);
+  });
+});
+
+describe('applySaturation', () => {
+  it('saturation=1.0: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applySaturation(rgba, 1, 1, 1.0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('saturation=0: grayscale', () => {
+    const rgba = new Uint8ClampedArray([255, 0, 0, 255]);
+    applySaturation(rgba, 1, 1, 0);
+    // gray = 0.2126*255 + 0.7152*0 + 0.0722*0 ≈ 54
+    const gray = Math.round(0.2126 * 255);
+    expect(rgba[0]).toBe(gray);
+    expect(rgba[1]).toBe(gray);
+    expect(rgba[2]).toBe(gray);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('saturation=2: oversaturated', () => {
+    const rgba = new Uint8ClampedArray([200, 100, 100, 255]);
+    applySaturation(rgba, 1, 1, 2);
+    expect(rgba[0]).toBeGreaterThan(200);
+    expect(rgba[1]).toBeLessThan(100);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 128]);
+    applySaturation(rgba, 1, 1, 0);
+    expect(rgba[3]).toBe(128);
+  });
+});
+
+describe('applyHue', () => {
+  it('hue=0: no change', () => {
+    const rgba = new Uint8ClampedArray([255, 0, 0, 255]);
+    applyHue(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(0);
+    expect(rgba[2]).toBe(0);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('hue=360: full rotation returns to original', () => {
+    const rgba = new Uint8ClampedArray([255, 0, 0, 255]);
+    applyHue(rgba, 1, 1, 360);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(0);
+    expect(rgba[2]).toBe(0);
+  });
+
+  it('hue=120: red shifts toward green', () => {
+    const rgba = new Uint8ClampedArray([255, 0, 0, 255]);
+    applyHue(rgba, 1, 1, 120);
+    // Red (H=0) + 120° → H=120° → green
+    expect(rgba[0]).toBeLessThan(255);
+    expect(rgba[1]).toBeGreaterThan(0);
+  });
+
+  it('achromatic pixels unchanged', () => {
+    const rgba = new Uint8ClampedArray([128, 128, 128, 255]);
+    applyHue(rgba, 1, 1, 90);
+    expect(rgba[0]).toBe(128);
+    expect(rgba[1]).toBe(128);
+    expect(rgba[2]).toBe(128);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([255, 0, 0, 100]);
+    applyHue(rgba, 1, 1, 180);
+    expect(rgba[3]).toBe(100);
   });
 });
