@@ -146,6 +146,47 @@ export function applyNodata(
 }
 
 /**
+ * Applies brightness adjustment to RGB channels: out = in + brightness * 255.
+ * Alpha channel is not modified.
+ */
+export function applyBrightness(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  brightness: number,
+): void {
+  if (brightness === 0) return;
+  const offset = Math.round(brightness * 255);
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = rgba[off] + offset;
+    rgba[off + 1] = rgba[off + 1] + offset;
+    rgba[off + 2] = rgba[off + 2] + offset;
+  }
+}
+
+/**
+ * Applies contrast adjustment to RGB channels: out = (in - 128) * contrast + 128.
+ * Alpha channel is not modified.
+ */
+export function applyContrast(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  contrast: number,
+): void {
+  if (contrast === 1.0) return;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = (rgba[off] - 128) * contrast + 128;
+    rgba[off + 1] = (rgba[off + 1] - 128) * contrast + 128;
+    rgba[off + 2] = (rgba[off + 2] - 128) * contrast + 128;
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(
