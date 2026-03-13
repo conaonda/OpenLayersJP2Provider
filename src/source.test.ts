@@ -157,6 +157,28 @@ describe('attributions option', () => {
   });
 });
 
+describe('attributionsCollapsible option', () => {
+  it('should accept a boolean value (false)', () => {
+    const opts: JP2LayerOptions = {
+      attributions: '© Test',
+      attributionsCollapsible: false,
+    };
+    expect(opts.attributionsCollapsible).toBe(false);
+  });
+
+  it('should accept a boolean value (true)', () => {
+    const opts: JP2LayerOptions = {
+      attributionsCollapsible: true,
+    };
+    expect(opts.attributionsCollapsible).toBe(true);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.attributionsCollapsible).toBeUndefined();
+  });
+});
+
 describe('bands option', () => {
   it('should accept a 3-element tuple of band indices', () => {
     const opts: JP2LayerOptions = {
