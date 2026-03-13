@@ -253,6 +253,44 @@ export function applyHue(
 }
 
 /**
+ * Inverts RGB channels: out = 255 - in.
+ * Alpha channel is not modified.
+ */
+export function applyInvert(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+): void {
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = 255 - rgba[off];
+    rgba[off + 1] = 255 - rgba[off + 1];
+    rgba[off + 2] = 255 - rgba[off + 2];
+  }
+}
+
+/**
+ * Applies threshold binarization based on luminance.
+ * Pixels with luminance >= threshold become 255 (white), otherwise 0 (black).
+ * Alpha channel is not modified.
+ */
+export function applyThreshold(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  threshold: number,
+): void {
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const lum = 0.2126 * rgba[off] + 0.7152 * rgba[off + 1] + 0.0722 * rgba[off + 2];
+    const v = lum >= threshold ? 255 : 0;
+    rgba[off] = rgba[off + 1] = rgba[off + 2] = v;
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(
