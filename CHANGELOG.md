@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 37
+
+### Added
+- **`JP2LayerOptions.attributionsCollapsible`**: 저작권 표기 패널 접기 버튼 표시 여부 옵션 추가 (closes #126, PR #127)
+  - 타입: `boolean`, 기본값: `true` (접기 가능)
+  - `false`로 설정하면 저작권 패널이 항상 펼쳐진 상태로 고정됨
+  - `TileImage` 소스의 `attributionsCollapsible` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 36
 
 ### Added
