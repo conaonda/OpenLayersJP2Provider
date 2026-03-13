@@ -136,6 +136,20 @@ export interface JP2LayerOptions {
   cacheSize?: number;
   /** 타일 소스의 경도 방향(X축) 반복 렌더링 여부 (기본값: OL 기본값 true). false로 설정하면 원본 범위 외부에서 타일이 반복 표시되지 않음 */
   wrapX?: boolean;
+  /**
+   * 레이어가 렌더링될 지리 범위 `[minX, minY, maxX, maxY]`.
+   * 지정 시 해당 범위 내에서만 타일이 렌더링되며, 범위 바깥의 타일은 표시되지 않는다.
+   *
+   * - 좌표는 레이어가 사용하는 투영계(projection) 단위를 따른다 (예: EPSG:4326이면 경위도 도(degree)).
+   * - Geographic mode(JP2 파일에 지리 정보가 포함된 경우)에서는 이 값이 JP2 파일의 extent를
+   *   대체하여 TileLayer의 extent로 사용된다. 미지정 시 JP2 파일에서 계산된 extent가 그대로 적용된다.
+   * - Pixel mode(지리 정보 없는 JP2)에서도 TileLayer의 extent를 명시적으로 제한할 수 있다.
+   *
+   * @example
+   * // 한반도 영역만 렌더링 (EPSG:4326)
+   * createJP2TileLayer('map.jp2', { extent: [124, 33, 132, 39] });
+   */
+  extent?: [number, number, number, number];
 }
 
 export interface JP2LayerResult {
@@ -487,9 +501,10 @@ export async function createJP2TileLayer(
   const renderBuffer = options?.renderBuffer;
   const interpolate = options?.interpolate;
 
+  const layerExtent = options?.extent;
   const layer = geoInfo
-    ? new TileLayer({ source, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer, interpolate })
-    : new TileLayer({ source, extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer, interpolate });
+    ? new TileLayer({ source, extent: layerExtent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer, interpolate })
+    : new TileLayer({ source, extent: layerExtent ?? extent, opacity, visible, zIndex, preload, className, minZoom, maxZoom, maxResolution, minResolution, updateWhileAnimating, updateWhileInteracting, background, useInterimTilesOnError, properties, renderBuffer, interpolate });
 
   const destroy = () => {
     provider.destroy();

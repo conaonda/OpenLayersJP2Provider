@@ -963,6 +963,36 @@ describe('cacheSize option', () => {
   });
 });
 
+describe('JP2LayerOptions — extent', () => {
+  it('should accept an extent tuple', () => {
+    const opts: JP2LayerOptions = { extent: [100, 30, 110, 40] };
+    expect(opts.extent).toEqual([100, 30, 110, 40]);
+  });
+
+  it('should be optional (undefined when not specified)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.extent).toBeUndefined();
+  });
+
+  describe('resolveExtent logic (options?.extent)', () => {
+    function resolveExtent(options?: JP2LayerOptions): [number, number, number, number] | undefined {
+      return options?.extent;
+    }
+
+    it('returns the extent when set', () => {
+      expect(resolveExtent({ extent: [0, 0, 180, 90] })).toEqual([0, 0, 180, 90]);
+    });
+
+    it('returns undefined when extent is omitted', () => {
+      expect(resolveExtent({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveExtent(undefined)).toBeUndefined();
+    });
+  });
+});
+
 describe('JP2LayerOptions — wrapX', () => {
   it('should accept wrapX: false', () => {
     const opts: JP2LayerOptions = { wrapX: false };
