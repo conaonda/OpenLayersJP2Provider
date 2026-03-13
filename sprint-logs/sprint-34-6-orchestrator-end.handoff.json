@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 34,
+  "status": "success",
+  "merged_prs": [118],
+  "closed_issues": [117],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter는 PR #118(extent 옵션)에 대한 CHANGELOG 및 README 업데이트 문서 PR을 작성하세요"
+}
