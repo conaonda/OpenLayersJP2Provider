@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 32,
+  "status": "success",
+  "merged_prs": [113, 111],
+  "closed_issues": [112],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter는 cacheSize 옵션 추가 내용을 바탕으로 Sprint 32 문서 PR을 생성한다"
+}

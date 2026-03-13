@@ -24,6 +24,17 @@
 - JP2LayerOptions.preload: 레이어 프리로드 옵션 (number), OL TileLayer의 preload 옵션에 전달 (PR #75)
 - JP2LayerOptions.className: 레이어 CSS 클래스명 옵션 (string), OL TileLayer의 className 옵션에 전달 (PR #78)
 - JP2LayerOptions.minZoom/maxZoom: 레이어 표시 줌 레벨 범위 옵션 (number), OL TileLayer의 minZoom/maxZoom 옵션에 전달 (PR #81)
+- JP2LayerOptions.maxResolution/minResolution: 레이어 표시 해상도 범위 옵션 (number), OL TileLayer의 maxResolution/minResolution 옵션에 전달 (PR #86)
+- JP2LayerOptions.updateWhileAnimating/updateWhileInteracting: 애니메이션·인터랙션 중 타일 업데이트 제어 옵션 (boolean, 기본값 false), OL TileLayer의 동명 옵션에 전달 (PR #89)
+- JP2LayerOptions.background: 레이어 배경색 옵션 (BackgroundColor 타입: CSS 색상 문자열 또는 줌 레벨별 함수), OL TileLayer의 background 옵션에 전달 (PR #91)
+- JP2LayerOptions.useInterimTilesOnError: 오류 발생 시 임시(저해상도) 타일 표시 옵션 (boolean), OL TileLayer의 useInterimTilesOnError 옵션에 전달 (PR #94)
+- JP2LayerOptions.properties: OL Layer의 setProperties()에 전달되는 임의 속성 객체 옵션 (Record<string, unknown>), 레이어에 커스텀 메타데이터 부착 가능 (PR #97)
+- JP2LayerOptions.renderBuffer: 뷰포트 경계 바깥으로 미리 렌더링할 픽셀 수 옵션 (number, 기본값 OL 기본값 100), 빠른 패닝 시 타일 공백 감소, OL TileLayer의 renderBuffer 옵션에 전달 (PR #100)
+- JP2LayerOptions.interpolate: 타일 렌더링 보간 방식 옵션 (boolean, 기본값 true), false 시 nearest-neighbor 렌더링(픽셀 선명 표시), OL TileLayer의 interpolate 옵션에 전달 (PR #102)
+- JP2LayerOptions.cacheTTL: IndexedDB 타일 인덱스 캐시 TTL 옵션 (number, ms), createJP2TileLayer에서 RangeTileProvider로 전달 (PR #105)
+- JP2LayerOptions.maxConcurrency: 디코딩 WebWorker 풀 크기 옵션 (number), 기존 maxConcurrentTiles(세마포어)와 별개로 실제 워커 수 제어, createJP2TileLayer에서 WorkerPool로 전달 (PR #108, closes #107)
+- JP2LayerOptions.transition: 타일 페이드인 애니메이션 지속 시간 옵션 (number, ms), OL TileLayer의 transition 옵션에 전달, 0이면 애니메이션 비활성화 (PR #110, closes #109)
+- JP2LayerOptions.cacheSize: 레이어 내부 인메모리 타일 캐시 크기 옵션 (number, 기본값 OL 기본값 512), TileImage 소스의 cacheSize 옵션에 전달, 대용량 JP2에서 재디코딩 방지 (PR #113, closes #112)
 
 ## 반복 패턴 & 주의사항
 - 동일 작성자 PR은 GitHub 정책상 공식 approve 불가 → 리뷰 코멘트로 대체
@@ -41,14 +52,14 @@
 - [x] JP2LayerOptions에 requestHeaders 옵션 미포함 — PR #55로 해결 (Sprint 13)
 
 ## 최근 3개 스프린트 요약
-### Sprint 20 (2026-03-10)
-- 완료: PR #81(minZoom/maxZoom 옵션), PR #79(docs sprint-19) 머지, 이슈 #80 닫힘, 단위 테스트 101개 전체 통과
+### Sprint 32 (2026-03-14)
+- 완료: PR #113(cacheSize 옵션) 머지, PR #111(docs sprint-31) 충돌 해결 후 머지, 이슈 #112 닫힘, 단위 테스트 50개 전체 통과
+- 발견된 문제: docs PR #111이 feature PR 머지 후 충돌 → rebase로 해결
+
+### Sprint 31 (2026-03-13)
+- 완료: PR #110(transition 옵션) 머지, 이슈 #109 닫힘, 단위 테스트 11개 전체 통과
 - 발견된 문제: 없음
 
-### Sprint 19 (2026-03-10)
-- 완료: PR #78(className 옵션), PR #76(docs sprint-18) 머지, 이슈 #77 닫힘, 단위 테스트 51개 전체 통과
-- 발견된 문제: 없음
-
-### Sprint 16 (2026-03-10)
-- 완료: PR #69(visible 옵션), PR #67(docs sprint-15) 머지, 이슈 #68 닫힘, 단위 테스트 118개 전체 통과
-- 발견된 문제: docs PR #67이 feature PR 머지 후 충돌 → rebase 후 force-with-lease push로 해결
+### Sprint 30 (2026-03-13)
+- 완료: PR #108(maxConcurrency 옵션) 머지, PR #106(docs sprint-29) 충돌 해결 후 머지, 이슈 #107 닫힘, 단위 테스트 221개 전체 통과
+- 발견된 문제: docs PR #106이 feature PR 머지 후 충돌 → rebase로 해결
