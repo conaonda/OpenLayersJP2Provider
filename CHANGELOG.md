@@ -14,6 +14,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — Sprint 31
+
+### Added
+- **`JP2LayerOptions.transition`**: 타일 페이드인 애니메이션 지속 시간 옵션 추가 (closes #109, PR #110)
+  - 타입: `number` (밀리초), 기본값: OL 기본값 `250`
+  - `0`으로 설정 시 애니메이션 없이 즉시 표시
+  - `createJP2TileLayer` 내부에서 OpenLayers `TileImage` 소스의 `transition` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 30
 
 ### Added
