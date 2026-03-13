@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 39
+
+### Added
+- **`JP2LayerOptions.tileSize`**: 디스플레이 타일 크기(px) 옵션 추가 (closes #133, PR #134)
+  - 타입: `number`, 기본값: `256`
+  - `DISPLAY_TILE_SIZE` 상수를 옵션 값으로 대체하여 TileGrid, 캔버스, subtile 계산에 반영
+  - `512`로 설정하면 네트워크 왕복 감소, `128`로 설정하면 HiDPI에서 선명도 향상
+
+---
+
+## [Unreleased] — Sprint 38
+
+### Added
+- **`JP2LayerOptions.reprojectionErrorThreshold`**: 타일 재투영 시 허용 최대 픽셀 오차 임계값 옵션 추가 (closes #129, PR #131)
+  - 타입: `number`, 기본값: OL 기본값 `0.5`
+  - 낮을수록 정확하지만 성능 비용 증가
+  - `TileImage` 소스의 `reprojectionErrorThreshold` 옵션에 전달
+- **`JP2LayerOptions.opaque`**: 타일 소스 불투명 힌트 옵션 추가 (closes #130, PR #131)
+  - 타입: `boolean`, 기본값: OL 기본값 `false`
+  - `true`로 설정하면 렌더러가 하위 레이어 렌더링을 생략하는 최적화 가능
+  - `TileImage` 소스의 `opaque` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 37
 
 ### Added
