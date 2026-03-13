@@ -187,6 +187,72 @@ export function applyContrast(
 }
 
 /**
+ * Applies saturation adjustment to RGB channels.
+ * saturation=0: grayscale, saturation=1: original, saturation>1: oversaturated.
+ * Alpha channel is not modified.
+ */
+export function applySaturation(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  saturation: number,
+): void {
+  if (saturation === 1.0) return;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const r = rgba[off], g = rgba[off + 1], b = rgba[off + 2];
+    const gray = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    rgba[off]     = Math.round(gray + saturation * (r - gray));
+    rgba[off + 1] = Math.round(gray + saturation * (g - gray));
+    rgba[off + 2] = Math.round(gray + saturation * (b - gray));
+  }
+}
+
+/**
+ * Applies hue rotation to RGB channels.
+ * hueDegrees=0: no change, 180: complementary colors.
+ * Uses RGB→HSL→RGB conversion. Alpha channel is not modified.
+ */
+export function applyHue(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  hueDegrees: number,
+): void {
+  if (hueDegrees === 0) return;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const r = rgba[off] / 255, g = rgba[off + 1] / 255, b = rgba[off + 2] / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    if (max === min) continue; // achromatic, no hue to rotate
+    const d = max - min;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    let h: number;
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+    h = ((h + hueDegrees / 360) % 1 + 1) % 1;
+    // HSL to RGB
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    rgba[off]     = Math.round(hue2rgb(p, q, h + 1/3) * 255);
+    rgba[off + 1] = Math.round(hue2rgb(p, q, h) * 255);
+    rgba[off + 2] = Math.round(hue2rgb(p, q, h - 1/3) * 255);
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(

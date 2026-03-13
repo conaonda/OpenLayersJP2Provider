@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -178,6 +178,10 @@ export interface JP2LayerOptions {
   brightness?: number;
   /** 픽셀 대비 조정 값 (기본값: 1.0, 조정 없음). 1보다 크면 대비 증가, 0~1이면 대비 감소, 0이면 회색 */
   contrast?: number;
+  /** 픽셀 채도 조정 값 (기본값: 1.0, 조정 없음). 0이면 흑백, 1보다 크면 채도 증가 */
+  saturation?: number;
+  /** 픽셀 색조 회전 각도 (기본값: 0, 단위: 도). 180이면 보색, ±360은 한 바퀴 회전 */
+  hue?: number;
 }
 
 export interface JP2LayerResult {
@@ -319,6 +323,8 @@ export async function createJP2TileLayer(
   const gamma = options?.gamma;
   const brightness = options?.brightness;
   const contrast = options?.contrast;
+  const saturation = options?.saturation;
+  const hue = options?.hue;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -446,6 +452,14 @@ export async function createJP2TileLayer(
 
           if (contrast != null && contrast !== 1.0) {
             applyContrast(decoded.data, decoded.width, decoded.height, contrast);
+          }
+
+          if (saturation != null && saturation !== 1.0) {
+            applySaturation(decoded.data, decoded.width, decoded.height, saturation);
+          }
+
+          if (hue != null && hue !== 0) {
+            applyHue(decoded.data, decoded.width, decoded.height, hue);
           }
 
           if (colormap && info.componentCount === 1) {
