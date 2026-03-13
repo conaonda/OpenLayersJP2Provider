@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 43
+
+### Added
+- **`JP2LayerOptions.saturation`**: 픽셀 채도 조정 옵션 추가 (closes #147, PR #149)
+  - 타입: `number`, 기본값: `1.0` (조정 없음)
+  - `0`: 흑백(grayscale), `1`: 원본, `>1`: 과채도
+  - `pixel-conversion.ts`의 `applySaturation()` 함수로 처리, brightness/contrast 이후에 순차 적용
+- **`JP2LayerOptions.hue`**: 픽셀 색조 회전 옵션 추가 (closes #148, PR #149)
+  - 타입: `number`, 기본값: `0` (조정 없음), 단위: 도(degree)
+  - RGB↔HSL 변환을 통한 색조 회전, `180`이면 보색, `±360`은 한 바퀴 회전
+  - `pixel-conversion.ts`의 `applyHue()` 함수로 처리
+
+---
+
 ## [Unreleased] — Sprint 40
 
 ### Added
