@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -443,5 +443,88 @@ describe('applyThreshold', () => {
     const rgba = new Uint8ClampedArray([200, 200, 200, 100]);
     applyThreshold(rgba, 1, 1, 128);
     expect(rgba[3]).toBe(100);
+  });
+});
+
+describe('applyColorize', () => {
+  it('applies orange tint to grayscale', () => {
+    const rgba = new Uint8ClampedArray([128, 128, 128, 255]);
+    applyColorize(rgba, 1, 1, [255, 128, 0]);
+    // lum ≈ 128, t = 128/255 ≈ 0.502
+    expect(rgba[0]).toBe(Math.round(128 / 255 * 255)); // 128
+    expect(rgba[1]).toBe(Math.round(128 / 255 * 128)); // 64
+    expect(rgba[2]).toBe(0);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('white pixel gets full color', () => {
+    const rgba = new Uint8ClampedArray([255, 255, 255, 255]);
+    applyColorize(rgba, 1, 1, [255, 128, 0]);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(128);
+    expect(rgba[2]).toBe(0);
+  });
+
+  it('black pixel stays black', () => {
+    const rgba = new Uint8ClampedArray([0, 0, 0, 255]);
+    applyColorize(rgba, 1, 1, [255, 128, 0]);
+    expect(rgba[0]).toBe(0);
+    expect(rgba[1]).toBe(0);
+    expect(rgba[2]).toBe(0);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([128, 128, 128, 100]);
+    applyColorize(rgba, 1, 1, [255, 0, 0]);
+    expect(rgba[3]).toBe(100);
+  });
+});
+
+describe('applySharpen', () => {
+  it('amount=0: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applySharpen(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('sharpens edges in a 3x3 image', () => {
+    // Center pixel brighter than neighbors → should become even brighter
+    const rgba = new Uint8ClampedArray([
+      50,50,50,255,   50,50,50,255,   50,50,50,255,
+      50,50,50,255,   200,200,200,255, 50,50,50,255,
+      50,50,50,255,   50,50,50,255,   50,50,50,255,
+    ]);
+    applySharpen(rgba, 3, 3, 1.0);
+    // Center pixel (index 4) should be boosted
+    const centerOff = 4 * 4;
+    expect(rgba[centerOff]).toBeGreaterThan(200);
+  });
+
+  it('clamps to 0-255 range', () => {
+    const rgba = new Uint8ClampedArray([
+      0,0,0,255,   0,0,0,255,   0,0,0,255,
+      0,0,0,255,   255,255,255,255, 0,0,0,255,
+      0,0,0,255,   0,0,0,255,   0,0,0,255,
+    ]);
+    applySharpen(rgba, 3, 3, 1.0);
+    const centerOff = 4 * 4;
+    expect(rgba[centerOff]).toBe(255); // clamped
+    // Corner should be clamped to 0
+    expect(rgba[0]).toBeLessThanOrEqual(0);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([
+      100,100,100,50,  100,100,100,50,  100,100,100,50,
+      100,100,100,50,  200,200,200,50,  100,100,100,50,
+      100,100,100,50,  100,100,100,50,  100,100,100,50,
+    ]);
+    applySharpen(rgba, 3, 3, 0.5);
+    for (let i = 0; i < 9; i++) {
+      expect(rgba[i * 4 + 3]).toBe(50);
+    }
   });
 });
