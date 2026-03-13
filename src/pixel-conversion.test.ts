@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -167,5 +167,62 @@ describe('applyNodata', () => {
     const rgba = new Uint8ClampedArray([0, 0, 0, 255]);
     applyNodata(rgba, 1, 1, 1, []);
     expect(rgba[3]).toBe(255);
+  });
+
+  it('tolerance: pixels within tolerance of nodata become transparent', () => {
+    const rgba = new Uint8ClampedArray([
+      0, 0, 0, 255,
+      3, 3, 3, 255,
+      5, 5, 5, 255,
+      6, 6, 6, 255,
+    ]);
+    applyNodata(rgba, 2, 2, 1, [0], 5);
+    expect(rgba[3]).toBe(0);    // 0: |0-0|=0 <= 5
+    expect(rgba[7]).toBe(0);    // 3: |3-0|=3 <= 5
+    expect(rgba[11]).toBe(0);   // 5: |5-0|=5 <= 5
+    expect(rgba[15]).toBe(255); // 6: |6-0|=6 > 5
+  });
+
+  it('tolerance=0: behaves like exact match', () => {
+    const rgba = new Uint8ClampedArray([
+      0, 0, 0, 255,
+      1, 1, 1, 255,
+    ]);
+    applyNodata(rgba, 2, 1, 1, [0], 0);
+    expect(rgba[3]).toBe(0);
+    expect(rgba[7]).toBe(255);
+  });
+});
+
+describe('applyGamma', () => {
+  it('gamma=1.0: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyGamma(rgba, 1, 1, 1.0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('gamma=2.2: pixels become brighter', () => {
+    const rgba = new Uint8ClampedArray([100, 100, 100, 255]);
+    applyGamma(rgba, 1, 1, 2.2);
+    // out = 255 * (100/255)^(1/2.2) ≈ 255 * 0.6467 ≈ 165
+    expect(rgba[0]).toBeGreaterThan(100);
+    expect(rgba[3]).toBe(255); // alpha unchanged
+  });
+
+  it('gamma<1: pixels become darker', () => {
+    const rgba = new Uint8ClampedArray([200, 200, 200, 255]);
+    applyGamma(rgba, 1, 1, 0.5);
+    expect(rgba[0]).toBeLessThan(200);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('preserves 0 and 255 values', () => {
+    const rgba = new Uint8ClampedArray([0, 255, 128, 255]);
+    applyGamma(rgba, 1, 1, 2.2);
+    expect(rgba[0]).toBe(0);
+    expect(rgba[1]).toBe(255);
   });
 });

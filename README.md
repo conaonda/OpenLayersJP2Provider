@@ -98,6 +98,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `opaque` | `boolean` | `false` | 타일 소스가 불투명함을 렌더러에 알리는 힌트. `true`로 설정하면 하위 레이어 렌더링 생략 최적화 가능. `TileImage` 소스의 `opaque` 옵션에 전달 |
 | `tileSize` | `number` | `256` | 디스플레이 타일 크기 (픽셀). 기본값 256. 고해상도 디스플레이나 성능 튜닝에 활용 |
 | `nodata` | `number` | `undefined` | 투명하게 처리할 픽셀 값. 지정된 값과 일치하는 픽셀의 알파 채널을 0으로 설정하여 투명하게 렌더링 |
+| `nodataTolerance` | `number` | `0` | nodata 값 매칭 허용 오차. `\|pixel - nodata\| <= tolerance` 조건으로 매칭. 16비트→8비트 양자화 오차 보정에 유용 |
+| `gamma` | `number` | `1.0` | 픽셀 감마 보정 값. 1보다 크면 밝아지고, 1보다 작으면 어두워짐. `out = 255 × (in/255)^(1/gamma)` 공식 적용 |
 
 #### 반환값 (`JP2LayerResult`)
 

@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata } from './pixel-conversion';
+import { applyNodata, applyGamma } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -170,6 +170,10 @@ export interface JP2LayerOptions {
    * 배열로 전달 시 여러 값을 동시에 지정 가능.
    */
   nodata?: number | number[];
+  /** nodata 값 매칭 허용 오차 (기본값: 0, 정확히 일치해야 함). 지정 시 |pixel - nodata| <= tolerance 조건으로 매칭 */
+  nodataTolerance?: number;
+  /** 픽셀 감마 보정 값 (기본값: 1.0, 보정 없음). 1보다 크면 밝아지고 1보다 작으면 어두워짐 */
+  gamma?: number;
 }
 
 export interface JP2LayerResult {
@@ -307,6 +311,8 @@ export async function createJP2TileLayer(
   const nodataValues: number[] | undefined = nodata != null
     ? (Array.isArray(nodata) ? nodata : [nodata])
     : undefined;
+  const nodataTolerance = options?.nodataTolerance ?? 0;
+  const gamma = options?.gamma;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -421,7 +427,11 @@ export async function createJP2TileLayer(
           }
 
           if (nodataValues && nodataValues.length > 0) {
-            applyNodata(decoded.data, decoded.width, decoded.height, info.componentCount, nodataValues);
+            applyNodata(decoded.data, decoded.width, decoded.height, info.componentCount, nodataValues, nodataTolerance);
+          }
+
+          if (gamma != null && gamma !== 1.0) {
+            applyGamma(decoded.data, decoded.width, decoded.height, gamma);
           }
 
           if (colormap && info.componentCount === 1) {
