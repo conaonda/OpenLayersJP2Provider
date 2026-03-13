@@ -89,6 +89,7 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `maxConcurrency` | `number` | WorkerPool 기본값 | 디코딩 WebWorker 풀 크기. URL 문자열로 호출 시 `RangeTileProvider`에 전달 |
 | `transition` | `number` | `250` | 타일 페이드인 애니메이션 지속 시간 (ms). `0`으로 설정 시 애니메이션 없이 즉시 표시 |
 | `cacheSize` | `number` | `512` | 레이어 내부 인메모리 타일 캐시 크기. 대용량 JP2나 고해상도 뷰에서 재디코딩을 줄이려면 값을 늘린다 |
+| `wrapX` | `boolean` | `true` | 타일 소스의 경도 방향(X축) 반복 렌더링 여부. `false`로 설정하면 원본 범위 외부에서 타일이 반복 표시되지 않음 |
 
 #### 반환값 (`JP2LayerResult`)
 
