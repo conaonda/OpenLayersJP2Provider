@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -381,6 +381,67 @@ describe('applyHue', () => {
   it('alpha channel unchanged', () => {
     const rgba = new Uint8ClampedArray([255, 0, 0, 100]);
     applyHue(rgba, 1, 1, 180);
+    expect(rgba[3]).toBe(100);
+  });
+});
+
+describe('applyInvert', () => {
+  it('inverts RGB channels', () => {
+    const rgba = new Uint8ClampedArray([0, 128, 255, 255]);
+    applyInvert(rgba, 1, 1);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(127);
+    expect(rgba[2]).toBe(0);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('double invert returns to original', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 128]);
+    applyInvert(rgba, 1, 1);
+    applyInvert(rgba, 1, 1);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 100, 100, 50]);
+    applyInvert(rgba, 1, 1);
+    expect(rgba[3]).toBe(50);
+  });
+});
+
+describe('applyThreshold', () => {
+  it('pixels above threshold become white, below become black', () => {
+    const rgba = new Uint8ClampedArray([
+      200, 200, 200, 255,  // lum ≈ 200 → white
+      50, 50, 50, 255,     // lum ≈ 50 → black
+    ]);
+    applyThreshold(rgba, 2, 1, 128);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(255);
+    expect(rgba[2]).toBe(255);
+    expect(rgba[4]).toBe(0);
+    expect(rgba[5]).toBe(0);
+    expect(rgba[6]).toBe(0);
+  });
+
+  it('exact threshold value becomes white', () => {
+    const rgba = new Uint8ClampedArray([128, 128, 128, 255]);
+    applyThreshold(rgba, 1, 1, 128);
+    expect(rgba[0]).toBe(255);
+  });
+
+  it('uses luminance formula for color pixels', () => {
+    // Pure red: lum = 0.2126*255 ≈ 54.2
+    const rgba = new Uint8ClampedArray([255, 0, 0, 255]);
+    applyThreshold(rgba, 1, 1, 55);
+    expect(rgba[0]).toBe(0); // lum < 55
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([200, 200, 200, 100]);
+    applyThreshold(rgba, 1, 1, 128);
     expect(rgba[3]).toBe(100);
   });
 });
