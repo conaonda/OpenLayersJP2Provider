@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 35
+
+### Added
+- **`JP2LayerOptions.crossOrigin`**: CORS 크로스오리진 설정 옵션 추가 (closes #121)
+  - 타입: `string | null`, 기본값: `undefined`
+  - 다른 오리진에서 JP2 파일을 서빙할 때 canvas 픽셀 접근(보안 정책)을 위해 필요
+  - `'anonymous'`: 자격증명 없이 CORS 요청, `'use-credentials'`: 쿠키/인증 헤더 포함
+  - `TileImage` 소스의 `crossOrigin` 옵션에 전달
+
+---
+
+## [Unreleased] — Sprint 34
+
+### Added
+- **`JP2LayerOptions.extent`**: 레이어 렌더링 지리 범위를 제한하는 옵션 추가 (closes #117)
+  - 타입: `[number, number, number, number]` (`[minX, minY, maxX, maxY]`)
+  - 좌표는 레이어가 사용하는 투영계(projection) 단위를 따름
+  - Geographic mode에서는 JP2 파일의 extent를 대체, Pixel mode에서도 범위 명시 가능
+
+---
+
 ## [Unreleased] — Sprint 33
 
 ### Added
