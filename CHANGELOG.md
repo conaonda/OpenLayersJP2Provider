@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 44
+
+### Added
+- **`JP2LayerOptions.invert`**: 픽셀 색상 반전 옵션 추가 (closes #151, PR #153)
+  - 타입: `boolean`, 기본값: `false` (반전 없음)
+  - `true`로 설정하면 각 RGB 채널을 `255 - value`로 반전 (보색 효과)
+  - `pixel-conversion.ts`의 `applyInvert()` 함수로 처리
+- **`JP2LayerOptions.threshold`**: 픽셀 임계값 이진화 옵션 추가 (closes #152, PR #153)
+  - 타입: `number`, 기본값: `undefined` (이진화 없음)
+  - 범위: `0`~`255`. luminance 기준으로 흑백 이진화 처리
+  - `pixel-conversion.ts`의 `applyThreshold()` 함수로 처리: luminance ≥ threshold → 255(흰색), 미만 → 0(검정)
+  - 적용 순서: nodata → gamma → brightness → contrast → saturation → hue → invert → threshold → colormap/bands
+
+---
+
 ## [Unreleased] — Sprint 42
 
 ### Added
