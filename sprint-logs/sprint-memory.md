@@ -37,6 +37,19 @@
 - JP2LayerOptions.cacheSize: 레이어 내부 인메모리 타일 캐시 크기 옵션 (number, 기본값 OL 기본값 512), TileImage 소스의 cacheSize 옵션에 전달, 대용량 JP2에서 재디코딩 방지 (PR #113, closes #112)
 - JP2LayerOptions.wrapX: 타일 소스의 경도 방향(X축) 반복 렌더링 여부 옵션 (boolean, 기본값 OL 기본값 true), TileImage 소스의 wrapX 옵션에 전달 (PR #116, closes #115)
 - JP2LayerOptions.extent: 레이어 렌더링 지리 범위 옵션 ([minX, minY, maxX, maxY]), geographic mode에서 JP2 파일의 extent를 대체하며 pixel mode에서는 TileLayer extent로 전달, OL 소스 extent와 구분하여 layerExtent로 처리 (PR #118, closes #117)
+- JP2LayerOptions.crossOrigin: 타일 이미지 crossOrigin 옵션 (string | null), TileImage 소스의 crossOrigin 옵션에 전달 (PR #122, closes #121)
+- JP2LayerOptions.tilePixelRatio: 물리 픽셀 대 CSS 픽셀 비율 옵션 (number), TileImage 소스의 tilePixelRatio 옵션에 전달 (PR #125, closes #124)
+- JP2LayerOptions.attributionsCollapsible: 저작권 표기 접기 가능 여부 옵션 (boolean, 기본값 true), TileImage 소스의 attributionsCollapsible 옵션에 전달 (PR #127, closes #126)
+- JP2LayerOptions.reprojectionErrorThreshold: 재투영 오차 허용 임계값 옵션 (number), TileImage 소스의 reprojectionErrorThreshold 옵션에 전달 (PR #131, closes #129)
+- JP2LayerOptions.opaque: 타일 소스 불투명도 힌트 옵션 (boolean), TileImage 소스의 opaque 옵션에 전달, 렌더러 최적화에 활용 (PR #131, closes #130)
+- JP2LayerOptions.tileSize: 디스플레이 타일 크기 옵션 (number, 기본값 256), source.ts의 DISPLAY_TILE_SIZE 상수를 대체, TileGrid 생성 시 tileSize로 전달 (PR #134, closes #133)
+- JP2LayerOptions.nodata: 투명하게 처리할 픽셀 값 옵션 (number), 지정된 값과 일치하는 픽셀의 알파 채널을 0으로 설정, pixel-conversion.ts의 applyNodata() 함수로 처리 (PR #137, closes #136)
+- JP2LayerOptions.gamma: 픽셀 감마 보정 옵션 (number, 기본값 1.0), pixel-conversion.ts의 applyGamma() 함수로 처리, 0~255 정규화 후 Math.pow로 보정 적용 (PR #142, closes #140)
+- JP2LayerOptions.nodataTolerance: nodata 값 허용 오차 옵션 (number, 기본값 0), 픽셀 값이 nodata±tolerance 범위 내이면 투명 처리, applyNodata()에 tolerance 파라미터 추가 (PR #142, closes #141)
+- JP2LayerOptions.brightness: 픽셀 밝기 조정 옵션 (number, 기본값 0), pixel-conversion.ts의 applyBrightness() 함수로 처리, -255~255 범위 클램프 후 각 RGB 채널에 가산 (PR #145, closes #143)
+- JP2LayerOptions.contrast: 픽셀 대비 조정 옵션 (number, 기본값 0), pixel-conversion.ts의 applyContrast() 함수로 처리, factor = (259*(contrast+255))/(255*(259-contrast)) 공식 적용 (PR #145, closes #144)
+- JP2LayerOptions.saturation: 픽셀 채도 조정 옵션 (number, 기본값 1.0), pixel-conversion.ts의 applySaturation() 함수로 처리, RGB↔HSL 변환 후 S 채널에 배율 적용 (PR #149, closes #147)
+- JP2LayerOptions.hue: 픽셀 색조 회전 옵션 (number, 기본값 0, 도 단위), pixel-conversion.ts의 applyHue() 함수로 처리, RGB↔HSL 변환 후 H 채널에 각도 가산 후 mod 360 적용 (PR #149, closes #148)
 
 ## 반복 패턴 & 주의사항
 - 동일 작성자 PR은 GitHub 정책상 공식 approve 불가 → 리뷰 코멘트로 대체
@@ -54,14 +67,14 @@
 - [x] JP2LayerOptions에 requestHeaders 옵션 미포함 — PR #55로 해결 (Sprint 13)
 
 ## 최근 3개 스프린트 요약
-### Sprint 34 (2026-03-14)
-- 완료: PR #118(extent 옵션) 머지, 이슈 #117 닫힘, JSDoc 보강 후 머지, 단위 테스트 242개 전체 통과
-- 발견된 문제: extent 옵션 JSDoc 누락 → 리뷰어 피드백 반영하여 상세 문서 추가 후 머지
+### Sprint 43 (2026-03-14)
+- 완료: PR #149(saturation/hue 옵션) 머지, PR #146(docs sprint-41-42) 머지, 이슈 #147/#148 닫힘, 단위 테스트 51개 전체 통과
+- 발견된 문제: 없음
 
-### Sprint 32 (2026-03-14)
-- 완료: PR #113(cacheSize 옵션) 머지, PR #111(docs sprint-31) 충돌 해결 후 머지, 이슈 #112 닫힘, 단위 테스트 50개 전체 통과
-- 발견된 문제: docs PR #111이 feature PR 머지 후 충돌 → rebase로 해결
+### Sprint 42 (2026-03-14)
+- 완료: PR #145(brightness/contrast 옵션) 머지, 이슈 #143/#144 닫힘, 단위 테스트 12개 전체 통과
+- 발견된 문제: 없음
 
-### Sprint 31 (2026-03-13)
-- 완료: PR #110(transition 옵션) 머지, 이슈 #109 닫힘, 단위 테스트 11개 전체 통과
+### Sprint 41 (2026-03-14)
+- 완료: PR #142(gamma/nodataTolerance 옵션) 머지, 이슈 #140/#141 닫힘, 단위 테스트 55개 전체 통과, docs PR #139 충돌로 닫힘
 - 발견된 문제: 없음
