@@ -152,6 +152,8 @@ export interface JP2LayerOptions {
    * createJP2TileLayer('map.jp2', { extent: [124, 33, 132, 39] });
    */
   extent?: [number, number, number, number];
+  /** 타일 이미지 픽셀과 CSS 픽셀의 비율 (기본값: OL 기본값 1). HiDPI/Retina 디스플레이에서 고해상도 타일을 렌더링하려면 2로 설정 */
+  tilePixelRatio?: number;
 }
 
 export interface JP2LayerResult {
@@ -300,6 +302,7 @@ export async function createJP2TileLayer(
   const cacheSize = options?.cacheSize;
   const wrapX = options?.wrapX;
   const crossOrigin = options?.crossOrigin;
+  const tilePixelRatio = options?.tilePixelRatio;
   const source = new TileImage({
     projection,
     tileGrid,
@@ -308,6 +311,7 @@ export async function createJP2TileLayer(
     cacheSize,
     wrapX,
     crossOrigin,
+    tilePixelRatio,
     tileUrlFunction: (tileCoord) => {
       const [z, x, y] = tileCoord;
       const subtilesPerAxis = tileWidth / DISPLAY_TILE_SIZE / pixelResolutions[z];

@@ -1076,3 +1076,42 @@ describe('JP2LayerOptions — wrapX', () => {
   });
 });
 
+describe('JP2LayerOptions — tilePixelRatio', () => {
+  it('should accept tilePixelRatio: 2 (HiDPI)', () => {
+    const opts: JP2LayerOptions = { tilePixelRatio: 2 };
+    expect(opts.tilePixelRatio).toBe(2);
+  });
+
+  it('should accept tilePixelRatio: 1 (default)', () => {
+    const opts: JP2LayerOptions = { tilePixelRatio: 1 };
+    expect(opts.tilePixelRatio).toBe(1);
+  });
+
+  it('should be optional (undefined when not specified, OL defaults to 1)', () => {
+    const opts: JP2LayerOptions = {};
+    expect(opts.tilePixelRatio).toBeUndefined();
+  });
+
+  describe('resolveTilePixelRatio logic (options?.tilePixelRatio)', () => {
+    function resolveTilePixelRatio(options?: JP2LayerOptions): number | undefined {
+      return options?.tilePixelRatio;
+    }
+
+    it('returns 2 when tilePixelRatio is 2', () => {
+      expect(resolveTilePixelRatio({ tilePixelRatio: 2 })).toBe(2);
+    });
+
+    it('returns 1 when tilePixelRatio is 1', () => {
+      expect(resolveTilePixelRatio({ tilePixelRatio: 1 })).toBe(1);
+    });
+
+    it('returns undefined when tilePixelRatio is omitted (OL defaults to 1)', () => {
+      expect(resolveTilePixelRatio({})).toBeUndefined();
+    });
+
+    it('returns undefined when options is undefined', () => {
+      expect(resolveTilePixelRatio(undefined)).toBeUndefined();
+    });
+  });
+});
+
