@@ -4,15 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 36
+
+### Added
+- **`JP2LayerOptions.tilePixelRatio`**: HiDPI/Retina 디스플레이를 위한 타일 픽셀 비율 옵션 추가 (closes #124, PR #125)
+  - 타입: `number`, 기본값: `1`
+  - `TileImage` 소스의 `tilePixelRatio` 옵션에 전달
+  - 값을 `2`로 설정하면 Retina 디스플레이에서 2배 해상도 타일을 요청하여 선명한 이미지 렌더링
+
+---
+
+## [Unreleased] — Sprint 35
+
+### Added
+- **`JP2LayerOptions.crossOrigin`**: CORS 크로스오리진 설정 옵션 추가 (closes #121)
+  - 타입: `string | null`, 기본값: `undefined`
+  - 다른 오리진에서 JP2 파일을 서빙할 때 canvas 픽셀 접근(보안 정책)을 위해 필요
+  - `'anonymous'`: 자격증명 없이 CORS 요청, `'use-credentials'`: 쿠키/인증 헤더 포함
+  - `TileImage` 소스의 `crossOrigin` 옵션에 전달
+
+---
+
 ## [Unreleased] — Sprint 34
 
 ### Added
-- **`JP2LayerOptions.extent`**: 레이어가 렌더링될 지리 범위를 제한하는 옵션 추가 (closes #117, PR #118)
-  - 타입: `[minX, minY, maxX, maxY]`, 기본값: JP2 파일에서 계산된 범위 (Geographic mode) 또는 전체 픽셀 범위 (Pixel mode)
-  - 지정 시 해당 범위 내에서만 타일이 렌더링되며, 범위 바깥의 타일은 표시되지 않음
-  - Geographic mode(지리 정보 포함 JP2)에서는 JP2에서 계산된 extent를 대체하여 `TileLayer`의 `extent`로 사용
-  - Pixel mode(지리 정보 없는 JP2)에서도 `TileLayer`의 `extent`를 명시적으로 제한 가능
-  - 좌표는 레이어가 사용하는 투영계(projection) 단위를 따름 (예: EPSG:4326이면 경위도 도(degree))
+- **`JP2LayerOptions.extent`**: 레이어 렌더링 지리 범위를 제한하는 옵션 추가 (closes #117)
+  - 타입: `[number, number, number, number]` (`[minX, minY, maxX, maxY]`)
+  - 좌표는 레이어가 사용하는 투영계(projection) 단위를 따름
+  - Geographic mode에서는 JP2 파일의 extent를 대체, Pixel mode에서도 범위 명시 가능
 
 ---
 
