@@ -96,6 +96,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `tilePixelRatio` | `number` | `1` | HiDPI/Retina 디스플레이용 타일 픽셀 비율. `2`로 설정 시 2배 해상도 타일 요청. `TileImage` 소스의 `tilePixelRatio` 옵션에 전달 |
 | `reprojectionErrorThreshold` | `number` | `0.5` | 타일 재투영 시 허용되는 최대 픽셀 오차 임계값. 낮을수록 정확하지만 성능 비용 증가. `TileImage` 소스의 `reprojectionErrorThreshold` 옵션에 전달 |
 | `opaque` | `boolean` | `false` | 타일 소스가 불투명함을 렌더러에 알리는 힌트. `true`로 설정하면 하위 레이어 렌더링 생략 최적화 가능. `TileImage` 소스의 `opaque` 옵션에 전달 |
+| `tileSize` | `number` | `256` | 디스플레이 타일 크기 (픽셀). 기본값 256. 고해상도 디스플레이나 성능 튜닝에 활용 |
+| `nodata` | `number` | `undefined` | 투명하게 처리할 픽셀 값. 지정된 값과 일치하는 픽셀의 알파 채널을 0으로 설정하여 투명하게 렌더링 |
 
 #### 반환값 (`JP2LayerResult`)
 
