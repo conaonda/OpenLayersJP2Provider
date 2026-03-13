@@ -69,6 +69,7 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `colormap` | `(value: number) => [r, g, b]` | - | 단채널(grayscale) 이미지에 적용할 컬러맵 함수. 0~255 픽셀 값을 RGB로 변환 (`componentCount === 1`에만 적용) |
 | `onTileLoadStart` | `(info: { col, row, decodeLevel }) => void` | - | 타일 로드 시작 시 호출되는 콜백 (`sem.acquire` 이후, `getTile` 직전) |
 | `attributions` | `string \| string[]` | - | OpenLayers TileImage 소스에 표시할 저작권/출처 정보 |
+| `attributionsCollapsible` | `boolean` | `true` | 저작권 표기 패널의 접기 버튼 표시 여부. `false`로 설정 시 항상 펼쳐진 상태로 고정 |
 | `bands` | `[r, g, b]` | - | 다중 채널 이미지에서 RGB에 매핑할 밴드 인덱스 (0-based). 예: `[3, 2, 1]`. `componentCount >= 3`에만 적용 |
 | `visible` | `boolean` | `true` | 레이어 초기 가시성. `false`로 설정 시 레이어가 숨겨진 상태로 생성됨 |
 | `zIndex` | `number` | - | 레이어 렌더링 순서. 숫자가 클수록 위에 렌더링 (OpenLayers 표준 `zIndex` 옵션) |
