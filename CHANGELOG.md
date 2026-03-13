@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 45
+
+### Added
+- **`JP2LayerOptions.colorize`**: 그레이스케일 이미지 색상화 옵션 추가 (closes #155, PR #157)
+  - 타입: `[r: number, g: number, b: number]`, 기본값: `undefined` (색상화 없음)
+  - luminance 기반 착색: `out_ch = (lum / 255) * color_ch`
+  - `pixel-conversion.ts`의 `applyColorize()` 함수로 처리
+- **`JP2LayerOptions.sharpen`**: 언샤프 마스킹 선명화 옵션 추가 (closes #156, PR #157)
+  - 타입: `number`, 기본값: `0` (선명화 없음)
+  - 권장 범위: `0.0` ~ `1.0`. 3x3 가우시안 블러 기반 언샤프 마스킹 적용
+  - 공식: `out = clamp(original + amount * (original - blurred))`
+  - `pixel-conversion.ts`의 `applySharpen()` 함수로 처리
+  - 적용 순서: nodata → gamma → brightness → contrast → saturation → hue → invert → threshold → colorize → sharpen → colormap/bands
+
+---
+
 ## [Unreleased] — Sprint 44
 
 ### Added
