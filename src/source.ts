@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -202,6 +202,10 @@ export interface JP2LayerOptions {
   posterize?: number;
   /** 비네트 효과 강도 (0~1, 기본값: 0 = 비활성). 이미지 가장자리를 점진적으로 어둡게 처리 */
   vignette?: number;
+  /** Laplacian 엣지 검출 필터 적용 (기본값: false) */
+  edgeDetect?: boolean;
+  /** 엠보스(양각) 효과 적용 (기본값: false) */
+  emboss?: boolean;
 }
 
 export interface JP2LayerResult {
@@ -358,6 +362,8 @@ export async function createJP2TileLayer(
   const grayscale = options?.grayscale;
   const posterize = options?.posterize;
   const vignette = options?.vignette;
+  const edgeDetect = options?.edgeDetect;
+  const emboss = options?.emboss;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -525,6 +531,14 @@ export async function createJP2TileLayer(
 
           if (vignette != null && vignette > 0) {
             applyVignette(decoded.data, decoded.width, decoded.height, vignette);
+          }
+
+          if (edgeDetect) {
+            applyEdgeDetect(decoded.data, decoded.width, decoded.height);
+          }
+
+          if (emboss) {
+            applyEmboss(decoded.data, decoded.width, decoded.height);
           }
 
           if (colorMapLUT && info.componentCount === 1) {

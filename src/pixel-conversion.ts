@@ -551,6 +551,70 @@ export function applyVignette(
 }
 
 /**
+ * Applies Laplacian edge detection to RGBA data.
+ * Kernel: [0,-1,0; -1,4,-1; 0,-1,0].
+ * Alpha channel is not modified.
+ */
+export function applyEdgeDetect(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+): void {
+  const pixelCount = width * height;
+  const tmp = new Uint8ClampedArray(pixelCount * 4);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const off = (y * width + x) * 4;
+      for (let c = 0; c < 3; c++) {
+        const center = rgba[off + c] * 4;
+        const top    = y > 0          ? rgba[((y - 1) * width + x) * 4 + c] : rgba[off + c];
+        const bottom = y < height - 1 ? rgba[((y + 1) * width + x) * 4 + c] : rgba[off + c];
+        const left   = x > 0          ? rgba[(y * width + x - 1) * 4 + c] : rgba[off + c];
+        const right  = x < width - 1  ? rgba[(y * width + x + 1) * 4 + c] : rgba[off + c];
+        tmp[off + c] = Math.max(0, Math.min(255, center - top - bottom - left - right));
+      }
+      tmp[off + 3] = rgba[off + 3];
+    }
+  }
+  rgba.set(tmp);
+}
+
+/**
+ * Applies emboss effect to RGBA data.
+ * Kernel: [-2,-1,0; -1,1,1; 0,1,2]. Result offset by 128.
+ * Alpha channel is not modified.
+ */
+export function applyEmboss(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+): void {
+  const pixelCount = width * height;
+  const tmp = new Uint8ClampedArray(pixelCount * 4);
+  // Kernel weights indexed by (ky+1)*3+(kx+1)
+  const kernel = [-2, -1, 0, -1, 1, 1, 0, 1, 2];
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const off = (y * width + x) * 4;
+      for (let c = 0; c < 3; c++) {
+        let sum = 0;
+        for (let ky = -1; ky <= 1; ky++) {
+          for (let kx = -1; kx <= 1; kx++) {
+            const ny = Math.max(0, Math.min(height - 1, y + ky));
+            const nx = Math.max(0, Math.min(width - 1, x + kx));
+            const w = kernel[(ky + 1) * 3 + (kx + 1)];
+            sum += rgba[(ny * width + nx) * 4 + c] * w;
+          }
+        }
+        tmp[off + c] = Math.max(0, Math.min(255, sum + 128));
+      }
+      tmp[off + 3] = rgba[off + 3];
+    }
+  }
+  rgba.set(tmp);
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(
