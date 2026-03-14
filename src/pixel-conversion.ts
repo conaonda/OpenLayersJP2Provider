@@ -431,6 +431,74 @@ export function applySepia(
 }
 
 /**
+ * Converts RGB pixels to grayscale using ITU-R BT.709 weights.
+ * Each pixel: gray = 0.2126*R + 0.7152*G + 0.0722*B.
+ * Alpha channel is not modified.
+ */
+export function applyGrayscale(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+): void {
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const gray = Math.round(0.2126 * rgba[off] + 0.7152 * rgba[off + 1] + 0.0722 * rgba[off + 2]);
+    rgba[off] = rgba[off + 1] = rgba[off + 2] = gray;
+  }
+}
+
+/**
+ * Applies a color lookup table to single-band (grayscale) RGBA data.
+ * The grayscale value (0~255) is used as an index into the 256-entry colorMap.
+ * Each entry is an [R, G, B] tuple. Alpha channel is not modified.
+ * Only applies when componentCount === 1; multi-channel images are ignored.
+ */
+/**
+ * Validates the colorMap option.
+ * Must be an array of exactly 256 entries, each an [R, G, B] tuple with values 0~255.
+ * Returns true if valid, false otherwise.
+ */
+export function validateColorMap(
+  colorMap: unknown,
+): colorMap is Array<[number, number, number]> {
+  if (!Array.isArray(colorMap) || colorMap.length !== 256) return false;
+  for (let i = 0; i < 256; i++) {
+    const entry = colorMap[i];
+    if (
+      !Array.isArray(entry) ||
+      entry.length !== 3 ||
+      typeof entry[0] !== 'number' ||
+      typeof entry[1] !== 'number' ||
+      typeof entry[2] !== 'number' ||
+      entry[0] < 0 || entry[0] > 255 ||
+      entry[1] < 0 || entry[1] > 255 ||
+      entry[2] < 0 || entry[2] > 255
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function applyColorMap(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  colorMap: Array<[number, number, number]>,
+): void {
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const idx = rgba[off];
+    const entry = colorMap[idx];
+    rgba[off] = entry[0];
+    rgba[off + 1] = entry[1];
+    rgba[off + 2] = entry[2];
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(

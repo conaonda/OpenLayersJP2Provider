@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -634,5 +634,125 @@ describe('applySepia', () => {
     const rgba = new Uint8ClampedArray([100, 150, 200, 100]);
     applySepia(rgba, 1, 1, 1);
     expect(rgba[3]).toBe(100);
+  });
+});
+
+describe('applyGrayscale', () => {
+  it('converts RGB to grayscale using BT.709 weights', () => {
+    const rgba = new Uint8ClampedArray([255, 0, 0, 255]);
+    applyGrayscale(rgba, 1, 1);
+    const expected = Math.round(0.2126 * 255);
+    expect(rgba[0]).toBe(expected);
+    expect(rgba[1]).toBe(expected);
+    expect(rgba[2]).toBe(expected);
+  });
+
+  it('pure white stays white', () => {
+    const rgba = new Uint8ClampedArray([255, 255, 255, 255]);
+    applyGrayscale(rgba, 1, 1);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(255);
+    expect(rgba[2]).toBe(255);
+  });
+
+  it('pure black stays black', () => {
+    const rgba = new Uint8ClampedArray([0, 0, 0, 255]);
+    applyGrayscale(rgba, 1, 1);
+    expect(rgba[0]).toBe(0);
+  });
+
+  it('already gray pixel unchanged', () => {
+    const rgba = new Uint8ClampedArray([128, 128, 128, 255]);
+    applyGrayscale(rgba, 1, 1);
+    expect(rgba[0]).toBe(128);
+    expect(rgba[1]).toBe(128);
+    expect(rgba[2]).toBe(128);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([255, 0, 0, 100]);
+    applyGrayscale(rgba, 1, 1);
+    expect(rgba[3]).toBe(100);
+  });
+});
+
+describe('applyColorMap', () => {
+  it('maps grayscale values to colors via LUT', () => {
+    // Create a simple colorMap: index 0 → blue, index 128 → green, index 255 → red
+    const colorMap: Array<[number, number, number]> = Array.from({ length: 256 }, () => [0, 0, 0] as [number, number, number]);
+    colorMap[0] = [0, 0, 255];
+    colorMap[128] = [0, 255, 0];
+    colorMap[255] = [255, 0, 0];
+
+    const rgba = new Uint8ClampedArray([
+      0, 0, 0, 255,
+      128, 128, 128, 255,
+      255, 255, 255, 255,
+    ]);
+    applyColorMap(rgba, 3, 1, colorMap);
+    // pixel 0: index 0 → blue
+    expect(rgba[0]).toBe(0);
+    expect(rgba[1]).toBe(0);
+    expect(rgba[2]).toBe(255);
+    // pixel 1: index 128 → green
+    expect(rgba[4]).toBe(0);
+    expect(rgba[5]).toBe(255);
+    expect(rgba[6]).toBe(0);
+    // pixel 2: index 255 → red
+    expect(rgba[8]).toBe(255);
+    expect(rgba[9]).toBe(0);
+    expect(rgba[10]).toBe(0);
+  });
+
+  it('alpha channel unchanged', () => {
+    const colorMap: Array<[number, number, number]> = Array.from({ length: 256 }, () => [255, 0, 0] as [number, number, number]);
+    const rgba = new Uint8ClampedArray([100, 100, 100, 50]);
+    applyColorMap(rgba, 1, 1, colorMap);
+    expect(rgba[3]).toBe(50);
+  });
+});
+
+describe('validateColorMap', () => {
+  const makeValidMap = (): Array<[number, number, number]> =>
+    Array.from({ length: 256 }, (_, i) => [i, i, i] as [number, number, number]);
+
+  it('should accept a valid 256-entry colorMap', () => {
+    expect(validateColorMap(makeValidMap())).toBe(true);
+  });
+
+  it('should reject non-array input', () => {
+    expect(validateColorMap(null)).toBe(false);
+    expect(validateColorMap('string')).toBe(false);
+    expect(validateColorMap(42)).toBe(false);
+  });
+
+  it('should reject array with wrong length', () => {
+    expect(validateColorMap([[0, 0, 0]])).toBe(false);
+    const tooMany = Array.from({ length: 257 }, () => [0, 0, 0]);
+    expect(validateColorMap(tooMany)).toBe(false);
+  });
+
+  it('should reject entries with wrong tuple length', () => {
+    const map = makeValidMap();
+    (map[0] as unknown as number[]) = [0, 0];
+    expect(validateColorMap(map)).toBe(false);
+  });
+
+  it('should reject entries with out-of-range values', () => {
+    const map = makeValidMap();
+    map[100] = [256, 0, 0];
+    expect(validateColorMap(map)).toBe(false);
+  });
+
+  it('should reject entries with negative values', () => {
+    const map = makeValidMap();
+    map[50] = [-1, 0, 0];
+    expect(validateColorMap(map)).toBe(false);
+  });
+
+  it('should reject entries with non-number values', () => {
+    const map = makeValidMap();
+    (map[0] as unknown) = ['a', 0, 0];
+    expect(validateColorMap(map)).toBe(false);
   });
 });

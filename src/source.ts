@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -194,6 +194,10 @@ export interface JP2LayerOptions {
   blur?: number;
   /** 세피아 톤 효과 강도 (0~1, 기본값: 0). 0=원본, 1=완전 세피아 */
   sepia?: number;
+  /** 이미지를 그레이스케일로 변환 (기본값: false). ITU-R BT.709 가중치 사용 */
+  grayscale?: boolean;
+  /** 단일 밴드 데이터에 적용할 색상 룩업 테이블 (길이 256 배열, 각 요소 [R, G, B]). 밴드 수 > 1이면 무시 */
+  colorMap?: Array<[number, number, number]>;
 }
 
 export interface JP2LayerResult {
@@ -343,6 +347,11 @@ export async function createJP2TileLayer(
   const sharpen = options?.sharpen;
   const blur = options?.blur;
   const sepia = options?.sepia;
+  const colorMapLUT = options?.colorMap != null && validateColorMap(options.colorMap)
+    ? options.colorMap
+    : undefined;
+  // colorMap takes priority over grayscale for single-band images
+  const grayscale = options?.grayscale;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -502,6 +511,13 @@ export async function createJP2TileLayer(
 
           if (sepia != null && sepia !== 0) {
             applySepia(decoded.data, decoded.width, decoded.height, sepia);
+          }
+
+          if (colorMapLUT && info.componentCount === 1) {
+            // colorMap takes priority: skip grayscale for single-band images
+            applyColorMap(decoded.data, decoded.width, decoded.height, colorMapLUT);
+          } else if (grayscale) {
+            applyGrayscale(decoded.data, decoded.width, decoded.height);
           }
 
           if (colormap && info.componentCount === 1) {
