@@ -362,6 +362,75 @@ export function applySharpen(
 }
 
 /**
+ * Applies Gaussian blur smoothing to RGBA data.
+ * Uses a 3×3 Gaussian kernel [1,2,1; 2,4,2; 1,2,1]/16.
+ * The blur parameter controls number of passes (iterations).
+ * Alpha channel is not modified.
+ */
+export function applyBlur(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  passes: number,
+): void {
+  if (passes <= 0) return;
+  const pixelCount = width * height;
+  for (let p = 0; p < passes; p++) {
+    const tmp = new Uint8ClampedArray(pixelCount * 4);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        let sumR = 0, sumG = 0, sumB = 0;
+        let wSum = 0;
+        for (let ky = -1; ky <= 1; ky++) {
+          for (let kx = -1; kx <= 1; kx++) {
+            const ny = y + ky, nx = x + kx;
+            if (ny < 0 || ny >= height || nx < 0 || nx >= width) continue;
+            const w = (kx === 0 && ky === 0) ? 4 : (kx === 0 || ky === 0) ? 2 : 1;
+            const off = (ny * width + nx) * 4;
+            sumR += rgba[off] * w;
+            sumG += rgba[off + 1] * w;
+            sumB += rgba[off + 2] * w;
+            wSum += w;
+          }
+        }
+        const dstOff = (y * width + x) * 4;
+        tmp[dstOff]     = Math.round(sumR / wSum);
+        tmp[dstOff + 1] = Math.round(sumG / wSum);
+        tmp[dstOff + 2] = Math.round(sumB / wSum);
+        tmp[dstOff + 3] = rgba[dstOff + 3];
+      }
+    }
+    rgba.set(tmp);
+  }
+}
+
+/**
+ * Applies sepia tone effect to RGBA data.
+ * Uses ITU-R sepia transform matrix with intensity-based linear interpolation.
+ * intensity=0: no change, intensity=1: full sepia.
+ * Alpha channel is not modified.
+ */
+export function applySepia(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  intensity: number,
+): void {
+  if (intensity === 0) return;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const r = rgba[off], g = rgba[off + 1], b = rgba[off + 2];
+    const sr = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
+    const sg = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168);
+    const sb = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131);
+    rgba[off]     = Math.round(r + intensity * (sr - r));
+    rgba[off + 1] = Math.round(g + intensity * (sg - g));
+    rgba[off + 2] = Math.round(b + intensity * (sb - b));
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(

@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -190,6 +190,10 @@ export interface JP2LayerOptions {
   colorize?: [number, number, number];
   /** 언샤프 마스킹 선명화 강도 (0.0~1.0, 기본값: 0). 3x3 가우시안 블러 기반 선명화 */
   sharpen?: number;
+  /** 가우시안 블러 스무딩 적용 횟수 (기본값: 0, 비활성화). 3×3 커널 반복 적용 */
+  blur?: number;
+  /** 세피아 톤 효과 강도 (0~1, 기본값: 0). 0=원본, 1=완전 세피아 */
+  sepia?: number;
 }
 
 export interface JP2LayerResult {
@@ -337,6 +341,8 @@ export async function createJP2TileLayer(
   const threshold = options?.threshold;
   const colorize = options?.colorize;
   const sharpen = options?.sharpen;
+  const blur = options?.blur;
+  const sepia = options?.sepia;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -488,6 +494,14 @@ export async function createJP2TileLayer(
 
           if (sharpen != null && sharpen !== 0) {
             applySharpen(decoded.data, decoded.width, decoded.height, sharpen);
+          }
+
+          if (blur != null && blur > 0) {
+            applyBlur(decoded.data, decoded.width, decoded.height, blur);
+          }
+
+          if (sepia != null && sepia !== 0) {
+            applySepia(decoded.data, decoded.width, decoded.height, sepia);
           }
 
           if (colormap && info.componentCount === 1) {
