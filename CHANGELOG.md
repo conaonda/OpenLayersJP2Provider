@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 49
+
+### Added
+- **`JP2LayerOptions.posterize`**: RGB 채널의 색상 레벨 수를 제한하는 포스터라이즈 효과 옵션 추가 (closes #170, PR #172)
+  - 타입: `number`, 기본값: `undefined` (포스터라이즈 없음)
+  - 범위: `2`~`255`. 숫자가 낮을수록 색상 단계가 적어 강한 포스터 느낌
+  - `pixel-conversion.ts`의 `applyPosterize()` 함수로 처리: `out = round(in / step) * step`
+- **`JP2LayerOptions.vignette`**: 이미지 가장자리를 점진적으로 어둡게 처리하는 비네트 효과 옵션 추가 (closes #171, PR #172)
+  - 타입: `number`, 기본값: `undefined` (비네트 없음)
+  - 범위: `0`~`1`. `0`은 효과 없음, `1`은 최대 비네트 강도
+  - `pixel-conversion.ts`의 `applyVignette()` 함수로 처리: 중심에서 가장자리로 갈수록 어두워지는 타원형 마스크 적용
+  - 적용 순서: nodata → gamma → brightness → contrast → saturation → hue → invert → threshold → colorize → sharpen → blur → sepia → grayscale → colormap/bands → posterize → vignette
+
+---
+
 ## [Unreleased] — Sprint 47
 
 ### Added
