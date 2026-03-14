@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 46
+
+### Added
+- **`JP2LayerOptions.blur`**: 가우시안 블러 스무딩 옵션 추가 (closes #159, PR #161)
+  - 타입: `number`, 기본값: `undefined` (블러 없음)
+  - 범위: 양의 정수. 3×3 가우시안 커널을 지정한 횟수만큼 반복 적용
+  - `pixel-conversion.ts`의 `applyBlur()` 함수로 처리
+- **`JP2LayerOptions.sepia`**: 세피아 톤 효과 옵션 추가 (closes #160, PR #161)
+  - 타입: `number`, 기본값: `undefined` (세피아 없음)
+  - 범위: `0`~`1`. `0`은 원본, `1`은 완전 세피아, 중간값은 선형 보간
+  - ITU-R 세피아 변환 행렬 기반 처리
+  - `pixel-conversion.ts`의 `applySepia()` 함수로 처리
+  - 적용 순서: nodata → gamma → brightness → contrast → saturation → hue → invert → threshold → colorize → sharpen → blur → sepia → colormap/bands
+
+---
+
 ## [Unreleased] — Sprint 45
 
 ### Added
