@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 48
+
+### Fixed
+- **grayscale/colorMap 우선순위 명확화** (closes #166, PR #165): 단일 밴드 이미지에서 `colorMap`과 `grayscale`을 동시 사용 시 `colorMap`이 우선 적용되도록 동작 명확화 및 문서화
+
+### Added
+- **`validateColorMap()` 유효성 검사** (closes #167, PR #165): `colorMap` 옵션 입력값 유효성 검사 함수 추가
+  - 길이가 256이 아니거나 각 항목이 `[r, g, b]` 3원소 배열이 아닌 경우 무시(fallback) 처리
+  - `pixel-conversion.ts`의 `validateColorMap()` 함수로 처리
+
+---
+
 ## [Unreleased] — Sprint 45
 
 ### Added
