@@ -499,6 +499,58 @@ export function applyColorMap(
 }
 
 /**
+ * Reduces the number of color levels per RGB channel (posterize effect).
+ * Each channel is quantized to the given number of levels (2~256).
+ * Alpha channel is not modified.
+ */
+export function applyPosterize(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  levels: number,
+): void {
+  if (levels < 2 || levels >= 256) return;
+  const step = 255 / (levels - 1);
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = Math.round(Math.round(rgba[off] / step) * step);
+    rgba[off + 1] = Math.round(Math.round(rgba[off + 1] / step) * step);
+    rgba[off + 2] = Math.round(Math.round(rgba[off + 2] / step) * step);
+  }
+}
+
+/**
+ * Applies a vignette effect: darkens pixels progressively from center to edges.
+ * strength controls intensity (0=none, 1=full darkening at corners).
+ * Formula: factor = 1 - strength * radius^2, where radius is normalized distance from center.
+ * Alpha channel is not modified.
+ */
+export function applyVignette(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  strength: number,
+): void {
+  if (strength === 0) return;
+  const cx = width / 2;
+  const cy = height / 2;
+  const maxDist = Math.sqrt(cx * cx + cy * cy);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const radius = Math.sqrt(dx * dx + dy * dy) / maxDist;
+      const factor = Math.max(0, 1 - strength * radius * radius);
+      const off = (y * width + x) * 4;
+      rgba[off]     = Math.round(rgba[off] * factor);
+      rgba[off + 1] = Math.round(rgba[off + 1] * factor);
+      rgba[off + 2] = Math.round(rgba[off + 2] * factor);
+    }
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -754,5 +754,92 @@ describe('validateColorMap', () => {
     const map = makeValidMap();
     (map[0] as unknown) = ['a', 0, 0];
     expect(validateColorMap(map)).toBe(false);
+  });
+});
+
+describe('applyPosterize', () => {
+  it('levels < 2: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyPosterize(rgba, 1, 1, 1);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('levels >= 256: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyPosterize(rgba, 1, 1, 256);
+    expect(rgba[0]).toBe(100);
+  });
+
+  it('levels=2: binary posterization', () => {
+    const rgba = new Uint8ClampedArray([
+      64, 64, 64, 255,
+      192, 192, 192, 255,
+    ]);
+    applyPosterize(rgba, 2, 1, 2);
+    // step = 255, round(64/255)*255 = 0, round(192/255)*255 = 255
+    expect(rgba[0]).toBe(0);
+    expect(rgba[4]).toBe(255);
+  });
+
+  it('levels=4: quantizes to 4 levels (0, 85, 170, 255)', () => {
+    const rgba = new Uint8ClampedArray([40, 100, 180, 255]);
+    applyPosterize(rgba, 1, 1, 4);
+    // step = 85. round(40/85)*85 = 0*85=0, round(100/85)*85=1*85=85, round(180/85)*85=2*85=170
+    expect(rgba[0]).toBe(0);
+    expect(rgba[1]).toBe(85);
+    expect(rgba[2]).toBe(170);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 100, 100, 50]);
+    applyPosterize(rgba, 1, 1, 4);
+    expect(rgba[3]).toBe(50);
+  });
+});
+
+describe('applyVignette', () => {
+  it('strength=0: no change', () => {
+    const rgba = new Uint8ClampedArray([200, 200, 200, 255]);
+    applyVignette(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(200);
+  });
+
+  it('center pixel is less affected than corner pixels', () => {
+    // 3x3 image, all white
+    const rgba = new Uint8ClampedArray(9 * 4);
+    for (let i = 0; i < 9; i++) {
+      rgba[i * 4] = 255;
+      rgba[i * 4 + 1] = 255;
+      rgba[i * 4 + 2] = 255;
+      rgba[i * 4 + 3] = 255;
+    }
+    applyVignette(rgba, 3, 3, 1.0);
+    // Center pixel (1,1) should be brighter than corner (0,0)
+    const center = rgba[4 * 4]; // pixel index 4
+    const corner = rgba[0];     // pixel index 0
+    expect(center).toBeGreaterThan(corner);
+  });
+
+  it('strength=1: corners are significantly darkened', () => {
+    const rgba = new Uint8ClampedArray([255, 255, 255, 255]);
+    // 1x1 image: the single pixel is at center, radius=0, factor=1
+    applyVignette(rgba, 1, 1, 1.0);
+    // For 1x1, cx=0.5,cy=0.5, pixel at (0,0), dx=-0.5,dy=-0.5, dist=0.707, maxDist=0.707, radius=1, factor=1-1*1=0
+    expect(rgba[0]).toBe(0);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([
+      200, 200, 200, 50,
+      200, 200, 200, 50,
+      200, 200, 200, 50,
+      200, 200, 200, 50,
+    ]);
+    applyVignette(rgba, 2, 2, 0.5);
+    for (let i = 0; i < 4; i++) {
+      expect(rgba[i * 4 + 3]).toBe(50);
+    }
   });
 });
