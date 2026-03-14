@@ -202,9 +202,19 @@ export interface JP2LayerOptions {
   posterize?: number;
   /** 비네트 효과 강도 (0~1, 기본값: 0 = 비활성). 이미지 가장자리를 점진적으로 어둡게 처리 */
   vignette?: number;
-  /** Laplacian 엣지 검출 필터 적용 (기본값: false) */
+  /**
+   * Laplacian 엣지 검출 필터 적용 여부.
+   * 커널: [0,-1,0; -1,4,-1; 0,-1,0]. 경계선을 강조하고 내부 균일 영역은 어두워짐.
+   * 타입: `boolean`, 기본값: `false` (비활성)
+   * 적용 순서: posterize → vignette → edgeDetect → emboss
+   */
   edgeDetect?: boolean;
-  /** 엠보스(양각) 효과 적용 (기본값: false) */
+  /**
+   * 엠보스(양각) 효과 적용 여부.
+   * 커널: [-2,-1,0; -1,1,1; 0,1,2] + 128 오프셋. 빛이 왼쪽 상단에서 비추는 입체감 표현.
+   * 타입: `boolean`, 기본값: `false` (비활성)
+   * 적용 순서: posterize → vignette → edgeDetect → emboss
+   */
   emboss?: boolean;
 }
 

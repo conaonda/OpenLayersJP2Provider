@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 50
+
+### Added
+- **`JP2LayerOptions.edgeDetect`**: Laplacian 엣지 검출 필터 옵션 추가 (closes #174, PR #176)
+  - 타입: `boolean`, 기본값: `false` (비활성)
+  - 커널: [0,-1,0; -1,4,-1; 0,-1,0]. 경계선을 강조하고 내부 균일 영역은 어두워짐
+  - `pixel-conversion.ts`의 `applyEdgeDetect()` 함수로 처리
+- **`JP2LayerOptions.emboss`**: 엠보스(양각) 효과 옵션 추가 (closes #175, PR #176)
+  - 타입: `boolean`, 기본값: `false` (비활성)
+  - 커널: [-2,-1,0; -1,1,1; 0,1,2] + 128 오프셋. 빛이 왼쪽 상단에서 비추는 입체감 표현
+  - `pixel-conversion.ts`의 `applyEmboss()` 함수로 처리
+  - 적용 순서: posterize → vignette → edgeDetect → emboss
+
+---
+
 ## [Unreleased] — Sprint 47
 
 ### Added
