@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 47
+
+### Added
+- **`JP2LayerOptions.grayscale`**: RGB 이미지를 그레이스케일로 변환하는 옵션 추가 (closes #163, PR #165)
+  - 타입: `boolean`, 기본값: `false` (변환 없음)
+  - ITU-R BT.709 가중치(`R×0.2126 + G×0.7152 + B×0.0722`) 기반 정확한 휘도 변환
+  - `pixel-conversion.ts`의 `applyGrayscale()` 함수로 처리
+- **`JP2LayerOptions.colorMap`**: 단채널 데이터에 256엔트리 컬러 룩업 테이블을 적용하는 옵션 추가 (closes #164, PR #165)
+  - 타입: `Array<[r: number, g: number, b: number]>` (256개 요소), 기본값: `undefined`
+  - 단채널(grayscale) RGBA 데이터의 픽셀 값(0~255)을 인덱스로 사용하여 RGB 색상 매핑
+  - `pixel-conversion.ts`의 `applyColorMap()` 함수로 처리
+  - 적용 순서: nodata → gamma → brightness → contrast → saturation → hue → invert → threshold → colorize → sharpen → grayscale → colormap/bands
+
+---
+
 ## [Unreleased] — Sprint 46
 
 ### Added
