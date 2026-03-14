@@ -454,6 +454,33 @@ export function applyGrayscale(
  * Each entry is an [R, G, B] tuple. Alpha channel is not modified.
  * Only applies when componentCount === 1; multi-channel images are ignored.
  */
+/**
+ * Validates the colorMap option.
+ * Must be an array of exactly 256 entries, each an [R, G, B] tuple with values 0~255.
+ * Returns true if valid, false otherwise.
+ */
+export function validateColorMap(
+  colorMap: unknown,
+): colorMap is Array<[number, number, number]> {
+  if (!Array.isArray(colorMap) || colorMap.length !== 256) return false;
+  for (let i = 0; i < 256; i++) {
+    const entry = colorMap[i];
+    if (
+      !Array.isArray(entry) ||
+      entry.length !== 3 ||
+      typeof entry[0] !== 'number' ||
+      typeof entry[1] !== 'number' ||
+      typeof entry[2] !== 'number' ||
+      entry[0] < 0 || entry[0] > 255 ||
+      entry[1] < 0 || entry[1] > 255 ||
+      entry[2] < 0 || entry[2] > 255
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function applyColorMap(
   rgba: Uint8ClampedArray,
   width: number,

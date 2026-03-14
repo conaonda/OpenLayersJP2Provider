@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -709,5 +709,50 @@ describe('applyColorMap', () => {
     const rgba = new Uint8ClampedArray([100, 100, 100, 50]);
     applyColorMap(rgba, 1, 1, colorMap);
     expect(rgba[3]).toBe(50);
+  });
+});
+
+describe('validateColorMap', () => {
+  const makeValidMap = (): Array<[number, number, number]> =>
+    Array.from({ length: 256 }, (_, i) => [i, i, i] as [number, number, number]);
+
+  it('should accept a valid 256-entry colorMap', () => {
+    expect(validateColorMap(makeValidMap())).toBe(true);
+  });
+
+  it('should reject non-array input', () => {
+    expect(validateColorMap(null)).toBe(false);
+    expect(validateColorMap('string')).toBe(false);
+    expect(validateColorMap(42)).toBe(false);
+  });
+
+  it('should reject array with wrong length', () => {
+    expect(validateColorMap([[0, 0, 0]])).toBe(false);
+    const tooMany = Array.from({ length: 257 }, () => [0, 0, 0]);
+    expect(validateColorMap(tooMany)).toBe(false);
+  });
+
+  it('should reject entries with wrong tuple length', () => {
+    const map = makeValidMap();
+    (map[0] as unknown as number[]) = [0, 0];
+    expect(validateColorMap(map)).toBe(false);
+  });
+
+  it('should reject entries with out-of-range values', () => {
+    const map = makeValidMap();
+    map[100] = [256, 0, 0];
+    expect(validateColorMap(map)).toBe(false);
+  });
+
+  it('should reject entries with negative values', () => {
+    const map = makeValidMap();
+    map[50] = [-1, 0, 0];
+    expect(validateColorMap(map)).toBe(false);
+  });
+
+  it('should reject entries with non-number values', () => {
+    const map = makeValidMap();
+    (map[0] as unknown) = ['a', 0, 0];
+    expect(validateColorMap(map)).toBe(false);
   });
 });

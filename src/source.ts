@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -347,8 +347,11 @@ export async function createJP2TileLayer(
   const sharpen = options?.sharpen;
   const blur = options?.blur;
   const sepia = options?.sepia;
+  const colorMapLUT = options?.colorMap != null && validateColorMap(options.colorMap)
+    ? options.colorMap
+    : undefined;
+  // colorMap takes priority over grayscale for single-band images
   const grayscale = options?.grayscale;
-  const colorMapLUT = options?.colorMap;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -510,12 +513,11 @@ export async function createJP2TileLayer(
             applySepia(decoded.data, decoded.width, decoded.height, sepia);
           }
 
-          if (grayscale) {
-            applyGrayscale(decoded.data, decoded.width, decoded.height);
-          }
-
           if (colorMapLUT && info.componentCount === 1) {
+            // colorMap takes priority: skip grayscale for single-band images
             applyColorMap(decoded.data, decoded.width, decoded.height, colorMapLUT);
+          } else if (grayscale) {
+            applyGrayscale(decoded.data, decoded.width, decoded.height);
           }
 
           if (colormap && info.componentCount === 1) {
