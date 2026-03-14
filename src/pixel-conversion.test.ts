@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -841,5 +841,68 @@ describe('applyVignette', () => {
     for (let i = 0; i < 4; i++) {
       expect(rgba[i * 4 + 3]).toBe(50);
     }
+  });
+});
+
+describe('applyEdgeDetect', () => {
+  it('uniform image produces zero output', () => {
+    const rgba = new Uint8ClampedArray(9 * 4);
+    for (let i = 0; i < 9; i++) {
+      rgba[i * 4] = rgba[i * 4 + 1] = rgba[i * 4 + 2] = 100;
+      rgba[i * 4 + 3] = 255;
+    }
+    applyEdgeDetect(rgba, 3, 3);
+    const center = 4 * 4;
+    expect(rgba[center]).toBe(0);
+    expect(rgba[center + 1]).toBe(0);
+    expect(rgba[center + 2]).toBe(0);
+  });
+
+  it('detects edge at center pixel', () => {
+    const rgba = new Uint8ClampedArray(9 * 4);
+    for (let i = 0; i < 9; i++) rgba[i * 4 + 3] = 255;
+    rgba[4 * 4] = rgba[4 * 4 + 1] = rgba[4 * 4 + 2] = 255;
+    applyEdgeDetect(rgba, 3, 3);
+    const center = 4 * 4;
+    expect(rgba[center]).toBe(255);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 100, 100, 50]);
+    applyEdgeDetect(rgba, 1, 1);
+    expect(rgba[3]).toBe(50);
+  });
+});
+
+describe('applyEmboss', () => {
+  it('uniform image: kernel sum applied with 128 offset', () => {
+    const rgba = new Uint8ClampedArray(9 * 4);
+    for (let i = 0; i < 9; i++) {
+      rgba[i * 4] = rgba[i * 4 + 1] = rgba[i * 4 + 2] = 100;
+      rgba[i * 4 + 3] = 255;
+    }
+    applyEmboss(rgba, 3, 3);
+    const center = 4 * 4;
+    // kernel weights sum=1, so 100*1+128=228
+    expect(rgba[center]).toBe(228);
+  });
+
+  it('produces different values for top-left vs bottom-right on gradient', () => {
+    // 3x3 gradient: top-left dark, bottom-right bright
+    const rgba = new Uint8ClampedArray(9 * 4);
+    const values = [50, 55, 60, 55, 64, 70, 60, 70, 80];
+    for (let i = 0; i < 9; i++) {
+      rgba[i * 4] = rgba[i * 4 + 1] = rgba[i * 4 + 2] = values[i];
+      rgba[i * 4 + 3] = 255;
+    }
+    applyEmboss(rgba, 3, 3);
+    // Top-left and bottom-right should have different emboss values
+    expect(rgba[0]).not.toBe(rgba[8 * 4]);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 100, 100, 50]);
+    applyEmboss(rgba, 1, 1);
+    expect(rgba[3]).toBe(50);
   });
 });
