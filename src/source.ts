@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -198,6 +198,10 @@ export interface JP2LayerOptions {
   grayscale?: boolean;
   /** 단일 밴드 데이터에 적용할 색상 룩업 테이블 (길이 256 배열, 각 요소 [R, G, B]). 밴드 수 > 1이면 무시 */
   colorMap?: Array<[number, number, number]>;
+  /** 포스터라이즈 색상 레벨 수 (2~256, 기본값: 0 = 비활성). 각 RGB 채널의 색상 단계를 제한 */
+  posterize?: number;
+  /** 비네트 효과 강도 (0~1, 기본값: 0 = 비활성). 이미지 가장자리를 점진적으로 어둡게 처리 */
+  vignette?: number;
 }
 
 export interface JP2LayerResult {
@@ -352,6 +356,8 @@ export async function createJP2TileLayer(
     : undefined;
   // colorMap takes priority over grayscale for single-band images
   const grayscale = options?.grayscale;
+  const posterize = options?.posterize;
+  const vignette = options?.vignette;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -511,6 +517,14 @@ export async function createJP2TileLayer(
 
           if (sepia != null && sepia !== 0) {
             applySepia(decoded.data, decoded.width, decoded.height, sepia);
+          }
+
+          if (posterize != null && posterize >= 2 && posterize < 256) {
+            applyPosterize(decoded.data, decoded.width, decoded.height, posterize);
+          }
+
+          if (vignette != null && vignette > 0) {
+            applyVignette(decoded.data, decoded.width, decoded.height, vignette);
           }
 
           if (colorMapLUT && info.componentCount === 1) {
