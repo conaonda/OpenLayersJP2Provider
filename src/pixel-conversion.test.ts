@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -526,5 +526,113 @@ describe('applySharpen', () => {
     for (let i = 0; i < 9; i++) {
       expect(rgba[i * 4 + 3]).toBe(50);
     }
+  });
+});
+
+describe('applyBlur', () => {
+  it('passes=0: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyBlur(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('blurs a 3x3 image with bright center', () => {
+    const rgba = new Uint8ClampedArray([
+      0,0,0,255,   0,0,0,255,   0,0,0,255,
+      0,0,0,255,   255,255,255,255, 0,0,0,255,
+      0,0,0,255,   0,0,0,255,   0,0,0,255,
+    ]);
+    applyBlur(rgba, 3, 3, 1);
+    // Center pixel should be reduced (blurred)
+    const centerOff = 4 * 4;
+    expect(rgba[centerOff]).toBeLessThan(255);
+    expect(rgba[centerOff]).toBeGreaterThan(0);
+    // Corner pixels should gain some brightness
+    expect(rgba[0]).toBeGreaterThan(0);
+  });
+
+  it('multiple passes increase blur effect', () => {
+    const make = () => new Uint8ClampedArray([
+      0,0,0,255,   0,0,0,255,   0,0,0,255,
+      0,0,0,255,   255,255,255,255, 0,0,0,255,
+      0,0,0,255,   0,0,0,255,   0,0,0,255,
+    ]);
+    const rgba1 = make();
+    applyBlur(rgba1, 3, 3, 1);
+    const rgba2 = make();
+    applyBlur(rgba2, 3, 3, 2);
+    // Center should be more reduced with 2 passes
+    const centerOff = 4 * 4;
+    expect(rgba2[centerOff]).toBeLessThan(rgba1[centerOff]);
+  });
+
+  it('uniform image unchanged', () => {
+    const rgba = new Uint8ClampedArray([
+      100,100,100,255, 100,100,100,255,
+      100,100,100,255, 100,100,100,255,
+    ]);
+    applyBlur(rgba, 2, 2, 1);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[4]).toBe(100);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([
+      100,100,100,50,  100,100,100,50,  100,100,100,50,
+      100,100,100,50,  200,200,200,50,  100,100,100,50,
+      100,100,100,50,  100,100,100,50,  100,100,100,50,
+    ]);
+    applyBlur(rgba, 3, 3, 1);
+    for (let i = 0; i < 9; i++) {
+      expect(rgba[i * 4 + 3]).toBe(50);
+    }
+  });
+});
+
+describe('applySepia', () => {
+  it('intensity=0: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applySepia(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('intensity=1: full sepia tone', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    const r = 100, g = 150, b = 200;
+    const sr = Math.min(255, Math.round(r * 0.393 + g * 0.769 + b * 0.189));
+    const sg = Math.min(255, Math.round(r * 0.349 + g * 0.686 + b * 0.168));
+    const sb = Math.min(255, Math.round(r * 0.272 + g * 0.534 + b * 0.131));
+    applySepia(rgba, 1, 1, 1);
+    expect(rgba[0]).toBe(sr);
+    expect(rgba[1]).toBe(sg);
+    expect(rgba[2]).toBe(sb);
+  });
+
+  it('intensity=0.5: 50% blend', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    const r = 100, g = 150, b = 200;
+    const sr = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
+    const expected = Math.round(r + 0.5 * (sr - r));
+    applySepia(rgba, 1, 1, 0.5);
+    expect(rgba[0]).toBe(expected);
+  });
+
+  it('sepia R >= G >= B (warm tone)', () => {
+    const rgba = new Uint8ClampedArray([128, 128, 128, 255]);
+    applySepia(rgba, 1, 1, 1);
+    expect(rgba[0]).toBeGreaterThanOrEqual(rgba[1]);
+    expect(rgba[1]).toBeGreaterThanOrEqual(rgba[2]);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 100]);
+    applySepia(rgba, 1, 1, 1);
+    expect(rgba[3]).toBe(100);
   });
 });
