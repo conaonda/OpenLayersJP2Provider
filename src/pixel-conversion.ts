@@ -1206,9 +1206,9 @@ export function applyCrossProcess(
     const gOut = Math.max(0, Math.min(1, g + 0.2 * g * (1 - g)));
     // B: crush — reduce overall, especially midtones
     const bOut = Math.max(0, Math.min(1, b - 0.15 * b * (1 - b)));
-    rgba[off]     = Math.round((rgba[off]     + t * (rOut * 255 - rgba[off])));
-    rgba[off + 1] = Math.round((rgba[off + 1] + t * (gOut * 255 - rgba[off + 1])));
-    rgba[off + 2] = Math.round((rgba[off + 2] + t * (bOut * 255 - rgba[off + 2])));
+    rgba[off]     = Math.max(0, Math.min(255, Math.round(rgba[off]     + t * (rOut * 255 - rgba[off]))));
+    rgba[off + 1] = Math.max(0, Math.min(255, Math.round(rgba[off + 1] + t * (gOut * 255 - rgba[off + 1]))));
+    rgba[off + 2] = Math.max(0, Math.min(255, Math.round(rgba[off + 2] + t * (bOut * 255 - rgba[off + 2]))));
   }
 }
 
@@ -1269,11 +1269,11 @@ export function applyHalftone(
         }
       }
       const avgLum = sumLum / count / 255; // 0=dark, 1=bright
-      // Dot radius: bigger for darker areas
-      const maxRadius = Math.min(bw, bh) / 2;
+      // Dot radius: use full cell size to avoid edge artifacts at tile boundaries
+      const maxRadius = s / 2;
       const dotRadius = maxRadius * (1 - avgLum);
-      const cx = bx + bw / 2;
-      const cy = by + bh / 2;
+      const cx = bx + s / 2;
+      const cy = by + s / 2;
       const r2 = dotRadius * dotRadius;
       for (let y = by; y < by + bh; y++) {
         for (let x = bx; x < bx + bw; x++) {
