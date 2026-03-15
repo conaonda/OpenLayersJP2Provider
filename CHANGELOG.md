@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 63
+
+### Added
+- **`JP2LayerOptions.chromaKey`**: 크로마키(배경색 투명 처리) 옵션 추가 (closes #233, PR #235)
+  - 타입: `{ color: [number, number, number]; tolerance?: number }`, 기본값: `undefined`
+  - 지정한 RGB 색상과 유클리드 거리 기반으로 픽셀을 투명 처리 (크로마키 효과)
+  - tolerance: 색상 허용 오차 (유클리드 거리, 기본값: 0)
+  - `pixel-conversion.ts`의 `applyChromaKey()` 함수로 처리
+  - 적용 순서: nodata 이후 (파이프라인 초기 단계)
+- **`JP2LayerOptions.median`**: 중앙값 필터 옵션 추가 (closes #234, PR #235)
+  - 타입: `number` (필터 반경 1~5), 기본값: `undefined`
+  - 중앙값 필터로 salt-and-pepper 노이즈 제거, 엣지 보존
+  - 1 미만이면 적용 안 됨, 최대 반경 5로 클램프
+  - `pixel-conversion.ts`의 `applyMedian()` 함수로 처리
+  - 적용 순서: blur 이후
+
+---
+
 ## [Unreleased] — Sprint 61
 
 ### Added
