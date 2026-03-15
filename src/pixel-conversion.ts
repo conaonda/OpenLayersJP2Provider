@@ -1551,3 +1551,103 @@ export function applyMedian(
 
   rgba.set(out);
 }
+
+/**
+ * Box blur helper — applies a simple box blur with the given radius to RGB channels.
+ * Returns a new Uint8ClampedArray with blurred RGBA data.
+ */
+function boxBlur(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  radius: number,
+): Uint8ClampedArray {
+  const out = new Uint8ClampedArray(rgba.length);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let rSum = 0, gSum = 0, bSum = 0, count = 0;
+      for (let dy = -radius; dy <= radius; dy++) {
+        const ny = y + dy;
+        if (ny < 0 || ny >= height) continue;
+        for (let dx = -radius; dx <= radius; dx++) {
+          const nx = x + dx;
+          if (nx < 0 || nx >= width) continue;
+          const off = (ny * width + nx) * 4;
+          rSum += rgba[off];
+          gSum += rgba[off + 1];
+          bSum += rgba[off + 2];
+          count++;
+        }
+      }
+      const outOff = (y * width + x) * 4;
+      out[outOff] = (rSum / count) | 0;
+      out[outOff + 1] = (gSum / count) | 0;
+      out[outOff + 2] = (bSum / count) | 0;
+      out[outOff + 3] = rgba[outOff + 3];
+    }
+  }
+  return out;
+}
+
+/**
+ * Unsharp Mask — edge sharpening by subtracting a blurred copy from the original.
+ * output = original + amount * (original - blurred), applied only when diff >= threshold.
+ */
+export function applyUnsharpMask(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  amount: number,
+  radius: number,
+  threshold: number,
+): void {
+  radius = Math.max(1, Math.round(radius));
+  const blurred = boxBlur(rgba, width, height, radius);
+  const len = width * height * 4;
+  for (let i = 0; i < len; i += 4) {
+    for (let c = 0; c < 3; c++) {
+      const diff = rgba[i + c] - blurred[i + c];
+      if (Math.abs(diff) >= threshold) {
+        rgba[i + c] = Math.max(0, Math.min(255, rgba[i + c] + amount * diff)) | 0;
+      }
+    }
+  }
+}
+
+/**
+ * Bloom — glow effect around bright pixels.
+ * Extracts pixels above threshold, blurs them, then additively blends back.
+ */
+export function applyBloom(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  threshold: number,
+  intensity: number,
+  radius: number,
+): void {
+  radius = Math.max(1, Math.round(radius));
+  const len = width * height * 4;
+
+  // Extract bright pixels
+  const bright = new Uint8ClampedArray(len);
+  for (let i = 0; i < len; i += 4) {
+    const lum = (rgba[i] * 77 + rgba[i + 1] * 150 + rgba[i + 2] * 29) >> 8;
+    if (lum >= threshold) {
+      bright[i] = rgba[i];
+      bright[i + 1] = rgba[i + 1];
+      bright[i + 2] = rgba[i + 2];
+    }
+    bright[i + 3] = 255;
+  }
+
+  // Blur the bright pixels
+  const glowed = boxBlur(bright, width, height, radius);
+
+  // Additive blend
+  for (let i = 0; i < len; i += 4) {
+    for (let c = 0; c < 3; c++) {
+      rgba[i + c] = Math.min(255, rgba[i + c] + (glowed[i + c] * intensity) | 0);
+    }
+  }
+}

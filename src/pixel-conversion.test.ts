@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1817,5 +1817,94 @@ describe('applyMedian', () => {
     // corner (0,0) neighbors: [10,20,40,50] → sorted [10,20,40,50] → median index 2 = 40
     // (4 elements, mid = 4>>1 = 2, so value at index 2 = 40)
     expect(rgba[0]).toBe(40);
+  });
+});
+
+describe('applyUnsharpMask', () => {
+  it('sharpens edges by amplifying difference from blurred version', () => {
+    // 3x3 image: uniform 100 except center is 200
+    const v = 100;
+    const rgba = new Uint8ClampedArray([
+      v,v,v,255, v,v,v,255, v,v,v,255,
+      v,v,v,255, 200,200,200,255, v,v,v,255,
+      v,v,v,255, v,v,v,255, v,v,v,255,
+    ]);
+    const original = new Uint8ClampedArray(rgba);
+    applyUnsharpMask(rgba, 3, 3, 1.0, 1, 0);
+    // center pixel should be brighter (sharpened)
+    const center = 4 * 4;
+    expect(rgba[center]).toBeGreaterThan(original[center]);
+    // alpha preserved
+    expect(rgba[center + 3]).toBe(255);
+  });
+
+  it('does not modify pixels when diff is below threshold', () => {
+    const rgba = new Uint8ClampedArray([
+      100,100,100,255, 102,102,102,255, 100,100,100,255,
+      100,100,100,255, 105,105,105,255, 100,100,100,255,
+      100,100,100,255, 102,102,102,255, 100,100,100,255,
+    ]);
+    const original = new Uint8ClampedArray(rgba);
+    applyUnsharpMask(rgba, 3, 3, 1.0, 1, 50);
+    // threshold=50 means small diffs are ignored
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+
+  it('amount=0 leaves image unchanged', () => {
+    const rgba = new Uint8ClampedArray([
+      50,50,50,255, 200,200,200,255,
+      200,200,200,255, 50,50,50,255,
+    ]);
+    const original = new Uint8ClampedArray(rgba);
+    applyUnsharpMask(rgba, 2, 2, 0, 1, 0);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+});
+
+describe('applyBloom', () => {
+  it('brightens pixels near bright areas', () => {
+    // 3x3: all dark except center is bright white
+    const rgba = new Uint8ClampedArray([
+      50,50,50,255, 50,50,50,255, 50,50,50,255,
+      50,50,50,255, 255,255,255,255, 50,50,50,255,
+      50,50,50,255, 50,50,50,255, 50,50,50,255,
+    ]);
+    const original = new Uint8ClampedArray(rgba);
+    applyBloom(rgba, 3, 3, 200, 0.5, 1);
+    // neighbor pixels should be brighter due to bloom
+    expect(rgba[0]).toBeGreaterThan(original[0]); // top-left
+    // center should also be brighter or at max
+    expect(rgba[4 * 4]).toBeGreaterThanOrEqual(original[4 * 4]);
+    // alpha preserved
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('high threshold means no bloom when pixels are below threshold', () => {
+    const rgba = new Uint8ClampedArray([
+      50,50,50,255, 100,100,100,255,
+      100,100,100,255, 50,50,50,255,
+    ]);
+    const original = new Uint8ClampedArray(rgba);
+    applyBloom(rgba, 2, 2, 250, 0.5, 1);
+    // no pixel is >= 250, so no bloom
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+
+  it('intensity=0 leaves image unchanged', () => {
+    const rgba = new Uint8ClampedArray([
+      50,50,50,255, 255,255,255,255,
+      255,255,255,255, 50,50,50,255,
+    ]);
+    const original = new Uint8ClampedArray(rgba);
+    applyBloom(rgba, 2, 2, 200, 0, 1);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
   });
 });
