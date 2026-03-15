@@ -124,6 +124,10 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `exposure` | `number` | `1.0` | 승산 방식 밝기 보정. `>1.0` 밝아짐, `<1.0` 어두워짐. `out = clamp(in × exposure, 0, 255)` |
 | `levels` | `{ inputMin?: number; inputMax?: number }` | `{ inputMin: 0, inputMax: 255 }` | 픽셀 입력 레벨 범위 재매핑. `[inputMin, inputMax]` → `[0, 255]` 선형 재매핑, 범위 밖 값 클램핑 |
 | `noise` | `number` | `0` | 랜덤 노이즈 강도 (0~255). 각 RGB 채널에 `[-noise, +noise]` 균등 분포 랜덤값 가산 |
+| `tint` | `[r, g, b, strength?]` | - | 색조 오버레이 블렌딩. `[R, G, B, strength]` (strength: 0~1, 기본값 0.5). 원본과 지정 색상 블렌딩 |
+| `outputLevels` | `{ outputMin?: number; outputMax?: number }` | `{ outputMin: 0, outputMax: 255 }` | 픽셀 출력 레벨 범위 재매핑. `[0, 255]` → `[outputMin, outputMax]` 선형 재매핑 |
+| `temperature` | `number` | `0` | 색 온도 조정 (-100 ~ +100). 양수=난색(주황빛), 음수=한색(파란빛) |
+| `flip` | `{ horizontal?: boolean; vertical?: boolean }` | - | 이미지 반전. `horizontal`=좌우 반전, `vertical`=상하 반전 |
 
 #### 반환값 (`JP2LayerResult`)
 
