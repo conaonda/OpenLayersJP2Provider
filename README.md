@@ -147,6 +147,10 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `bloom` | `{ threshold?: number; intensity?: number; radius?: number }` | `undefined` | 블룸(밝은 영역 발광) 효과. threshold: 발광 적용 최소 밝기 (0~255, 기본값 200), intensity: 발광 강도 (0~1, 기본값 0.5), radius: 발광 반경 (1~10, 기본값 2) |
 | `radialBlur` | `number \| { amount?: number; centerX?: number; centerY?: number }` | `undefined` | 방사형 줌 블러 효과. amount: 블러 강도/샘플 수 (기본값 10), centerX/centerY: 중심점 (0~1, 기본값 0.5). `number` 단축 표기 시 amount로 사용 |
 | `motionBlur` | `number \| { distance?: number; angle?: number }` | `undefined` | 선형 모션 블러 효과. distance: 블러 거리/샘플 수 (기본값 10), angle: 블러 방향 각도 (도, 기본값 0). `number` 단축 표기 시 distance로 사용 |
+| `pencilSketch` | `boolean \| { intensity?: number; blendMode?: 'multiply' \| 'screen' }` | `undefined` | 연필 스케치 효과. intensity: 효과 강도 (기본값 1.0), blendMode: 블렌드 모드 ('multiply' 또는 'screen', 기본값 'multiply') |
+| `oilPaint` | `boolean \| { radius?: number; levels?: number }` | `undefined` | 유화 페인팅 효과. radius: 커널 반경 (기본값 4), levels: 밝기 양자화 레벨 (기본값 8) |
+| `kuwahara` | `boolean \| { radius?: number }` | `undefined` | 쿠와하라 노이즈 감소 페인팅 필터. radius: 커널 반경 (기본값 3). 4사분면 분산 기반 에지 보존 필터 |
+| `crystallize` | `boolean \| { numCells?: number }` | `undefined` | 크리스탈 모자이크 효과. numCells: 크리스탈 셀 수 (기본값 100). 보로노이 다이어그램 기반 효과 |
 
 #### 반환값 (`JP2LayerResult`)
 
