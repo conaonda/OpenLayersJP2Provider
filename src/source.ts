@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -261,6 +261,13 @@ export interface JP2LayerOptions {
   colorMatrix?: number[];
   /** 타일별 자동 대비 스트레칭 (기본값: false). 각 RGB 채널의 min/max를 0~255로 선형 재매핑 */
   autoContrast?: boolean;
+  /** 특정 RGB 색상을 투명 처리 (크로마키 효과). color: [R,G,B], tolerance: 유클리드 거리 허용 오차 (기본값: 0) */
+  chromaKey?: {
+    color: [number, number, number];
+    tolerance?: number;
+  };
+  /** 중앙값 필터 반경 (1~5). salt-and-pepper 노이즈 제거에 효과적, 엣지 보존 */
+  median?: number;
 }
 
 export interface JP2LayerResult {
@@ -448,6 +455,8 @@ export async function createJP2TileLayer(
     ? options.colorMatrix
     : undefined;
   const autoContrast = options?.autoContrast;
+  const chromaKey = options?.chromaKey;
+  const median = options?.median;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -565,6 +574,10 @@ export async function createJP2TileLayer(
             applyNodata(decoded.data, decoded.width, decoded.height, info.componentCount, nodataValues, nodataTolerance);
           }
 
+          if (chromaKey) {
+            applyChromaKey(decoded.data, decoded.width, decoded.height, chromaKey.color, chromaKey.tolerance ?? 0);
+          }
+
           if (gamma != null && gamma !== 1.0) {
             applyGamma(decoded.data, decoded.width, decoded.height, gamma);
           }
@@ -643,6 +656,10 @@ export async function createJP2TileLayer(
 
           if (blur != null && blur > 0) {
             applyBlur(decoded.data, decoded.width, decoded.height, blur);
+          }
+
+          if (median != null && median >= 1) {
+            applyMedian(decoded.data, decoded.width, decoded.height, median);
           }
 
           if (sepia != null && sepia !== 0) {

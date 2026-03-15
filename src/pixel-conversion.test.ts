@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1693,5 +1693,65 @@ describe('applyAutoContrast', () => {
     applyAutoContrast(rgba, 2, 1);
     expect(rgba[0]).toBe(0);
     expect(rgba[4]).toBe(255);
+  });
+});
+
+describe('applyChromaKey', () => {
+  it('exact match (tolerance=0) makes pixel transparent', () => {
+    const rgba = new Uint8ClampedArray([255, 0, 0, 255, 0, 255, 0, 255]);
+    applyChromaKey(rgba, 2, 1, [255, 0, 0], 0);
+    expect(rgba[3]).toBe(0);   // red pixel → transparent
+    expect(rgba[7]).toBe(255); // green pixel → unchanged
+  });
+
+  it('tolerance>0 makes nearby colors transparent', () => {
+    // color [100,100,100], pixel [105,100,100] → distance = 5
+    const rgba = new Uint8ClampedArray([105, 100, 100, 255]);
+    applyChromaKey(rgba, 1, 1, [100, 100, 100], 5);
+    expect(rgba[3]).toBe(0); // within tolerance
+  });
+
+  it('pixel outside tolerance stays opaque', () => {
+    // color [100,100,100], pixel [110,100,100] → distance = 10
+    const rgba = new Uint8ClampedArray([110, 100, 100, 255]);
+    applyChromaKey(rgba, 1, 1, [100, 100, 100], 5);
+    expect(rgba[3]).toBe(255); // outside tolerance
+  });
+});
+
+describe('applyMedian', () => {
+  it('removes single salt pixel in 3x3 neighborhood', () => {
+    // 3x3 image: center pixel is salt (255,255,255), rest are (50,50,50)
+    const v = 50;
+    const rgba = new Uint8ClampedArray([
+      v,v,v,255, v,v,v,255, v,v,v,255,
+      v,v,v,255, 255,255,255,255, v,v,v,255,
+      v,v,v,255, v,v,v,255, v,v,v,255,
+    ]);
+    applyMedian(rgba, 3, 3, 1);
+    // center pixel should become 50 (median of eight 50s and one 255)
+    const center = 4 * 4; // pixel index 4
+    expect(rgba[center]).toBe(v);
+    expect(rgba[center + 1]).toBe(v);
+    expect(rgba[center + 2]).toBe(v);
+    expect(rgba[center + 3]).toBe(255); // alpha unchanged
+  });
+
+  it('preserves uniform pixels', () => {
+    const rgba = new Uint8ClampedArray([
+      100,100,100,255, 100,100,100,255,
+      100,100,100,255, 100,100,100,255,
+    ]);
+    applyMedian(rgba, 2, 2, 1);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(100);
+    expect(rgba[2]).toBe(100);
+  });
+
+  it('clamps radius to 1-5 range', () => {
+    const rgba = new Uint8ClampedArray([50,50,50,255, 200,200,200,255, 50,50,50,255, 200,200,200,255]);
+    // radius 10 should be clamped to 5, should not throw
+    applyMedian(rgba, 2, 2, 10);
+    expect(rgba[3]).toBe(255); // alpha preserved
   });
 });
