@@ -681,6 +681,51 @@ export function applyChannelSwap(
 }
 
 /**
+ * Adjusts RGB channels independently: out_ch = clamp(in_ch + offset_ch, 0, 255).
+ * Each element of the balance tuple is clamped to -255~255.
+ * Alpha channel is not modified.
+ */
+export function applyColorBalance(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  balance: [number, number, number],
+): void {
+  const rOff = Math.max(-255, Math.min(255, Math.round(balance[0])));
+  const gOff = Math.max(-255, Math.min(255, Math.round(balance[1])));
+  const bOff = Math.max(-255, Math.min(255, Math.round(balance[2])));
+  if (rOff === 0 && gOff === 0 && bOff === 0) return;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = rgba[off] + rOff;
+    rgba[off + 1] = rgba[off + 1] + gOff;
+    rgba[off + 2] = rgba[off + 2] + bOff;
+  }
+}
+
+/**
+ * Applies exposure (multiplicative brightness) to RGB channels: out = clamp(in * exposure, 0, 255).
+ * exposure=1.0: no change, >1.0: brighter, <1.0: darker.
+ * Alpha channel is not modified.
+ */
+export function applyExposure(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  exposure: number,
+): void {
+  if (exposure === 1.0) return;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = Math.round(Math.max(0, Math.min(255, rgba[off] * exposure)));
+    rgba[off + 1] = Math.round(Math.max(0, Math.min(255, rgba[off + 1] * exposure)));
+    rgba[off + 2] = Math.round(Math.max(0, Math.min(255, rgba[off + 2] * exposure)));
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(

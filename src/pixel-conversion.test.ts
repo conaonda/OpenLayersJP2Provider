@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -996,6 +996,70 @@ describe('applyChannelSwap', () => {
   it('alpha channel unchanged', () => {
     const rgba = new Uint8ClampedArray([100, 150, 200, 50]);
     applyChannelSwap(rgba, 1, 1, [2, 1, 0]);
+    expect(rgba[3]).toBe(50);
+  });
+});
+
+describe('applyColorBalance', () => {
+  it('adds offset to each channel independently', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyColorBalance(rgba, 1, 1, [30, -10, -20]);
+    expect(rgba[0]).toBe(130);
+    expect(rgba[1]).toBe(140);
+    expect(rgba[2]).toBe(180);
+  });
+
+  it('clamps to 0-255', () => {
+    const rgba = new Uint8ClampedArray([10, 250, 128, 255]);
+    applyColorBalance(rgba, 1, 1, [-20, 20, 0]);
+    expect(rgba[0]).toBe(0);   // clamped
+    expect(rgba[1]).toBe(255); // clamped
+    expect(rgba[2]).toBe(128);
+  });
+
+  it('no-op when all zeros', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyColorBalance(rgba, 1, 1, [0, 0, 0]);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 50]);
+    applyColorBalance(rgba, 1, 1, [10, 10, 10]);
+    expect(rgba[3]).toBe(50);
+  });
+});
+
+describe('applyExposure', () => {
+  it('multiplies RGB channels by exposure factor', () => {
+    const rgba = new Uint8ClampedArray([100, 200, 50, 255]);
+    applyExposure(rgba, 1, 1, 1.5);
+    expect(rgba[0]).toBe(150);
+    expect(rgba[1]).toBe(255); // clamped from 300
+    expect(rgba[2]).toBe(75);
+  });
+
+  it('darkens with exposure < 1', () => {
+    const rgba = new Uint8ClampedArray([100, 200, 50, 255]);
+    applyExposure(rgba, 1, 1, 0.5);
+    expect(rgba[0]).toBe(50);
+    expect(rgba[1]).toBe(100);
+    expect(rgba[2]).toBe(25);
+  });
+
+  it('no-op when exposure is 1.0', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyExposure(rgba, 1, 1, 1.0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 50]);
+    applyExposure(rgba, 1, 1, 2.0);
     expect(rgba[3]).toBe(50);
   });
 });
