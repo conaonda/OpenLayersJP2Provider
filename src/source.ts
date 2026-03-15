@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -220,6 +220,12 @@ export interface JP2LayerOptions {
   noise?: number;
   /** 이미지 전체에 색조 오버레이 적용 [R, G, B, strength] (strength: 0~1, 기본값 0.5). 원본 색상과 지정 색상을 블렌딩 */
   tint?: [number, number, number, number?];
+  /** 픽셀 출력 레벨 범위 조정. 0~255를 outputMin~outputMax로 선형 재매핑 (기본값: {outputMin: 0, outputMax: 255}) */
+  outputLevels?: { outputMin?: number; outputMax?: number };
+  /** 색 온도 조정 (-100~+100, 기본값: 0). 양수=난색(주황빛), 음수=한색(파란빛) */
+  temperature?: number;
+  /** 이미지 반전. horizontal=좌우 반전, vertical=상하 반전 (기본값: 둘 다 false) */
+  flip?: { horizontal?: boolean; vertical?: boolean };
 }
 
 export interface JP2LayerResult {
@@ -385,6 +391,9 @@ export async function createJP2TileLayer(
   const levels = options?.levels;
   const noise = options?.noise;
   const tint = options?.tint;
+  const outputLevels = options?.outputLevels;
+  const temperature = options?.temperature;
+  const flip = options?.flip;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -514,6 +523,10 @@ export async function createJP2TileLayer(
             applyContrast(decoded.data, decoded.width, decoded.height, contrast);
           }
 
+          if (temperature != null && temperature !== 0) {
+            applyTemperature(decoded.data, decoded.width, decoded.height, temperature);
+          }
+
           if (saturation != null && saturation !== 1.0) {
             applySaturation(decoded.data, decoded.width, decoded.height, saturation);
           }
@@ -586,6 +599,14 @@ export async function createJP2TileLayer(
             applyLevels(decoded.data, decoded.width, decoded.height, validated.inputMin, validated.inputMax);
           }
 
+          if (outputLevels) {
+            const validated = validateOutputLevels(outputLevels.outputMin ?? 0, outputLevels.outputMax ?? 255);
+            if (validated.swapped) {
+              debugWarn(`outputLevels.outputMin > outputLevels.outputMax, swapping values`);
+            }
+            applyOutputLevels(decoded.data, decoded.width, decoded.height, validated.outputMin, validated.outputMax);
+          }
+
           if (noise != null && noise > 0) {
             applyNoise(decoded.data, decoded.width, decoded.height, Math.min(noise, 255));
           }
@@ -645,6 +666,10 @@ export async function createJP2TileLayer(
                 d[off + 3] = 255; // alpha
               }
             }
+          }
+
+          if (flip && (flip.horizontal || flip.vertical)) {
+            applyFlip(decoded.data, decoded.width, decoded.height, !!flip.horizontal, !!flip.vertical);
           }
 
           if (onTileLoad) {
