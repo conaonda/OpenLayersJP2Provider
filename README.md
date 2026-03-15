@@ -67,6 +67,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `initialOpacity` | `number` | `1.0` | 레이어 초기 투명도 (0.0 ~ 1.0) |
 | `requestHeaders` | `Record<string, string>` | - | HTTP 요청에 추가할 커스텀 헤더. URL 문자열로 호출 시 `RangeTileProvider`에 전달 |
 | `colormap` | `(value: number) => [r, g, b]` | - | 단채널(grayscale) 이미지에 적용할 컬러맵 함수. 0~255 픽셀 값을 RGB로 변환 (`componentCount === 1`에만 적용) |
+| `colorBalance` | `[number, number, number]` | - | RGB 채널별 색상 균형 조정 `[R, G, B]`. 각 값은 -255~255 범위의 가산 오프셋. 예: `[20, 0, -20]`은 붉은 계열 강조 |
+| `exposure` | `number` | `1.0` | 승산 방식 밝기 보정. `1.0`=변화 없음, `>1.0` 밝아짐, `<1.0` 어두워짐. 예: `1.5`는 50% 밝기 증가 |
 | `onTileLoadStart` | `(info: { col, row, decodeLevel }) => void` | - | 타일 로드 시작 시 호출되는 콜백 (`sem.acquire` 이후, `getTile` 직전) |
 | `attributions` | `string \| string[]` | - | OpenLayers TileImage 소스에 표시할 저작권/출처 정보 |
 | `attributionsCollapsible` | `boolean` | `true` | 저작권 표기 패널의 접기 버튼 표시 여부. `false`로 설정 시 항상 펼쳐진 상태로 고정 |
