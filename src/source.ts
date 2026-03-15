@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -236,6 +236,12 @@ export interface JP2LayerOptions {
   dodge?: number;
   /** 섀도우 어둡기 증폭 — 번 효과 (0~1, 기본값: 0). 어두운 영역을 선택적으로 어둡게 처리 */
   burn?: number;
+  /** 솔라리제이션 효과 임계값 (0~255, 기본값: 128). 임계값 이상의 채널 값을 반전 */
+  solarize?: number;
+  /** 섀도우/하이라이트 독립 조정. shadows: -100~100, highlights: -100~100 (기본값: 0) */
+  shadowsHighlights?: { shadows?: number; highlights?: number };
+  /** 로컬 콘트라스트 강화 — clarity 효과 (0~100, 기본값: 0). 중간 톤 영역의 디테일 강조 */
+  clarity?: number;
 }
 
 export interface JP2LayerResult {
@@ -411,6 +417,9 @@ export async function createJP2TileLayer(
   const duotone = options?.duotone;
   const dodge = options?.dodge;
   const burn = options?.burn;
+  const solarize = options?.solarize;
+  const shadowsHighlights = options?.shadowsHighlights;
+  const clarity = options?.clarity;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -544,8 +553,20 @@ export async function createJP2TileLayer(
             applyBurn(decoded.data, decoded.width, decoded.height, burn);
           }
 
+          if (solarize != null) {
+            applySolarize(decoded.data, decoded.width, decoded.height, solarize);
+          }
+
+          if (shadowsHighlights) {
+            applyShadowsHighlights(decoded.data, decoded.width, decoded.height, shadowsHighlights.shadows ?? 0, shadowsHighlights.highlights ?? 0);
+          }
+
           if (contrast != null && contrast !== 1.0) {
             applyContrast(decoded.data, decoded.width, decoded.height, contrast);
+          }
+
+          if (clarity != null && clarity > 0) {
+            applyClarity(decoded.data, decoded.width, decoded.height, clarity);
           }
 
           if (temperature != null && temperature !== 0) {
