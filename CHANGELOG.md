@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 52
+
+### Added
+- **`JP2LayerOptions.colorBalance`**: RGB 채널별 색상 균형 조정 옵션 추가 (closes #182, PR #184)
+  - 타입: `[number, number, number]` (R/G/B 채널 오프셋, 각 -255 ~ 255)
+  - 각 채널에 오프셋을 가산하여 색상 균형을 조정. 클램핑은 `Uint8ClampedArray`가 자동 처리
+  - `pixel-conversion.ts`의 `applyColorBalance()` 함수로 처리
+- **`JP2LayerOptions.exposure`**: 승산 방식 밝기 보정 옵션 추가 (closes #183, PR #184)
+  - 타입: `number` (기본값: `1.0`, 변화 없음)
+  - `1.0` 초과 시 밝아짐, `1.0` 미만 시 어두워짐. 각 픽셀에 승산 후 0~255 클램핑
+  - `pixel-conversion.ts`의 `applyExposure()` 함수로 처리
+  - 적용 순서: ...channelSwap → colorBalance → exposure
+
+---
+
 ## [Unreleased] — Sprint 51
 
 ### Added
