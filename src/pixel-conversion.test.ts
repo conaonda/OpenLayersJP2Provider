@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1208,5 +1208,127 @@ describe('applyTint', () => {
     expect(rgba[0]).toBe(255);
     expect(rgba[1]).toBe(0);
     expect(rgba[2]).toBe(0);
+  });
+});
+
+describe('applyOutputLevels', () => {
+  it('outputMin=0, outputMax=128 → max pixel value 128', () => {
+    const rgba = new Uint8ClampedArray([255, 128, 0, 255]);
+    applyOutputLevels(rgba, 1, 1, 0, 128);
+    expect(rgba[0]).toBe(128);
+    expect(rgba[1]).toBe(64);
+    expect(rgba[2]).toBe(0);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('outputMin=128, outputMax=255 → min pixel value 128', () => {
+    const rgba = new Uint8ClampedArray([0, 128, 255, 255]);
+    applyOutputLevels(rgba, 1, 1, 128, 255);
+    expect(rgba[0]).toBe(128);
+    expect(rgba[1]).toBe(192);
+    expect(rgba[2]).toBe(255);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('no-op when outputMin=0, outputMax=255', () => {
+    const rgba = new Uint8ClampedArray([100, 200, 50, 255]);
+    applyOutputLevels(rgba, 1, 1, 0, 255);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(200);
+    expect(rgba[2]).toBe(50);
+  });
+});
+
+describe('validateOutputLevels', () => {
+  it('clamps to 0-255 range', () => {
+    const result = validateOutputLevels(-10, 300);
+    expect(result.outputMin).toBe(0);
+    expect(result.outputMax).toBe(255);
+    expect(result.swapped).toBe(false);
+  });
+
+  it('swaps when min > max', () => {
+    const result = validateOutputLevels(200, 100);
+    expect(result.outputMin).toBe(100);
+    expect(result.outputMax).toBe(200);
+    expect(result.swapped).toBe(true);
+  });
+});
+
+describe('applyTemperature', () => {
+  it('no-op when temperature=0', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyTemperature(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('temperature=50 → R increases, B decreases', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyTemperature(rgba, 1, 1, 50);
+    expect(rgba[0]).toBeGreaterThan(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBeLessThan(200);
+  });
+
+  it('temperature=-50 → B increases, R decreases', () => {
+    const rgba = new Uint8ClampedArray([200, 150, 100, 255]);
+    applyTemperature(rgba, 1, 1, -50);
+    expect(rgba[0]).toBeLessThan(200);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBeGreaterThan(100);
+  });
+
+  it('clamps to 0-255', () => {
+    const rgba = new Uint8ClampedArray([250, 150, 5, 255]);
+    applyTemperature(rgba, 1, 1, 100);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[2]).toBe(0);
+  });
+});
+
+describe('applyFlip', () => {
+  it('horizontal flip swaps left-right', () => {
+    // 2x1 image: [R, G]
+    const rgba = new Uint8ClampedArray([
+      255, 0, 0, 255,   0, 255, 0, 255,
+    ]);
+    applyFlip(rgba, 2, 1, true, false);
+    expect(rgba[0]).toBe(0);    // was green
+    expect(rgba[1]).toBe(255);
+    expect(rgba[4]).toBe(255);  // was red
+    expect(rgba[5]).toBe(0);
+  });
+
+  it('vertical flip swaps top-bottom', () => {
+    // 1x2 image: [R, G]
+    const rgba = new Uint8ClampedArray([
+      255, 0, 0, 255,   0, 255, 0, 255,
+    ]);
+    applyFlip(rgba, 1, 2, false, true);
+    expect(rgba[0]).toBe(0);    // was green (bottom)
+    expect(rgba[1]).toBe(255);
+    expect(rgba[4]).toBe(255);  // was red (top)
+    expect(rgba[5]).toBe(0);
+  });
+
+  it('both horizontal and vertical', () => {
+    // 2x2: [A, B, C, D] → flip both → [D, C, B, A]
+    const rgba = new Uint8ClampedArray([
+      10, 0, 0, 255,  20, 0, 0, 255,
+      30, 0, 0, 255,  40, 0, 0, 255,
+    ]);
+    applyFlip(rgba, 2, 2, true, true);
+    expect(rgba[0]).toBe(40);
+    expect(rgba[4]).toBe(30);
+    expect(rgba[8]).toBe(20);
+    expect(rgba[12]).toBe(10);
+  });
+
+  it('no-op when both false', () => {
+    const rgba = new Uint8ClampedArray([100, 200, 50, 255]);
+    applyFlip(rgba, 1, 1, false, false);
+    expect(rgba[0]).toBe(100);
   });
 });

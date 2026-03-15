@@ -816,6 +816,110 @@ export function applyTint(
 }
 
 /**
+ * Remaps pixel output levels: maps [0, 255] → [outputMin, outputMax] linearly.
+ * Alpha channel is not modified.
+ */
+export function applyOutputLevels(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  outputMin: number,
+  outputMax: number,
+): void {
+  if (outputMin === 0 && outputMax === 255) return;
+  const range = outputMax - outputMin;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = Math.round(Math.max(0, Math.min(255, outputMin + rgba[off] * range / 255)));
+    rgba[off + 1] = Math.round(Math.max(0, Math.min(255, outputMin + rgba[off + 1] * range / 255)));
+    rgba[off + 2] = Math.round(Math.max(0, Math.min(255, outputMin + rgba[off + 2] * range / 255)));
+  }
+}
+
+/**
+ * Validates and normalizes outputLevels input values.
+ * Clamps outputMin/outputMax to 0-255 range.
+ * If outputMin > outputMax, swaps them and returns swapped=true.
+ */
+export function validateOutputLevels(
+  outputMin: number,
+  outputMax: number,
+): { outputMin: number; outputMax: number; swapped: boolean } {
+  let min = Math.max(0, Math.min(255, Math.round(outputMin)));
+  let max = Math.max(0, Math.min(255, Math.round(outputMax)));
+  let swapped = false;
+  if (min > max) {
+    [min, max] = [max, min];
+    swapped = true;
+  }
+  return { outputMin: min, outputMax: max, swapped };
+}
+
+/**
+ * Adjusts color temperature of RGB channels.
+ * Positive values add warmth (increase R, decrease B), negative add coolness (increase B, decrease R).
+ * Range: -100 to +100. Alpha channel is not modified.
+ */
+export function applyTemperature(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  temperature: number,
+): void {
+  if (temperature === 0) return;
+  const t = Math.max(-100, Math.min(100, temperature));
+  const rShift = Math.round(t * 255 / 100);
+  const bShift = Math.round(-t * 255 / 100);
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = Math.max(0, Math.min(255, rgba[off] + rShift));
+    rgba[off + 2] = Math.max(0, Math.min(255, rgba[off + 2] + bShift));
+  }
+}
+
+/**
+ * Flips image horizontally (left-right) and/or vertically (top-bottom).
+ * Alpha channel is included in the flip.
+ */
+export function applyFlip(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  horizontal: boolean,
+  vertical: boolean,
+): void {
+  if (!horizontal && !vertical) return;
+  if (horizontal) {
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < Math.floor(width / 2); x++) {
+        const left = (y * width + x) * 4;
+        const right = (y * width + (width - 1 - x)) * 4;
+        for (let c = 0; c < 4; c++) {
+          const tmp = rgba[left + c];
+          rgba[left + c] = rgba[right + c];
+          rgba[right + c] = tmp;
+        }
+      }
+    }
+  }
+  if (vertical) {
+    for (let y = 0; y < Math.floor(height / 2); y++) {
+      for (let x = 0; x < width; x++) {
+        const top = (y * width + x) * 4;
+        const bottom = ((height - 1 - y) * width + x) * 4;
+        for (let c = 0; c < 4; c++) {
+          const tmp = rgba[top + c];
+          rgba[top + c] = rgba[bottom + c];
+          rgba[bottom + c] = tmp;
+        }
+      }
+    }
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(
