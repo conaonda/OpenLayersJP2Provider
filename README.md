@@ -100,6 +100,28 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `nodata` | `number` | `undefined` | 투명하게 처리할 픽셀 값. 지정된 값과 일치하는 픽셀의 알파 채널을 0으로 설정하여 투명하게 렌더링 |
 | `nodataTolerance` | `number` | `0` | nodata 값 매칭 허용 오차. `\|pixel - nodata\| <= tolerance` 조건으로 매칭. 16비트→8비트 양자화 오차 보정에 유용 |
 | `gamma` | `number` | `1.0` | 픽셀 감마 보정 값. 1보다 크면 밝아지고, 1보다 작으면 어두워짐. `out = 255 × (in/255)^(1/gamma)` 공식 적용 |
+| `brightness` | `number` | `0` | 픽셀 밝기 조정 (-1 ~ 1). `out = in + brightness × 255` 공식 적용. 양수면 밝아지고 음수면 어두워짐 |
+| `contrast` | `number` | `1.0` | 픽셀 대비 조정. `out = (in - 128) × contrast + 128`. 1보다 크면 대비 증가, 0~1이면 감소 |
+| `saturation` | `number` | `1.0` | 픽셀 채도 조정. 0이면 흑백, 1보다 크면 채도 증가 |
+| `hue` | `number` | `0` | 색조 회전 각도 (도). 180이면 보색 |
+| `invert` | `boolean` | `false` | 픽셀 색상 반전. `out = 255 - in` |
+| `threshold` | `number` | `undefined` | luminance 기준 임계값 이진화 (0~255). 지정 시 흑백 변환 |
+| `colorize` | `[r, g, b]` | `undefined` | 그레이스케일 이미지 색상화 (각 0~255). luminance 기반 착색 |
+| `sharpen` | `number` | `0` | 언샤프 마스킹 선명화 강도 (0.0~1.0). 3×3 가우시안 블러 기반 |
+| `blur` | `number` | `0` | 가우시안 블러 스무딩 적용 횟수. 3×3 커널 반복 적용 |
+| `sepia` | `number` | `0` | 세피아 톤 효과 강도 (0~1). 0=원본, 1=완전 세피아 |
+| `grayscale` | `boolean` | `false` | RGB 이미지를 그레이스케일로 변환. ITU-R BT.709 가중치 사용 |
+| `colorMap` | `Array<[r, g, b]>` | `undefined` | 단채널 데이터에 적용할 256엔트리 컬러 룩업 테이블 |
+| `posterize` | `number` | `0` | 포스터라이즈 색상 레벨 수 (2~256). 각 RGB 채널의 색상 단계 제한 |
+| `vignette` | `number` | `0` | 비네트 효과 강도 (0~1). 이미지 가장자리를 점진적으로 어둡게 처리 |
+| `edgeDetect` | `boolean` | `false` | Laplacian 엣지 검출 필터 적용 |
+| `emboss` | `boolean` | `false` | 엠보스(양각) 효과 적용 |
+| `pixelate` | `number` | `undefined` | 픽셀화(블록 모자이크) 효과의 블록 크기 (px). 2 이상 시 활성화 |
+| `channelSwap` | `[r, g, b]` | `undefined` | RGB 채널 순서 변경. 예: `[2,1,0]`은 BGR→RGB 변환 |
+| `colorBalance` | `[r, g, b]` | `undefined` | RGB 채널별 색상 균형 조정 (각 -255~255). 각 채널에 가산 |
+| `exposure` | `number` | `1.0` | 승산 방식 밝기 보정. `>1.0` 밝아짐, `<1.0` 어두워짐. `out = clamp(in × exposure, 0, 255)` |
+| `levels` | `{ inputMin?: number; inputMax?: number }` | `{ inputMin: 0, inputMax: 255 }` | 픽셀 입력 레벨 범위 재매핑. `[inputMin, inputMax]` → `[0, 255]` 선형 재매핑, 범위 밖 값 클램핑 |
+| `noise` | `number` | `0` | 랜덤 노이즈 강도 (0~255). 각 RGB 채널에 `[-noise, +noise]` 균등 분포 랜덤값 가산 |
 
 #### 반환값 (`JP2LayerResult`)
 
