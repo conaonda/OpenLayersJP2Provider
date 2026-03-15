@@ -136,6 +136,9 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `solarize` | `number` | `128` | 솔라리제이션 효과 임계값 (0~255). 임계값 이상의 채널 값을 반전 |
 | `shadowsHighlights` | `{ shadows?: number; highlights?: number }` | `{ shadows: 0, highlights: 0 }` | 섀도우/하이라이트 독립 밝기 조정 (각 -100~100). shadows=어두운 영역, highlights=밝은 영역 |
 | `clarity` | `number` | `0` | 로컬 콘트라스트 강화(clarity) 효과 강도 (0~100). 중간 톤 영역의 디테일 선명도 향상 |
+| `crossProcess` | `number` | `0` | 크로스 프로세싱 효과 (0 ~ 1). 슬라이드 필름을 네거티브 현상액으로 처리한 것처럼 채널별 S커브/리프트/크러시 적용 |
+| `grainFilm` | `number` | `0` | 필름 그레인 텍스처 효과 (0 ~ 1). 어두운 영역에 더 강한 그레인 노이즈 추가로 실제 필름 질감 시뮬레이션 |
+| `halftone` | `number` | `0` | 하프톤 점 패턴 효과 (도트 크기, 픽셀 단위). 셀 평균 휘도에 따라 원형 도트 크기 조절, 2 미만이면 변화 없음 |
 
 #### 반환값 (`JP2LayerResult`)
 

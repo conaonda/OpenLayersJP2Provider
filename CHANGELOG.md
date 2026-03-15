@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 59
+
+### Added
+- **`JP2LayerOptions.crossProcess`**: 크로스 프로세싱 필름 효과 옵션 추가 (closes #217, PR #220)
+  - 타입: `number` (0 ~ 1), 기본값: `0` (변화 없음)
+  - 슬라이드 필름을 네거티브 현상액으로 처리한 것처럼 채널별 S커브(R)/리프트(G)/크러시(B) 적용
+  - `pixel-conversion.ts`의 `applyCrossProcess()` 함수로 처리
+  - 적용 순서: solarize 이후 grainFilm 이전
+- **`JP2LayerOptions.grainFilm`**: 필름 그레인 텍스처 효과 옵션 추가 (closes #218, PR #220)
+  - 타입: `number` (0 ~ 1), 기본값: `0` (변화 없음)
+  - 어두운 영역에 더 강한 그레인 노이즈를 추가하여 실제 필름 질감 시뮬레이션
+  - `pixel-conversion.ts`의 `applyGrainFilm()` 함수로 처리
+  - 적용 순서: crossProcess 이후 halftone 이전
+- **`JP2LayerOptions.halftone`**: 하프톤 점 패턴 효과 옵션 추가 (closes #219, PR #220)
+  - 타입: `number` (도트 크기, 픽셀 단위), 기본값: `0` (변화 없음, 2 미만이면 적용 안 됨)
+  - 이미지를 dotSize×dotSize 셀로 분할, 셀 평균 휘도에 따라 원형 도트 크기 조절
+  - 도트 외부 픽셀은 흰색으로 처리하여 인쇄물 하프톤 효과 재현
+  - `pixel-conversion.ts`의 `applyHalftone()` 함수로 처리
+  - 적용 순서: grainFilm 이후 (마지막 단계)
+
+---
+
 ## [Unreleased] — Sprint 58
 
 ### Added
