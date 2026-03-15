@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1060,6 +1060,46 @@ describe('applyExposure', () => {
   it('alpha channel unchanged', () => {
     const rgba = new Uint8ClampedArray([100, 150, 200, 50]);
     applyExposure(rgba, 1, 1, 2.0);
+    expect(rgba[3]).toBe(50);
+  });
+});
+
+describe('applyLevels', () => {
+  it('no change when inputMin=0 and inputMax=255', () => {
+    const rgba = new Uint8ClampedArray([50, 100, 200, 255]);
+    applyLevels(rgba, 1, 1, 0, 255);
+    expect(rgba[0]).toBe(50);
+    expect(rgba[1]).toBe(100);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('remaps [50, 200] to [0, 255]', () => {
+    const rgba = new Uint8ClampedArray([50, 125, 200, 255]);
+    applyLevels(rgba, 1, 1, 50, 200);
+    expect(rgba[0]).toBe(0);
+    expect(rgba[1]).toBe(128);
+    expect(rgba[2]).toBe(255);
+  });
+
+  it('clamps values below inputMin to 0', () => {
+    const rgba = new Uint8ClampedArray([10, 10, 10, 255]);
+    applyLevels(rgba, 1, 1, 50, 200);
+    expect(rgba[0]).toBe(0);
+    expect(rgba[1]).toBe(0);
+    expect(rgba[2]).toBe(0);
+  });
+
+  it('clamps values above inputMax to 255', () => {
+    const rgba = new Uint8ClampedArray([250, 250, 250, 255]);
+    applyLevels(rgba, 1, 1, 50, 200);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(255);
+    expect(rgba[2]).toBe(255);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 50]);
+    applyLevels(rgba, 1, 1, 50, 200);
     expect(rgba[3]).toBe(50);
   });
 });

@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -214,6 +214,8 @@ export interface JP2LayerOptions {
   colorBalance?: [number, number, number];
   /** 승산 방식 밝기 보정 (기본값: 1.0, 변화 없음). >1.0 밝아짐, <1.0 어두워짐 */
   exposure?: number;
+  /** 픽셀 입력 레벨 범위 조정. inputMin~inputMax를 0~255로 선형 재매핑 (기본값: {inputMin: 0, inputMax: 255}) */
+  levels?: { inputMin?: number; inputMax?: number };
 }
 
 export interface JP2LayerResult {
@@ -376,6 +378,7 @@ export async function createJP2TileLayer(
   const channelSwap = options?.channelSwap;
   const colorBalance = options?.colorBalance;
   const exposure = options?.exposure;
+  const levels = options?.levels;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -567,6 +570,12 @@ export async function createJP2TileLayer(
 
           if (exposure != null && exposure !== 1.0) {
             applyExposure(decoded.data, decoded.width, decoded.height, exposure);
+          }
+
+          if (levels) {
+            const inputMin = levels.inputMin ?? 0;
+            const inputMax = levels.inputMax ?? 255;
+            applyLevels(decoded.data, decoded.width, decoded.height, inputMin, inputMax);
           }
 
           if (colorMapLUT && info.componentCount === 1) {
