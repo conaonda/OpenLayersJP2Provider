@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -242,6 +242,12 @@ export interface JP2LayerOptions {
   shadowsHighlights?: { shadows?: number; highlights?: number };
   /** 로컬 콘트라스트 강화 — clarity 효과 (0~100, 기본값: 0). 중간 톤 영역의 디테일 강조 */
   clarity?: number;
+  /** 크로스 프로세스 필름 효과 (0~1, 기본값: 0). 슬라이드 필름을 네거티브 현상액으로 처리한 효과 */
+  crossProcess?: number;
+  /** 필름 그레인 텍스처 효과 (0~1, 기본값: 0). 어두운 영역에 더 강한 그레인 적용 */
+  grainFilm?: number;
+  /** 하프톤 도트 패턴 효과 (도트 크기, 기본값: 0 = 비활성화). 인쇄 스타일 도트 패턴 */
+  halftone?: number;
 }
 
 export interface JP2LayerResult {
@@ -420,6 +426,9 @@ export async function createJP2TileLayer(
   const solarize = options?.solarize;
   const shadowsHighlights = options?.shadowsHighlights;
   const clarity = options?.clarity;
+  const crossProcess = options?.crossProcess;
+  const grainFilm = options?.grainFilm;
+  const halftone = options?.halftone;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -569,6 +578,10 @@ export async function createJP2TileLayer(
             applyClarity(decoded.data, decoded.width, decoded.height, clarity);
           }
 
+          if (crossProcess != null && crossProcess !== 0) {
+            applyCrossProcess(decoded.data, decoded.width, decoded.height, crossProcess);
+          }
+
           if (temperature != null && temperature !== 0) {
             applyTemperature(decoded.data, decoded.width, decoded.height, temperature);
           }
@@ -663,6 +676,14 @@ export async function createJP2TileLayer(
 
           if (noise != null && noise > 0) {
             applyNoise(decoded.data, decoded.width, decoded.height, Math.min(noise, 255));
+          }
+
+          if (grainFilm != null && grainFilm > 0) {
+            applyGrainFilm(decoded.data, decoded.width, decoded.height, grainFilm);
+          }
+
+          if (halftone != null && halftone >= 2) {
+            applyHalftone(decoded.data, decoded.width, decoded.height, halftone);
           }
 
           if (tint) {
