@@ -266,8 +266,13 @@ export interface JP2LayerOptions {
     color: [number, number, number];
     tolerance?: number;
   };
-  /** 중앙값 필터 반경 (1~5). salt-and-pepper 노이즈 제거에 효과적, 엣지 보존 */
-  median?: number;
+  /**
+   * 중앙값 필터. salt-and-pepper 노이즈 제거에 효과적, 엣지 보존.
+   * - number: 커널 크기 (홀수, 3~11). 예: 3 → 3×3 윈도우
+   * - object: { kernelSize: number } 형태로 지정 가능
+   * 가장자리 처리: 경계 밖 픽셀은 무시 (skip) 하여 유효 이웃만으로 중앙값 계산
+   */
+  median?: number | { kernelSize: number };
 }
 
 export interface JP2LayerResult {
@@ -456,7 +461,9 @@ export async function createJP2TileLayer(
     : undefined;
   const autoContrast = options?.autoContrast;
   const chromaKey = options?.chromaKey;
-  const median = options?.median;
+  const medianKernelSize = options?.median != null
+    ? (typeof options.median === 'number' ? options.median : options.median.kernelSize)
+    : undefined;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -658,8 +665,8 @@ export async function createJP2TileLayer(
             applyBlur(decoded.data, decoded.width, decoded.height, blur);
           }
 
-          if (median != null && median >= 1) {
-            applyMedian(decoded.data, decoded.width, decoded.height, median);
+          if (medianKernelSize != null && medianKernelSize >= 3) {
+            applyMedian(decoded.data, decoded.width, decoded.height, medianKernelSize);
           }
 
           if (sepia != null && sepia !== 0) {
