@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1492,5 +1492,119 @@ describe('applyClarity', () => {
     const rgba = new Uint8ClampedArray([128, 128, 128, 100]);
     applyClarity(rgba, 1, 1, 50);
     expect(rgba[3]).toBe(100);
+  });
+});
+
+describe('applyCrossProcess', () => {
+  it('no change when intensity=0', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    const orig = new Uint8ClampedArray(rgba);
+    applyCrossProcess(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(orig[0]);
+    expect(rgba[1]).toBe(orig[1]);
+    expect(rgba[2]).toBe(orig[2]);
+  });
+
+  it('modifies channels differently at intensity=1', () => {
+    const rgba = new Uint8ClampedArray([128, 128, 128, 255]);
+    applyCrossProcess(rgba, 1, 1, 1);
+    // R and G should be boosted, B should be reduced
+    expect(rgba[0]).not.toBe(128);
+    expect(rgba[1]).not.toBe(128);
+    expect(rgba[2]).not.toBe(128);
+  });
+
+  it('preserves alpha', () => {
+    const rgba = new Uint8ClampedArray([128, 128, 128, 100]);
+    applyCrossProcess(rgba, 1, 1, 1);
+    expect(rgba[3]).toBe(100);
+  });
+});
+
+describe('applyGrainFilm', () => {
+  it('no change when intensity=0', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    const orig = new Uint8ClampedArray(rgba);
+    applyGrainFilm(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(orig[0]);
+    expect(rgba[1]).toBe(orig[1]);
+    expect(rgba[2]).toBe(orig[2]);
+  });
+
+  it('dark pixels get stronger grain than bright pixels on average', () => {
+    // Statistical test: run many times and check variance
+    let darkVariance = 0;
+    let brightVariance = 0;
+    const runs = 1000;
+    for (let r = 0; r < runs; r++) {
+      const dark = new Uint8ClampedArray([30, 30, 30, 255]);
+      applyGrainFilm(dark, 1, 1, 1);
+      darkVariance += Math.abs(dark[0] - 30);
+
+      const bright = new Uint8ClampedArray([230, 230, 230, 255]);
+      applyGrainFilm(bright, 1, 1, 1);
+      brightVariance += Math.abs(bright[0] - 230);
+    }
+    expect(darkVariance / runs).toBeGreaterThan(brightVariance / runs);
+  });
+
+  it('preserves alpha', () => {
+    const rgba = new Uint8ClampedArray([128, 128, 128, 100]);
+    applyGrainFilm(rgba, 1, 1, 1);
+    expect(rgba[3]).toBe(100);
+  });
+});
+
+describe('applyHalftone', () => {
+  it('no change when dotSize < 2', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    const orig = new Uint8ClampedArray(rgba);
+    applyHalftone(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(orig[0]);
+    expect(rgba[1]).toBe(orig[1]);
+    expect(rgba[2]).toBe(orig[2]);
+  });
+
+  it('bright areas produce smaller dots (more white)', () => {
+    // 4x4 white image → all white (dot radius ≈ 0)
+    const white = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 4 * 4; i++) {
+      white[i * 4] = white[i * 4 + 1] = white[i * 4 + 2] = 255;
+      white[i * 4 + 3] = 255;
+    }
+    applyHalftone(white, 4, 4, 4);
+    // Should remain mostly white
+    let whiteCount = 0;
+    for (let i = 0; i < 16; i++) {
+      if (white[i * 4] === 255) whiteCount++;
+    }
+    expect(whiteCount).toBe(16);
+  });
+
+  it('dark areas produce larger dots (less white)', () => {
+    // 4x4 black image → should have dot, not all white
+    const black = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 4 * 4; i++) {
+      black[i * 4] = black[i * 4 + 1] = black[i * 4 + 2] = 0;
+      black[i * 4 + 3] = 255;
+    }
+    applyHalftone(black, 4, 4, 4);
+    let blackCount = 0;
+    for (let i = 0; i < 16; i++) {
+      if (black[i * 4] === 0) blackCount++;
+    }
+    expect(blackCount).toBeGreaterThan(0);
+  });
+
+  it('preserves alpha', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = rgba[i * 4 + 1] = rgba[i * 4 + 2] = 128;
+      rgba[i * 4 + 3] = 100;
+    }
+    applyHalftone(rgba, 4, 4, 4);
+    for (let i = 0; i < 16; i++) {
+      expect(rgba[i * 4 + 3]).toBe(100);
+    }
   });
 });

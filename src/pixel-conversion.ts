@@ -1181,6 +1181,117 @@ export function applyClarity(
 }
 
 /**
+ * Applies cross-process film effect: applies different nonlinear curves to R/G/B channels.
+ * Simulates slide film developed in negative chemistry.
+ * intensity=0: no change, intensity=1: full cross-process effect.
+ * Alpha channel is not modified.
+ */
+export function applyCrossProcess(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  intensity: number,
+): void {
+  if (intensity === 0) return;
+  const t = Math.max(0, Math.min(1, intensity));
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const r = rgba[off] / 255;
+    const g = rgba[off + 1] / 255;
+    const b = rgba[off + 2] / 255;
+    // R: S-curve boost (push highlights, crush shadows)
+    const rOut = Math.max(0, Math.min(1, r + 0.3 * r * (1 - r) * (2 * r - 1 + 0.5)));
+    // G: slight lift with mid-tone emphasis
+    const gOut = Math.max(0, Math.min(1, g + 0.2 * g * (1 - g)));
+    // B: crush — reduce overall, especially midtones
+    const bOut = Math.max(0, Math.min(1, b - 0.15 * b * (1 - b)));
+    rgba[off]     = Math.round((rgba[off]     + t * (rOut * 255 - rgba[off])));
+    rgba[off + 1] = Math.round((rgba[off + 1] + t * (gOut * 255 - rgba[off + 1])));
+    rgba[off + 2] = Math.round((rgba[off + 2] + t * (bOut * 255 - rgba[off + 2])));
+  }
+}
+
+/**
+ * Applies film grain texture effect: adds luminance-dependent noise.
+ * Darker areas receive stronger grain, simulating real film behavior.
+ * intensity=0: no change, intensity=1: maximum grain.
+ * Alpha channel is not modified.
+ */
+export function applyGrainFilm(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  intensity: number,
+): void {
+  if (intensity === 0) return;
+  const t = Math.max(0, Math.min(1, intensity));
+  const maxNoise = 50 * t;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const lum = (0.2126 * rgba[off] + 0.7152 * rgba[off + 1] + 0.0722 * rgba[off + 2]) / 255;
+    // Darker pixels get stronger grain
+    const grainStrength = maxNoise * (1 - lum * 0.7);
+    const noise = (Math.random() * 2 - 1) * grainStrength;
+    rgba[off]     = Math.round(Math.max(0, Math.min(255, rgba[off] + noise)));
+    rgba[off + 1] = Math.round(Math.max(0, Math.min(255, rgba[off + 1] + noise)));
+    rgba[off + 2] = Math.round(Math.max(0, Math.min(255, rgba[off + 2] + noise)));
+  }
+}
+
+/**
+ * Applies halftone dot pattern effect.
+ * Divides image into dotSize×dotSize cells, computes average luminance,
+ * and renders a circular dot sized by darkness. Pixels outside the dot become white.
+ * dotSize < 2: no change.
+ * Alpha channel is not modified.
+ */
+export function applyHalftone(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  dotSize: number,
+): void {
+  if (dotSize < 2) return;
+  const s = Math.round(dotSize);
+  for (let by = 0; by < height; by += s) {
+    for (let bx = 0; bx < width; bx += s) {
+      const bw = Math.min(s, width - bx);
+      const bh = Math.min(s, height - by);
+      // Compute average luminance of the cell
+      let sumLum = 0;
+      const count = bw * bh;
+      for (let y = by; y < by + bh; y++) {
+        for (let x = bx; x < bx + bw; x++) {
+          const off = (y * width + x) * 4;
+          sumLum += 0.2126 * rgba[off] + 0.7152 * rgba[off + 1] + 0.0722 * rgba[off + 2];
+        }
+      }
+      const avgLum = sumLum / count / 255; // 0=dark, 1=bright
+      // Dot radius: bigger for darker areas
+      const maxRadius = Math.min(bw, bh) / 2;
+      const dotRadius = maxRadius * (1 - avgLum);
+      const cx = bx + bw / 2;
+      const cy = by + bh / 2;
+      const r2 = dotRadius * dotRadius;
+      for (let y = by; y < by + bh; y++) {
+        for (let x = bx; x < bx + bw; x++) {
+          const dx = x + 0.5 - cx;
+          const dy = y + 0.5 - cy;
+          const off = (y * width + x) * 4;
+          if (dx * dx + dy * dy > r2) {
+            // Outside dot → white
+            rgba[off] = rgba[off + 1] = rgba[off + 2] = 255;
+          }
+          // Inside dot → keep original color
+        }
+      }
+    }
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(
