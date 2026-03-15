@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1906,5 +1906,98 @@ describe('applyBloom', () => {
     for (let i = 0; i < rgba.length; i++) {
       expect(rgba[i]).toBe(original[i]);
     }
+  });
+});
+
+describe('applyRadialBlur', () => {
+  it('blurs pixels away from center', () => {
+    // 3x3: center bright, edges dark
+    const rgba = new Uint8ClampedArray([
+      0,0,0,255,   0,0,0,255,   0,0,0,255,
+      0,0,0,255, 255,255,255,255, 0,0,0,255,
+      0,0,0,255,   0,0,0,255,   0,0,0,255,
+    ]);
+    const original = new Uint8ClampedArray(rgba);
+    applyRadialBlur(rgba, 3, 3, 4);
+    // center pixel should still be brightest or unchanged (it's at the center)
+    // edge pixels may pick up some brightness from center
+    // alpha preserved
+    expect(rgba[3]).toBe(255);
+    expect(rgba[4 * 4 + 3]).toBe(255);
+  });
+
+  it('strength=1 leaves image unchanged', () => {
+    const rgba = new Uint8ClampedArray([
+      50,50,50,255, 200,200,200,255,
+      200,200,200,255, 50,50,50,255,
+    ]);
+    const original = new Uint8ClampedArray(rgba);
+    applyRadialBlur(rgba, 2, 2, 1);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+
+  it('accepts custom center coordinates', () => {
+    const rgba = new Uint8ClampedArray([
+      255,0,0,255, 0,255,0,255,
+      0,0,255,255, 128,128,128,255,
+    ]);
+    // should not throw
+    applyRadialBlur(rgba, 2, 2, 4, 0.0, 0.0);
+    expect(rgba[3]).toBe(255); // alpha preserved
+  });
+});
+
+describe('applyMotionBlur', () => {
+  it('blurs horizontally by default (angle=0)', () => {
+    // 3x1 row: dark, bright, dark
+    const rgba = new Uint8ClampedArray([
+      0,0,0,255, 255,255,255,255, 0,0,0,255,
+    ]);
+    applyMotionBlur(rgba, 3, 1, 3, 0);
+    // center pixel should be averaged with neighbors
+    const center = 1 * 4;
+    expect(rgba[center]).toBeLessThan(255);
+    expect(rgba[center]).toBeGreaterThan(0);
+    // alpha preserved
+    expect(rgba[center + 3]).toBe(255);
+  });
+
+  it('strength=1 leaves image unchanged', () => {
+    const rgba = new Uint8ClampedArray([
+      50,50,50,255, 200,200,200,255,
+      200,200,200,255, 50,50,50,255,
+    ]);
+    const original = new Uint8ClampedArray(rgba);
+    applyMotionBlur(rgba, 2, 2, 1, 0);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+
+  it('blurs vertically with angle=90', () => {
+    // 1x3 column: dark, bright, dark
+    const rgba = new Uint8ClampedArray([
+      0,0,0,255,
+      255,255,255,255,
+      0,0,0,255,
+    ]);
+    applyMotionBlur(rgba, 1, 3, 3, 90);
+    // center pixel should be averaged
+    const center = 1 * 4;
+    expect(rgba[center]).toBeLessThan(255);
+    expect(rgba[center]).toBeGreaterThan(0);
+    expect(rgba[center + 3]).toBe(255);
+  });
+
+  it('works with angle=45', () => {
+    const rgba = new Uint8ClampedArray([
+      255,255,255,255, 0,0,0,255,
+      0,0,0,255, 255,255,255,255,
+    ]);
+    // should not throw
+    applyMotionBlur(rgba, 2, 2, 4, 45);
+    expect(rgba[3]).toBe(255);
   });
 });

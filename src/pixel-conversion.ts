@@ -1651,3 +1651,97 @@ export function applyBloom(
     }
   }
 }
+
+/**
+ * Radial (zoom) blur — samples along the direction from each pixel toward the center.
+ * strength: number of samples (default 8), centerX/centerY: normalized 0–1 (default 0.5).
+ */
+export function applyRadialBlur(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  strength: number,
+  centerX: number = 0.5,
+  centerY: number = 0.5,
+): void {
+  strength = Math.max(1, Math.min(32, Math.round(strength)));
+  if (strength <= 1) return;
+  const cx = centerX * width;
+  const cy = centerY * height;
+  const out = new Uint8ClampedArray(rgba.length);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      // step size proportional to distance from center
+      const stepX = dist > 0 ? (dx / dist) * (dist / width) : 0;
+      const stepY = dist > 0 ? (dy / dist) * (dist / height) : 0;
+
+      let rSum = 0, gSum = 0, bSum = 0, count = 0;
+      for (let s = 0; s < strength; s++) {
+        const t = (s / (strength - 1)) - 0.5; // -0.5 to 0.5
+        const sx = Math.round(x + t * stepX * strength);
+        const sy = Math.round(y + t * stepY * strength);
+        if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+          const off = (sy * width + sx) * 4;
+          rSum += rgba[off];
+          gSum += rgba[off + 1];
+          bSum += rgba[off + 2];
+          count++;
+        }
+      }
+      out[idx] = (rSum / count) | 0;
+      out[idx + 1] = (gSum / count) | 0;
+      out[idx + 2] = (bSum / count) | 0;
+      out[idx + 3] = rgba[idx + 3];
+    }
+  }
+  rgba.set(out);
+}
+
+/**
+ * Motion blur — samples along a line at the given angle.
+ * strength: number of samples (default 8, max 32), angle: degrees (default 0 = horizontal).
+ */
+export function applyMotionBlur(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  strength: number,
+  angle: number = 0,
+): void {
+  strength = Math.max(1, Math.min(32, Math.round(strength)));
+  if (strength <= 1) return;
+  const rad = (angle * Math.PI) / 180;
+  const dirX = Math.cos(rad);
+  const dirY = Math.sin(rad);
+  const half = (strength - 1) / 2;
+  const out = new Uint8ClampedArray(rgba.length);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      let rSum = 0, gSum = 0, bSum = 0, count = 0;
+      for (let s = 0; s < strength; s++) {
+        const t = s - half;
+        const sx = Math.round(x + t * dirX);
+        const sy = Math.round(y + t * dirY);
+        if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+          const off = (sy * width + sx) * 4;
+          rSum += rgba[off];
+          gSum += rgba[off + 1];
+          bSum += rgba[off + 2];
+          count++;
+        }
+      }
+      out[idx] = (rSum / count) | 0;
+      out[idx + 1] = (gSum / count) | 0;
+      out[idx + 2] = (bSum / count) | 0;
+      out[idx + 3] = rgba[idx + 3];
+    }
+  }
+  rgba.set(out);
+}
