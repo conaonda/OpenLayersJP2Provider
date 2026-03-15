@@ -1745,3 +1745,124 @@ export function applyMotionBlur(
   }
   rgba.set(out);
 }
+
+/**
+ * Pencil sketch effect — grayscale → invert → blur → dodge blend with original gray.
+ * intensity: effect strength (default 1.0), blendMode: 'multiply' or 'screen' (default 'multiply').
+ */
+export function applyPencilSketch(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  intensity: number = 1.0,
+  blendMode: 'multiply' | 'screen' = 'multiply',
+): void {
+  const len = width * height;
+  // Step 1: compute grayscale
+  const gray = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    const off = i * 4;
+    gray[i] = (0.299 * rgba[off] + 0.587 * rgba[off + 1] + 0.114 * rgba[off + 2]) | 0;
+  }
+  // Step 2: invert grayscale
+  const inverted = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    inverted[i] = 255 - gray[i];
+  }
+  // Step 3: blur inverted (box blur radius 5)
+  const blurRadius = 5;
+  const blurred = new Uint8Array(len);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sum = 0, count = 0;
+      for (let dy = -blurRadius; dy <= blurRadius; dy++) {
+        const ny = y + dy;
+        if (ny < 0 || ny >= height) continue;
+        for (let dx = -blurRadius; dx <= blurRadius; dx++) {
+          const nx = x + dx;
+          if (nx < 0 || nx >= width) continue;
+          sum += inverted[ny * width + nx];
+          count++;
+        }
+      }
+      blurred[y * width + x] = (sum / count) | 0;
+    }
+  }
+  // Step 4: dodge blend — gray / (255 - blurred) * 255
+  const sketch = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    const denom = 255 - blurred[i];
+    sketch[i] = denom === 0 ? 255 : Math.min(255, (gray[i] * 255 / denom) | 0);
+  }
+  // Step 5: apply to RGBA with intensity and blend mode
+  for (let i = 0; i < len; i++) {
+    const off = i * 4;
+    const s = sketch[i];
+    for (let c = 0; c < 3; c++) {
+      const orig = rgba[off + c];
+      let blended: number;
+      if (blendMode === 'multiply') {
+        blended = (s * orig / 255) | 0;
+      } else {
+        blended = 255 - ((255 - s) * (255 - orig) / 255) | 0;
+      }
+      rgba[off + c] = Math.min(255, Math.max(0, (orig + (blended - orig) * intensity) | 0));
+    }
+  }
+}
+
+/**
+ * Oil paint effect — for each pixel, quantize neighbor brightness into levels,
+ * find the most frequent level, and output the average color of that level's pixels.
+ */
+export function applyOilPaint(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  radius: number = 4,
+  levels: number = 8,
+): void {
+  radius = Math.max(1, Math.min(10, Math.round(radius)));
+  levels = Math.max(2, Math.min(64, Math.round(levels)));
+  const out = new Uint8ClampedArray(rgba.length);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const counts = new Int32Array(levels);
+      const rSums = new Float64Array(levels);
+      const gSums = new Float64Array(levels);
+      const bSums = new Float64Array(levels);
+
+      for (let dy = -radius; dy <= radius; dy++) {
+        const ny = y + dy;
+        if (ny < 0 || ny >= height) continue;
+        for (let dx = -radius; dx <= radius; dx++) {
+          const nx = x + dx;
+          if (nx < 0 || nx >= width) continue;
+          const off = (ny * width + nx) * 4;
+          const lum = (0.299 * rgba[off] + 0.587 * rgba[off + 1] + 0.114 * rgba[off + 2]) | 0;
+          const level = Math.min(levels - 1, (lum * levels / 256) | 0);
+          counts[level]++;
+          rSums[level] += rgba[off];
+          gSums[level] += rgba[off + 1];
+          bSums[level] += rgba[off + 2];
+        }
+      }
+
+      let maxCount = 0, maxLevel = 0;
+      for (let l = 0; l < levels; l++) {
+        if (counts[l] > maxCount) {
+          maxCount = counts[l];
+          maxLevel = l;
+        }
+      }
+
+      out[idx] = (rSums[maxLevel] / maxCount) | 0;
+      out[idx + 1] = (gSums[maxLevel] / maxCount) | 0;
+      out[idx + 2] = (bSums[maxLevel] / maxCount) | 0;
+      out[idx + 3] = rgba[idx + 3];
+    }
+  }
+  rgba.set(out);
+}
