@@ -1077,6 +1077,110 @@ export function applyBurn(
 }
 
 /**
+ * Applies solarization effect: inverts pixels with channel values above the threshold.
+ * For each RGB channel, if value >= threshold, output = 255 - value; otherwise unchanged.
+ * Alpha channel is not modified.
+ */
+export function applySolarize(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  threshold: number,
+): void {
+  const t = Math.max(0, Math.min(255, Math.round(threshold)));
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    if (rgba[off] >= t) rgba[off] = 255 - rgba[off];
+    if (rgba[off + 1] >= t) rgba[off + 1] = 255 - rgba[off + 1];
+    if (rgba[off + 2] >= t) rgba[off + 2] = 255 - rgba[off + 2];
+  }
+}
+
+/**
+ * Adjusts shadows and highlights independently based on pixel luminance.
+ * shadows: -100~100, positive brightens dark areas, negative darkens them.
+ * highlights: -100~100, negative darkens bright areas, positive brightens them.
+ * Alpha channel is not modified.
+ */
+export function applyShadowsHighlights(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  shadows: number,
+  highlights: number,
+): void {
+  if (shadows === 0 && highlights === 0) return;
+  const sAmount = Math.max(-100, Math.min(100, shadows)) / 100;
+  const hAmount = Math.max(-100, Math.min(100, highlights)) / 100;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const lum = (0.2126 * rgba[off] + 0.7152 * rgba[off + 1] + 0.0722 * rgba[off + 2]) / 255;
+    // Shadow weight: strong for dark pixels, fades for bright
+    const shadowWeight = 1 - lum;
+    // Highlight weight: strong for bright pixels, fades for dark
+    const highlightWeight = lum;
+    const adjustment = sAmount * shadowWeight + hAmount * highlightWeight;
+    const shift = adjustment * 255;
+    rgba[off]     = Math.round(Math.max(0, Math.min(255, rgba[off] + shift)));
+    rgba[off + 1] = Math.round(Math.max(0, Math.min(255, rgba[off + 1] + shift)));
+    rgba[off + 2] = Math.round(Math.max(0, Math.min(255, rgba[off + 2] + shift)));
+  }
+}
+
+/**
+ * Applies clarity (local contrast enhancement) to RGBA data.
+ * Uses unsharp mask on midtones: enhances detail in mid-brightness areas.
+ * clarity: 0~100 (0=no change). Alpha channel is not modified.
+ */
+export function applyClarity(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  clarity: number,
+): void {
+  if (clarity <= 0) return;
+  const amount = Math.min(100, clarity) / 100;
+  const pixelCount = width * height;
+  // Create blurred copy using 3x3 Gaussian kernel
+  const blurred = new Float32Array(pixelCount * 3);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sumR = 0, sumG = 0, sumB = 0, wSum = 0;
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          const ny = y + ky, nx = x + kx;
+          if (ny < 0 || ny >= height || nx < 0 || nx >= width) continue;
+          const w = (kx === 0 && ky === 0) ? 4 : (kx === 0 || ky === 0) ? 2 : 1;
+          const off = (ny * width + nx) * 4;
+          sumR += rgba[off] * w;
+          sumG += rgba[off + 1] * w;
+          sumB += rgba[off + 2] * w;
+          wSum += w;
+        }
+      }
+      const idx = (y * width + x) * 3;
+      blurred[idx] = sumR / wSum;
+      blurred[idx + 1] = sumG / wSum;
+      blurred[idx + 2] = sumB / wSum;
+    }
+  }
+  // Apply unsharp mask weighted by midtone strength
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const bIdx = i * 3;
+    const lum = (0.2126 * rgba[off] + 0.7152 * rgba[off + 1] + 0.0722 * rgba[off + 2]) / 255;
+    // Midtone weight: peaks at lum=0.5, fades at shadows/highlights
+    const midWeight = 4 * lum * (1 - lum);
+    const strength = amount * midWeight;
+    rgba[off]     = Math.round(Math.max(0, Math.min(255, rgba[off]     + strength * (rgba[off]     - blurred[bIdx]))));
+    rgba[off + 1] = Math.round(Math.max(0, Math.min(255, rgba[off + 1] + strength * (rgba[off + 1] - blurred[bIdx + 1]))));
+    rgba[off + 2] = Math.round(Math.max(0, Math.min(255, rgba[off + 2] + strength * (rgba[off + 2] - blurred[bIdx + 2]))));
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(
