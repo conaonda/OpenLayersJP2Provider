@@ -790,6 +790,32 @@ export function applyNoise(
 }
 
 /**
+ * Applies a tint color overlay by blending original pixels with the tint color.
+ * Formula: result = original * (1 - strength) + tint * strength.
+ * strength defaults to 0.5 if not provided. Alpha channel is not modified.
+ */
+export function applyTint(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  r: number,
+  g: number,
+  b: number,
+  strength: number = 0.5,
+): void {
+  if (strength === 0) return;
+  const s = Math.max(0, Math.min(1, strength));
+  const inv = 1 - s;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = Math.round(rgba[off] * inv + r * s);
+    rgba[off + 1] = Math.round(rgba[off + 1] * inv + g * s);
+    rgba[off + 2] = Math.round(rgba[off + 2] * inv + b * s);
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(
