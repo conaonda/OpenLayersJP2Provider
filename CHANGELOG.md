@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 57
+
+### Added
+- **`JP2LayerOptions.duotone`**: 두 가지 색상(shadows/highlights) 그라디언트 톤 매핑 옵션 추가 (closes #207, PR #210)
+  - 타입: `{ shadows: [number, number, number]; highlights: [number, number, number] }`, 기본값: `undefined`
+  - 픽셀 휘도(luminance)를 기반으로 어두운 픽셀은 shadows 색상, 밝은 픽셀은 highlights 색상으로 매핑
+  - `pixel-conversion.ts`의 `applyDuotone()` 함수로 처리
+  - 적용 순서: curves 이후 최종 단계에 적용
+- **`JP2LayerOptions.dodge`**: 하이라이트 밝기 증폭(닷지) 효과 옵션 추가 (closes #208, PR #210)
+  - 타입: `number` (0 ~ 1), 기본값: `0` (변화 없음)
+  - 밝은 픽셀일수록 더 많이 밝아지는 비선형 닷지 효과
+  - `pixel-conversion.ts`의 `applyDodge()` 함수로 처리
+  - 적용 순서: curves 이후, burn 이전
+- **`JP2LayerOptions.burn`**: 섀도우 어둡기 증폭(번) 효과 옵션 추가 (closes #209, PR #210)
+  - 타입: `number` (0 ~ 1), 기본값: `0` (변화 없음)
+  - 어두운 픽셀일수록 더 많이 어두워지는 비선형 번 효과
+  - `pixel-conversion.ts`의 `applyBurn()` 함수로 처리
+  - 적용 순서: dodge 이후
+
+---
+
 ## [Unreleased] — Sprint 56
 
 ### Added
