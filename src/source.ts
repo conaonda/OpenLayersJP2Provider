@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, applyNoise } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -576,9 +576,11 @@ export async function createJP2TileLayer(
           }
 
           if (levels) {
-            const inputMin = levels.inputMin ?? 0;
-            const inputMax = levels.inputMax ?? 255;
-            applyLevels(decoded.data, decoded.width, decoded.height, inputMin, inputMax);
+            const validated = validateLevels(levels.inputMin ?? 0, levels.inputMax ?? 255);
+            if (validated.swapped) {
+              debugWarn(`levels.inputMin > levels.inputMax, swapping values`);
+            }
+            applyLevels(decoded.data, decoded.width, decoded.height, validated.inputMin, validated.inputMax);
           }
 
           if (noise != null && noise > 0) {
