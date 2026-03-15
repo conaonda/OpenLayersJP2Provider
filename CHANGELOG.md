@@ -4,18 +4,35 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 53
+
+### Added
+- **`JP2LayerOptions.levels`**: 픽셀 입력 레벨 범위 재매핑 옵션 추가 (closes #186, PR #188)
+  - 타입: `{ inputMin?: number; inputMax?: number }`, 기본값: `{ inputMin: 0, inputMax: 255 }`
+  - `[inputMin, inputMax]` 범위를 `[0, 255]`로 선형 재매핑, 범위 밖 값은 클램핑
+  - `pixel-conversion.ts`의 `applyLevels()` 함수로 처리
+  - 적용 순서: ...exposure → levels → noise → colorMap...
+- **`JP2LayerOptions.noise`**: 랜덤 노이즈 효과 옵션 추가 (closes #187, PR #189)
+  - 타입: `number` (0~255), 기본값: `0` (노이즈 없음)
+  - 각 RGB 채널에 `[-noise, +noise]` 균등 분포 랜덤값 가산, 결과 0~255 클램핑
+  - 알파 채널 미변경
+  - `pixel-conversion.ts`의 `applyNoise()` 함수로 처리
+  - 적용 순서: ...levels → noise → colorMap...
+
+---
+
 ## [Unreleased] — Sprint 52
 
 ### Added
-- **`JP2LayerOptions.colorBalance`**: RGB 채널별 색상 균형 조정 옵션 추가 (closes #182, PR #184)
-  - 타입: `[number, number, number]` (R/G/B 채널 오프셋, 각 -255 ~ 255)
-  - 각 채널에 오프셋을 가산하여 색상 균형을 조정. 클램핑은 `Uint8ClampedArray`가 자동 처리
+- **`JP2LayerOptions.colorBalance`**: RGB 채널별 독립 색상 균형 조정 옵션 추가 (closes #182, PR #184)
+  - 타입: `[number, number, number]` (R, G, B 오프셋, 각 -255 ~ 255), 기본값: `undefined`
+  - 각 채널에 오프셋 가산, 결과 0~255 클램핑
   - `pixel-conversion.ts`의 `applyColorBalance()` 함수로 처리
 - **`JP2LayerOptions.exposure`**: 승산 방식 밝기 보정 옵션 추가 (closes #183, PR #184)
-  - 타입: `number` (기본값: `1.0`, 변화 없음)
-  - `1.0` 초과 시 밝아짐, `1.0` 미만 시 어두워짐. 각 픽셀에 승산 후 0~255 클램핑
+  - 타입: `number`, 기본값: `1.0` (변화 없음)
+  - `>1.0` 밝아짐, `<1.0` 어두워짐. 각 RGB 채널에 `out = clamp(in * exposure, 0, 255)` 적용
   - `pixel-conversion.ts`의 `applyExposure()` 함수로 처리
-  - 적용 순서: ...channelSwap → colorBalance → exposure
+  - 적용 순서: ...channelSwap → colorBalance → exposure → levels → colorMap...
 
 ---
 
