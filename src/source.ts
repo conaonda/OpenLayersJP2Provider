@@ -216,7 +216,7 @@ export interface JP2LayerOptions {
   exposure?: number;
   /** 픽셀 입력 레벨 범위 조정. inputMin~inputMax를 0~255로 선형 재매핑 (기본값: {inputMin: 0, inputMax: 255}) */
   levels?: { inputMin?: number; inputMax?: number };
-  /** 랜덤 노이즈 강도 (0~255, 기본값: 0). 각 RGB 채널에 [-noise, +noise] 균등 분포 랜덤값 가산 */
+  /** 랜덤 노이즈 강도 (0~255, 기본값: 0). 각 RGB 채널에 [-noise, +noise] 균등 분포 랜덤값 가산. 권장 범위: 0~50 (50 이상은 이미지 품질 저하가 심함). 255 초과 시 255로 클리핑 */
   noise?: number;
 }
 
@@ -584,7 +584,7 @@ export async function createJP2TileLayer(
           }
 
           if (noise != null && noise > 0) {
-            applyNoise(decoded.data, decoded.width, decoded.height, noise);
+            applyNoise(decoded.data, decoded.width, decoded.height, Math.min(noise, 255));
           }
 
           if (colorMapLUT && info.componentCount === 1) {

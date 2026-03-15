@@ -769,7 +769,9 @@ export function applyLevels(
 
 /**
  * Adds random noise to RGB channels: out = clamp(in + random(-noise, +noise), 0, 255).
- * noise=0: no change. Alpha channel is not modified.
+ * noise=0: no change. Recommended range: 0~50 (higher values severely degrade image quality).
+ * Values above 255 are clipped to 255 at the caller level.
+ * Alpha channel is not modified.
  */
 export function applyNoise(
   rgba: Uint8ClampedArray,
