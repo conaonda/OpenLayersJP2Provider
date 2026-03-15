@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint, applyKuwahara, applyCrystallize } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -285,6 +285,10 @@ export interface JP2LayerOptions {
   pencilSketch?: boolean | { intensity?: number; blendMode?: 'multiply' | 'screen' };
   /** 유화 페인팅 효과. true 시 기본값 적용. radius: 커널 반경(기본 4), levels: 밝기 양자화 레벨(기본 8) */
   oilPaint?: boolean | { radius?: number; levels?: number };
+  /** 쿠와하라 노이즈 감소 페인팅 필터. true 시 기본값 적용. radius: 커널 반경(기본 3) */
+  kuwahara?: boolean | { radius?: number };
+  /** 크리스탈 타일 모자이크 효과. true 시 기본값 적용. cellSize: 셀 평균 크기(기본 10, 픽셀 단위) */
+  crystallize?: boolean | { cellSize?: number };
 }
 
 export interface JP2LayerResult {
@@ -501,6 +505,20 @@ export async function createJP2TileLayer(
       : options.oilPaint === false
         ? undefined
         : { radius: options.oilPaint.radius ?? 4, levels: options.oilPaint.levels ?? 8 })
+    : undefined;
+  const kuwaharaOpt = options?.kuwahara != null
+    ? (options.kuwahara === true
+      ? { radius: 3 }
+      : options.kuwahara === false
+        ? undefined
+        : { radius: options.kuwahara.radius ?? 3 })
+    : undefined;
+  const crystallizeOpt = options?.crystallize != null
+    ? (options.crystallize === true
+      ? { cellSize: 10 }
+      : options.crystallize === false
+        ? undefined
+        : { cellSize: options.crystallize.cellSize ?? 10 })
     : undefined;
 
   // Progress tracking state
@@ -729,6 +747,14 @@ export async function createJP2TileLayer(
 
           if (oilPaintOpt) {
             applyOilPaint(decoded.data, decoded.width, decoded.height, oilPaintOpt.radius, oilPaintOpt.levels);
+          }
+
+          if (kuwaharaOpt) {
+            applyKuwahara(decoded.data, decoded.width, decoded.height, kuwaharaOpt.radius);
+          }
+
+          if (crystallizeOpt) {
+            applyCrystallize(decoded.data, decoded.width, decoded.height, crystallizeOpt.cellSize);
           }
 
           if (sepia != null && sepia !== 0) {

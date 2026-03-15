@@ -1866,3 +1866,134 @@ export function applyOilPaint(
   }
   rgba.set(out);
 }
+
+/**
+ * Kuwahara filter — edge-preserving noise reduction with painting effect.
+ * Divides each pixel's neighborhood into 4 overlapping quadrants,
+ * computes variance for each, and outputs the mean of the lowest-variance quadrant.
+ */
+export function applyKuwahara(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  radius: number = 3,
+): void {
+  radius = Math.max(1, Math.min(10, Math.round(radius)));
+  const out = new Uint8ClampedArray(rgba.length);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+
+      const quadrants = [
+        { y0: -radius, y1: 0, x0: -radius, x1: 0 },
+        { y0: -radius, y1: 0, x0: 0, x1: radius },
+        { y0: 0, y1: radius, x0: -radius, x1: 0 },
+        { y0: 0, y1: radius, x0: 0, x1: radius },
+      ];
+
+      let bestVar = Infinity;
+      let bestR = 0, bestG = 0, bestB = 0;
+
+      for (const q of quadrants) {
+        let rSum = 0, gSum = 0, bSum = 0, rSq = 0, gSq = 0, bSq = 0, count = 0;
+        for (let dy = q.y0; dy <= q.y1; dy++) {
+          const ny = y + dy;
+          if (ny < 0 || ny >= height) continue;
+          for (let dx = q.x0; dx <= q.x1; dx++) {
+            const nx = x + dx;
+            if (nx < 0 || nx >= width) continue;
+            const off = (ny * width + nx) * 4;
+            const r = rgba[off], g = rgba[off + 1], b = rgba[off + 2];
+            rSum += r; gSum += g; bSum += b;
+            rSq += r * r; gSq += g * g; bSq += b * b;
+            count++;
+          }
+        }
+        if (count === 0) continue;
+        const variance = (rSq - rSum * rSum / count + gSq - gSum * gSum / count + bSq - bSum * bSum / count) / count;
+        if (variance < bestVar) {
+          bestVar = variance;
+          bestR = (rSum / count) | 0;
+          bestG = (gSum / count) | 0;
+          bestB = (bSum / count) | 0;
+        }
+      }
+
+      out[idx] = bestR;
+      out[idx + 1] = bestG;
+      out[idx + 2] = bestB;
+      out[idx + 3] = rgba[idx + 3];
+    }
+  }
+  rgba.set(out);
+}
+
+/**
+ * Crystallize — Voronoi-based mosaic effect.
+ * Generates seed points in a grid with jitter, then assigns each pixel
+ * the color of its nearest seed point.
+ */
+export function applyCrystallize(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  cellSize: number = 10,
+): void {
+  cellSize = Math.max(2, Math.min(100, Math.round(cellSize)));
+
+  const cols = Math.ceil(width / cellSize);
+  const rows = Math.ceil(height / cellSize);
+  const seeds: Array<{ x: number; y: number; r: number; g: number; b: number }> = [];
+
+  const hash = (a: number, b: number) => {
+    let h = (a * 2654435761 + b * 2246822519) | 0;
+    h = ((h >> 16) ^ h) * 0x45d9f3b | 0;
+    h = ((h >> 16) ^ h) * 0x45d9f3b | 0;
+    return ((h >> 16) ^ h) & 0x7fffffff;
+  };
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const jx = (hash(col, row) % cellSize) - cellSize / 2;
+      const jy = (hash(col + 1000, row + 1000) % cellSize) - cellSize / 2;
+      const sx = Math.max(0, Math.min(width - 1, Math.round(col * cellSize + cellSize / 2 + jx * 0.5)));
+      const sy = Math.max(0, Math.min(height - 1, Math.round(row * cellSize + cellSize / 2 + jy * 0.5)));
+      const off = (sy * width + sx) * 4;
+      seeds.push({ x: sx, y: sy, r: rgba[off], g: rgba[off + 1], b: rgba[off + 2] });
+    }
+  }
+
+  const out = new Uint8ClampedArray(rgba.length);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const cellCol = Math.floor(x / cellSize);
+      const cellRow = Math.floor(y / cellSize);
+      let minDist = Infinity;
+      let bestSeed = seeds[0];
+
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const cr = cellRow + dr;
+          const cc = cellCol + dc;
+          if (cr < 0 || cr >= rows || cc < 0 || cc >= cols) continue;
+          const seed = seeds[cr * cols + cc];
+          const ddx = x - seed.x;
+          const ddy = y - seed.y;
+          const dist = ddx * ddx + ddy * ddy;
+          if (dist < minDist) {
+            minDist = dist;
+            bestSeed = seed;
+          }
+        }
+      }
+
+      out[idx] = bestSeed.r;
+      out[idx + 1] = bestSeed.g;
+      out[idx + 2] = bestSeed.b;
+      out[idx + 3] = rgba[idx + 3];
+    }
+  }
+  rgba.set(out);
+}
