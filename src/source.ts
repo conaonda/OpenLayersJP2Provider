@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, applyNoise } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -216,6 +216,8 @@ export interface JP2LayerOptions {
   exposure?: number;
   /** 픽셀 입력 레벨 범위 조정. inputMin~inputMax를 0~255로 선형 재매핑 (기본값: {inputMin: 0, inputMax: 255}) */
   levels?: { inputMin?: number; inputMax?: number };
+  /** 랜덤 노이즈 강도 (0~255, 기본값: 0). 각 RGB 채널에 [-noise, +noise] 균등 분포 랜덤값 가산 */
+  noise?: number;
 }
 
 export interface JP2LayerResult {
@@ -379,6 +381,7 @@ export async function createJP2TileLayer(
   const colorBalance = options?.colorBalance;
   const exposure = options?.exposure;
   const levels = options?.levels;
+  const noise = options?.noise;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -576,6 +579,10 @@ export async function createJP2TileLayer(
             const inputMin = levels.inputMin ?? 0;
             const inputMax = levels.inputMax ?? 255;
             applyLevels(decoded.data, decoded.width, decoded.height, inputMin, inputMax);
+          }
+
+          if (noise != null && noise > 0) {
+            applyNoise(decoded.data, decoded.width, decoded.height, noise);
           }
 
           if (colorMapLUT && info.componentCount === 1) {

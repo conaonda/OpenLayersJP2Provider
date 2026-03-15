@@ -749,6 +749,26 @@ export function applyLevels(
 }
 
 /**
+ * Adds random noise to RGB channels: out = clamp(in + random(-noise, +noise), 0, 255).
+ * noise=0: no change. Alpha channel is not modified.
+ */
+export function applyNoise(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  noise: number,
+): void {
+  if (noise === 0) return;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = Math.max(0, Math.min(255, Math.round(rgba[off]     + (Math.random() * 2 - 1) * noise)));
+    rgba[off + 1] = Math.max(0, Math.min(255, Math.round(rgba[off + 1] + (Math.random() * 2 - 1) * noise)));
+    rgba[off + 2] = Math.max(0, Math.min(255, Math.round(rgba[off + 2] + (Math.random() * 2 - 1) * noise)));
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(

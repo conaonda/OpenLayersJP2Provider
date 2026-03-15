@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, applyNoise } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1101,5 +1101,43 @@ describe('applyLevels', () => {
     const rgba = new Uint8ClampedArray([100, 150, 200, 50]);
     applyLevels(rgba, 1, 1, 50, 200);
     expect(rgba[3]).toBe(50);
+  });
+});
+
+describe('applyNoise', () => {
+  it('does nothing when noise is 0', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyNoise(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('modifies RGB channels within ±noise range', () => {
+    const noise = 10;
+    const original = [100, 150, 200];
+    const rgba = new Uint8ClampedArray([...original, 255]);
+    applyNoise(rgba, 1, 1, noise);
+    expect(rgba[0]).toBeGreaterThanOrEqual(original[0] - noise);
+    expect(rgba[0]).toBeLessThanOrEqual(original[0] + noise);
+    expect(rgba[1]).toBeGreaterThanOrEqual(original[1] - noise);
+    expect(rgba[1]).toBeLessThanOrEqual(original[1] + noise);
+    expect(rgba[2]).toBeGreaterThanOrEqual(original[2] - noise);
+    expect(rgba[2]).toBeLessThanOrEqual(original[2] + noise);
+  });
+
+  it('clamps output to 0-255', () => {
+    const rgba = new Uint8ClampedArray([0, 255, 128, 255]);
+    applyNoise(rgba, 1, 1, 255);
+    expect(rgba[0]).toBeGreaterThanOrEqual(0);
+    expect(rgba[0]).toBeLessThanOrEqual(255);
+    expect(rgba[1]).toBeGreaterThanOrEqual(0);
+    expect(rgba[1]).toBeLessThanOrEqual(255);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 77]);
+    applyNoise(rgba, 1, 1, 50);
+    expect(rgba[3]).toBe(77);
   });
 });
