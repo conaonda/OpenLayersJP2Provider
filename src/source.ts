@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -226,6 +226,10 @@ export interface JP2LayerOptions {
   temperature?: number;
   /** 이미지 반전. horizontal=좌우 반전, vertical=상하 반전 (기본값: 둘 다 false) */
   flip?: { horizontal?: boolean; vertical?: boolean };
+  /** 채도 낮은 색상 선택적 채도 증폭 (기본값: 0, 범위: -1~1). 양수=저채도 색상 강조, 음수=저채도 색상 감소. saturation과 달리 과채도 방지 */
+  vibrance?: number;
+  /** 톤 커브 조정 — 채널별 입출력 매핑. 각 채널은 256개 요소 배열(index→출력값). all은 공통 커브(채널별보다 먼저 적용) */
+  curves?: { r?: number[]; g?: number[]; b?: number[]; all?: number[] };
 }
 
 export interface JP2LayerResult {
@@ -394,6 +398,10 @@ export async function createJP2TileLayer(
   const outputLevels = options?.outputLevels;
   const temperature = options?.temperature;
   const flip = options?.flip;
+  const vibrance = options?.vibrance;
+  const curvesOpt = options?.curves != null && validateCurves(options.curves)
+    ? options.curves
+    : undefined;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -531,6 +539,10 @@ export async function createJP2TileLayer(
             applySaturation(decoded.data, decoded.width, decoded.height, saturation);
           }
 
+          if (vibrance != null && vibrance !== 0) {
+            applyVibrance(decoded.data, decoded.width, decoded.height, vibrance);
+          }
+
           if (hue != null && hue !== 0) {
             applyHue(decoded.data, decoded.width, decoded.height, hue);
           }
@@ -597,6 +609,10 @@ export async function createJP2TileLayer(
               debugWarn(`levels.inputMin > levels.inputMax, swapping values`);
             }
             applyLevels(decoded.data, decoded.width, decoded.height, validated.inputMin, validated.inputMax);
+          }
+
+          if (curvesOpt) {
+            applyCurves(decoded.data, decoded.width, decoded.height, curvesOpt);
           }
 
           if (outputLevels) {

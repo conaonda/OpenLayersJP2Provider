@@ -920,6 +920,90 @@ export function applyFlip(
 }
 
 /**
+ * Applies vibrance adjustment — selectively boosts saturation of less-saturated colors.
+ * vibrance > 0: boost low-saturation colors, vibrance < 0: desaturate low-saturation colors.
+ * Range: -1 to 1. Already-saturated colors are affected less to prevent oversaturation.
+ * Alpha channel is not modified.
+ */
+export function applyVibrance(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  vibrance: number,
+): void {
+  if (vibrance === 0) return;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const r = rgba[off], g = rgba[off + 1], b = rgba[off + 2];
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    // Current saturation ratio (0 = gray, 1 = fully saturated)
+    const sat = max === 0 ? 0 : (max - min) / max;
+    // Scale factor: low saturation → stronger effect
+    const amount = vibrance * (1 - sat);
+    const gray = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    rgba[off]     = Math.round(Math.max(0, Math.min(255, gray + (1 + amount) * (r - gray))));
+    rgba[off + 1] = Math.round(Math.max(0, Math.min(255, gray + (1 + amount) * (g - gray))));
+    rgba[off + 2] = Math.round(Math.max(0, Math.min(255, gray + (1 + amount) * (b - gray))));
+  }
+}
+
+/**
+ * Validates curves option: each channel array must have exactly 256 entries with values 0~255.
+ * Returns true if valid.
+ */
+export function validateCurves(
+  curves: unknown,
+): curves is { r?: number[]; g?: number[]; b?: number[]; all?: number[] } {
+  if (typeof curves !== 'object' || curves === null || Array.isArray(curves)) return false;
+  const obj = curves as Record<string, unknown>;
+  for (const key of ['r', 'g', 'b', 'all']) {
+    const arr = obj[key];
+    if (arr === undefined) continue;
+    if (!Array.isArray(arr) || arr.length !== 256) return false;
+    for (let i = 0; i < 256; i++) {
+      if (typeof arr[i] !== 'number' || arr[i] < 0 || arr[i] > 255) return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Applies tone curves to RGB channels using LUT (Look-Up Table) mapping.
+ * `all` curve is applied first (common to all channels), then per-channel curves.
+ * Each curve is a 256-element array mapping input value (index) to output value.
+ * Alpha channel is not modified.
+ */
+export function applyCurves(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  curves: { r?: number[]; g?: number[]; b?: number[]; all?: number[] },
+): void {
+  const { r: rCurve, g: gCurve, b: bCurve, all: allCurve } = curves;
+  if (!rCurve && !gCurve && !bCurve && !allCurve) return;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    let r = rgba[off], g = rgba[off + 1], b = rgba[off + 2];
+    // Apply common curve first
+    if (allCurve) {
+      r = allCurve[r];
+      g = allCurve[g];
+      b = allCurve[b];
+    }
+    // Apply per-channel curves
+    if (rCurve) r = rCurve[r];
+    if (gCurve) g = gCurve[g];
+    if (bCurve) b = bCurve[b];
+    rgba[off] = Math.max(0, Math.min(255, r));
+    rgba[off + 1] = Math.max(0, Math.min(255, g));
+    rgba[off + 2] = Math.max(0, Math.min(255, b));
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(
