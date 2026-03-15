@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint, applyKuwahara, applyCrystallize } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint, applyKuwahara, applyCrystallize, applySwirl, applyRipple } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -2220,5 +2220,111 @@ describe('applyCrystallize', () => {
     // should not throw
     applyCrystallize(rgba, 8, 8, 8);
     expect(rgba[3]).toBe(255);
+  });
+});
+
+describe('applySwirl', () => {
+  it('distorts pixels near center', () => {
+    const rgba = new Uint8ClampedArray(8 * 8 * 4);
+    for (let i = 0; i < 64; i++) {
+      rgba[i * 4] = i * 4; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applySwirl(rgba, 8, 8, 90, 0.5);
+    let changed = false;
+    for (let i = 0; i < rgba.length; i++) {
+      if (i % 4 !== 3 && rgba[i] !== original[i]) { changed = true; break; }
+    }
+    expect(changed).toBe(true);
+  });
+
+  it('preserves alpha channel', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = i * 10;
+    }
+    const alphas = Array.from({length: 16}, (_, i) => rgba[i * 4 + 3]);
+    applySwirl(rgba, 4, 4, 90, 0.5);
+    for (let i = 0; i < 16; i++) {
+      expect(rgba[i * 4 + 3]).toBe(alphas[i]);
+    }
+  });
+
+  it('does not change pixels outside radius', () => {
+    // 10x10 image, radius=0.1 so only very center affected
+    const rgba = new Uint8ClampedArray(10 * 10 * 4);
+    for (let i = 0; i < 100; i++) {
+      rgba[i * 4] = i; rgba[i * 4 + 1] = 100; rgba[i * 4 + 2] = 200; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applySwirl(rgba, 10, 10, 90, 0.1);
+    // corner pixel (0,0) should be unchanged
+    expect(rgba[0]).toBe(original[0]);
+    expect(rgba[1]).toBe(original[1]);
+    expect(rgba[2]).toBe(original[2]);
+  });
+
+  it('uniform image stays unchanged', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = 100; rgba[i * 4 + 1] = 100; rgba[i * 4 + 2] = 100; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applySwirl(rgba, 4, 4, 180, 1.0);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+});
+
+describe('applyRipple', () => {
+  it('distorts pixels with wave pattern', () => {
+    const rgba = new Uint8ClampedArray(8 * 8 * 4);
+    for (let i = 0; i < 64; i++) {
+      rgba[i * 4] = i * 4; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyRipple(rgba, 8, 8, 2, 2, 3, 3);
+    let changed = false;
+    for (let i = 0; i < rgba.length; i++) {
+      if (i % 4 !== 3 && rgba[i] !== original[i]) { changed = true; break; }
+    }
+    expect(changed).toBe(true);
+  });
+
+  it('preserves alpha channel', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = i * 10;
+    }
+    const alphas = Array.from({length: 16}, (_, i) => rgba[i * 4 + 3]);
+    applyRipple(rgba, 4, 4, 2, 2, 3, 3);
+    for (let i = 0; i < 16; i++) {
+      expect(rgba[i * 4 + 3]).toBe(alphas[i]);
+    }
+  });
+
+  it('uniform image stays unchanged', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = 100; rgba[i * 4 + 1] = 100; rgba[i * 4 + 2] = 100; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyRipple(rgba, 4, 4, 5, 5, 3, 3);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+
+  it('zero amplitude produces no change', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyRipple(rgba, 4, 4, 0, 0, 5, 5);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
   });
 });
