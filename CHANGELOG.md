@@ -14,9 +14,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `pixel-conversion.ts`의 `applyKuwahara()` 함수로 처리
   - 적용 순서: oilPaint 이후
 - **`JP2LayerOptions.crystallize`**: 크리스탈 타일 모자이크 효과 옵션 추가 (closes #254, PR #255)
-  - 타입: `boolean | { numCells?: number }`, 기본값: `undefined`
+  - 타입: `boolean | { cellSize?: number }`, 기본값: `undefined`
   - 보로노이 다이어그램 기반 크리스탈 모자이크 효과
-  - numCells: 크리스탈 셀 수 (기본값 100)
+  - cellSize: 크리스탈 셀 평균 크기 (기본값 10, 픽셀 단위)
   - `pixel-conversion.ts`의 `applyCrystallize()` 함수로 처리
   - 적용 순서: kuwahara 이후
 
