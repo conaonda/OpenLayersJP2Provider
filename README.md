@@ -150,7 +150,9 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `pencilSketch` | `boolean \| { intensity?: number; blendMode?: 'multiply' \| 'screen' }` | `undefined` | 연필 스케치 효과. intensity: 효과 강도 (기본값 1.0), blendMode: 블렌드 모드 ('multiply' 또는 'screen', 기본값 'multiply') |
 | `oilPaint` | `boolean \| { radius?: number; levels?: number }` | `undefined` | 유화 페인팅 효과. radius: 커널 반경 (기본값 4), levels: 밝기 양자화 레벨 (기본값 8) |
 | `kuwahara` | `boolean \| { radius?: number }` | `undefined` | 쿠와하라 노이즈 감소 페인팅 필터. radius: 커널 반경 (기본값 3). 4사분면 분산 기반 에지 보존 필터 |
-| `crystallize` | `boolean \| { cellSize?: number }` | `undefined` | 크리스탈 모자이크 효과. cellSize: 크리스탈 셀 평균 크기 (기본값 10, 픽셀 단위). 보로노이 다이어그램 기반 효과 |
+| `crystallize` | `boolean \| { cellSize?: number }` | `undefined` | 크리스탈 모자이크 효과. cellSize: 크리스탈 셀 크기 (기본값 10). 보로노이 다이어그램 기반 효과 |
+| `swirl` | `boolean \| { angle?: number; radius?: number }` | `undefined` | 소용돌이 왜곡 효과. angle: 최대 회전 각도(라디안, 기본값 π), radius: 왜곡 반경(픽셀, 기본값 이미지 단변의 절반) |
+| `ripple` | `boolean \| { amplitudeX?: number; amplitudeY?: number; frequencyX?: number; frequencyY?: number }` | `undefined` | 물결 파동 왜곡 효과. amplitudeX/Y: X/Y축 진폭(픽셀, 기본값 10), frequencyX/Y: X/Y축 주파수(기본값 0.1) |
 
 #### 반환값 (`JP2LayerResult`)
 
