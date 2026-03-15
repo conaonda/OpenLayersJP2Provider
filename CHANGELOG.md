@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 60
+
+### Fixed
+- **`applyCrossProcess()`**: 출력 픽셀 값 클램핑 누락 수정 (closes #221, PR #220)
+  - crossProcess 연산 결과가 0~255 범위를 벗어날 경우 클램핑하지 않아 발생하는 오버플로우 버그 수정
+  - R채널 S커브, G채널 리프트, B채널 크러시 연산 후 `Math.max(0, Math.min(255, value))` 적용
+- **`applyHalftone()`**: 타일 가장자리 도트 잘림(artifact) 수정 (closes #222, PR #220)
+  - 타일 경계에서 셀이 이미지 범위 밖으로 나가는 경우 경계 처리 오류로 인한 가장자리 아티팩트 수정
+  - 셀 순회 시 `Math.min(x + dotSize, width)` / `Math.min(y + dotSize, height)` 범위 클램핑 적용
+
+---
+
 ## [Unreleased] — Sprint 59
 
 ### Added
