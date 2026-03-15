@@ -1404,3 +1404,63 @@ export function applyColorGrade(
     rgba[off + 2] = Math.max(0, Math.min(255, Math.round(b + blend * (tone[2] - b))));
   }
 }
+
+/**
+ * 4×4 선형 색상 변환 행렬을 적용한다.
+ * matrix는 row-major 순서의 16개 원소 배열 [R→R, R→G, R→B, R→A, G→R, ...].
+ * 각 픽셀의 [R,G,B,A]에 행렬을 곱한 후 0~255로 클램프한다.
+ */
+export function applyColorMatrix(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  matrix: number[],
+): void {
+  if (matrix.length !== 16) return;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const r = rgba[off];
+    const g = rgba[off + 1];
+    const b = rgba[off + 2];
+    const a = rgba[off + 3];
+    rgba[off]     = Math.max(0, Math.min(255, Math.round(matrix[0] * r + matrix[1] * g + matrix[2] * b + matrix[3] * a)));
+    rgba[off + 1] = Math.max(0, Math.min(255, Math.round(matrix[4] * r + matrix[5] * g + matrix[6] * b + matrix[7] * a)));
+    rgba[off + 2] = Math.max(0, Math.min(255, Math.round(matrix[8] * r + matrix[9] * g + matrix[10] * b + matrix[11] * a)));
+    rgba[off + 3] = Math.max(0, Math.min(255, Math.round(matrix[12] * r + matrix[13] * g + matrix[14] * b + matrix[15] * a)));
+  }
+}
+
+/**
+ * 타일별 자동 대비 스트레칭.
+ * 각 RGB 채널의 min/max를 구한 뒤 0~255로 선형 재매핑한다.
+ * 단색 타일(min === max)은 변경하지 않는다.
+ */
+export function applyAutoContrast(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+): void {
+  const pixelCount = width * height;
+  let rMin = 255, rMax = 0, gMin = 255, gMax = 0, bMin = 255, bMax = 0;
+
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const r = rgba[off], g = rgba[off + 1], b = rgba[off + 2];
+    if (r < rMin) rMin = r; if (r > rMax) rMax = r;
+    if (g < gMin) gMin = g; if (g > gMax) gMax = g;
+    if (b < bMin) bMin = b; if (b > bMax) bMax = b;
+  }
+
+  const rRange = rMax - rMin;
+  const gRange = gMax - gMin;
+  const bRange = bMax - bMin;
+  if (rRange === 0 && gRange === 0 && bRange === 0) return;
+
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    if (rRange > 0) rgba[off]     = Math.round((rgba[off] - rMin) / rRange * 255);
+    if (gRange > 0) rgba[off + 1] = Math.round((rgba[off + 1] - gMin) / gRange * 255);
+    if (bRange > 0) rgba[off + 2] = Math.round((rgba[off + 2] - bMin) / bRange * 255);
+  }
+}
