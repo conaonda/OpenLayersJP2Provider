@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 61
+
+### Added
+- **`JP2LayerOptions.histogramEqualize`**: 히스토그램 평활화 옵션 추가 (closes #225, PR #227)
+  - 타입: `boolean`, 기본값: `false`
+  - 각 RGB 채널별 히스토그램 평활화로 저대비 원격탐사 JP2 이미지의 가시성 향상
+  - `pixel-conversion.ts`의 `applyHistogramEqualize()` 함수로 처리
+  - 적용 순서: halftone 이후
+- **`JP2LayerOptions.colorGrade`**: 스플릿 토닝(컬러 그레이딩) 옵션 추가 (closes #226, PR #227)
+  - 타입: `{ shadows?: [number, number, number]; highlights?: [number, number, number]; balance?: number; strength?: number }`, 기본값: `undefined`
+  - 섀도우/하이라이트 영역에 독립적 색조를 적용하는 스플릿 토닝 효과
+  - balance: 섀도우-하이라이트 균형 (-1~1), strength: 효과 강도 (0~1)
+  - `pixel-conversion.ts`의 `applyColorGrade()` 함수로 처리
+  - 적용 순서: histogramEqualize 이후 (마지막 단계)
+
+---
+
 ## [Unreleased] — Sprint 59
 
 ### Added
