@@ -1464,3 +1464,88 @@ export function applyAutoContrast(
     if (bRange > 0) rgba[off + 2] = Math.round((rgba[off + 2] - bMin) / bRange * 255);
   }
 }
+
+/**
+ * 특정 RGB 색상과 유클리드 거리가 tolerance 이내인 픽셀의 알파를 0으로 설정한다 (크로마키 효과).
+ * @param rgba - RGBA 픽셀 데이터
+ * @param width - 이미지 너비
+ * @param height - 이미지 높이
+ * @param color - 투명 처리할 RGB 색상 [R, G, B]
+ * @param tolerance - 색상 허용 오차 (유클리드 거리, 기본값: 0)
+ */
+export function applyChromaKey(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  color: [number, number, number],
+  tolerance: number = 0,
+): void {
+  const [cr, cg, cb] = color;
+  const tolSq = tolerance * tolerance;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const dr = rgba[off] - cr;
+    const dg = rgba[off + 1] - cg;
+    const db = rgba[off + 2] - cb;
+    if (dr * dr + dg * dg + db * db <= tolSq) {
+      rgba[off + 3] = 0;
+    }
+  }
+}
+
+/**
+ * 중앙값 필터를 적용하여 salt-and-pepper 노이즈를 제거한다.
+ * 각 픽셀 주변 (2*radius+1)² 윈도우의 R/G/B 중앙값을 선택한다. 알파는 변경하지 않는다.
+ * @param rgba - RGBA 픽셀 데이터
+ * @param width - 이미지 너비
+ * @param height - 이미지 높이
+ * @param radius - 필터 반경 (1~5, 클램프 적용)
+ */
+export function applyMedian(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  radius: number,
+): void {
+  radius = Math.max(1, Math.min(5, Math.round(radius)));
+  const pixelCount = width * height;
+  const out = new Uint8ClampedArray(pixelCount * 4);
+  const size = 2 * radius + 1;
+  const maxSamples = size * size;
+
+  const rBuf = new Uint8Array(maxSamples);
+  const gBuf = new Uint8Array(maxSamples);
+  const bBuf = new Uint8Array(maxSamples);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let count = 0;
+      for (let dy = -radius; dy <= radius; dy++) {
+        const ny = y + dy;
+        if (ny < 0 || ny >= height) continue;
+        for (let dx = -radius; dx <= radius; dx++) {
+          const nx = x + dx;
+          if (nx < 0 || nx >= width) continue;
+          const off = (ny * width + nx) * 4;
+          rBuf[count] = rgba[off];
+          gBuf[count] = rgba[off + 1];
+          bBuf[count] = rgba[off + 2];
+          count++;
+        }
+      }
+      const rSorted = rBuf.subarray(0, count).sort();
+      const gSorted = gBuf.subarray(0, count).sort();
+      const bSorted = bBuf.subarray(0, count).sort();
+      const mid = count >> 1;
+
+      const outOff = (y * width + x) * 4;
+      out[outOff] = rSorted[mid];
+      out[outOff + 1] = gSorted[mid];
+      out[outOff + 2] = bSorted[mid];
+      out[outOff + 3] = rgba[(y * width + x) * 4 + 3];
+    }
+  }
+
+  rgba.set(out);
+}
