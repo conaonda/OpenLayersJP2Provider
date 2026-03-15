@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -257,6 +257,10 @@ export interface JP2LayerOptions {
     balance?: number;
     strength?: number;
   };
+  /** 4×4 선형 색상 변환 행렬 (row-major 16개 원소). 각 픽셀의 [R,G,B,A]에 행렬 곱 적용 후 0~255 클램프 */
+  colorMatrix?: number[];
+  /** 타일별 자동 대비 스트레칭 (기본값: false). 각 RGB 채널의 min/max를 0~255로 선형 재매핑 */
+  autoContrast?: boolean;
 }
 
 export interface JP2LayerResult {
@@ -440,6 +444,10 @@ export async function createJP2TileLayer(
   const halftone = options?.halftone;
   const histogramEqualize = options?.histogramEqualize;
   const colorGrade = options?.colorGrade;
+  const colorMatrix = options?.colorMatrix != null && options.colorMatrix.length === 16
+    ? options.colorMatrix
+    : undefined;
+  const autoContrast = options?.autoContrast;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -597,6 +605,10 @@ export async function createJP2TileLayer(
             applyColorGrade(decoded.data, decoded.width, decoded.height, colorGrade);
           }
 
+          if (colorMatrix) {
+            applyColorMatrix(decoded.data, decoded.width, decoded.height, colorMatrix);
+          }
+
           if (temperature != null && temperature !== 0) {
             applyTemperature(decoded.data, decoded.width, decoded.height, temperature);
           }
@@ -718,6 +730,10 @@ export async function createJP2TileLayer(
 
           if (histogramEqualize) {
             applyHistogramEqualize(decoded.data, decoded.width, decoded.height);
+          }
+
+          if (autoContrast) {
+            applyAutoContrast(decoded.data, decoded.width, decoded.height);
           }
 
           if (colormap && info.componentCount === 1) {

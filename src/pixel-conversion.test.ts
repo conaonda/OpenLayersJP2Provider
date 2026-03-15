@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1606,5 +1606,92 @@ describe('applyHalftone', () => {
     for (let i = 0; i < 16; i++) {
       expect(rgba[i * 4 + 3]).toBe(100);
     }
+  });
+});
+
+describe('applyColorMatrix', () => {
+  it('identity matrix leaves pixels unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    const identity = [
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1,
+    ];
+    applyColorMatrix(rgba, 1, 1, identity);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('channel swap matrix swaps R and B', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    const swapRB = [
+      0, 0, 1, 0,
+      0, 1, 0, 0,
+      1, 0, 0, 0,
+      0, 0, 0, 1,
+    ];
+    applyColorMatrix(rgba, 1, 1, swapRB);
+    expect(rgba[0]).toBe(200); // was B
+    expect(rgba[1]).toBe(150); // G unchanged
+    expect(rgba[2]).toBe(100); // was R
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('clamps values to 0-255', () => {
+    const rgba = new Uint8ClampedArray([200, 200, 200, 255]);
+    const bright = [
+      2, 0, 0, 0,
+      0, 2, 0, 0,
+      0, 0, 2, 0,
+      0, 0, 0, 1,
+    ];
+    applyColorMatrix(rgba, 1, 1, bright);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(255);
+    expect(rgba[2]).toBe(255);
+  });
+
+  it('ignores invalid matrix length', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyColorMatrix(rgba, 1, 1, [1, 0, 0]);
+    expect(rgba[0]).toBe(100); // unchanged
+  });
+});
+
+describe('applyAutoContrast', () => {
+  it('stretches 50-200 range to 0-255', () => {
+    // 2x1 image: pixel1=[50,100,150,255], pixel2=[200,200,200,255]
+    const rgba = new Uint8ClampedArray([50, 100, 150, 255, 200, 200, 200, 255]);
+    applyAutoContrast(rgba, 2, 1);
+    // R: min=50, max=200, range=150 → 50→0, 200→255
+    expect(rgba[0]).toBe(0);
+    expect(rgba[4]).toBe(255);
+    // G: min=100, max=200, range=100 → 100→0, 200→255
+    expect(rgba[1]).toBe(0);
+    expect(rgba[5]).toBe(255);
+    // B: min=150, max=200, range=50 → 150→0, 200→255
+    expect(rgba[2]).toBe(0);
+    expect(rgba[6]).toBe(255);
+    // Alpha unchanged
+    expect(rgba[3]).toBe(255);
+    expect(rgba[7]).toBe(255);
+  });
+
+  it('single-color tile remains unchanged', () => {
+    const rgba = new Uint8ClampedArray([128, 128, 128, 255, 128, 128, 128, 255]);
+    applyAutoContrast(rgba, 2, 1);
+    expect(rgba[0]).toBe(128);
+    expect(rgba[1]).toBe(128);
+    expect(rgba[2]).toBe(128);
+  });
+
+  it('already full-range pixels stay the same', () => {
+    const rgba = new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255]);
+    applyAutoContrast(rgba, 2, 1);
+    expect(rgba[0]).toBe(0);
+    expect(rgba[4]).toBe(255);
   });
 });
