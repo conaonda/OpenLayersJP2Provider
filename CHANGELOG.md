@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 70
+
+### Added
+- **`JP2LayerOptions.watercolor`**: 수채화 페인팅 효과 옵션 추가 (closes #261, PR #263)
+  - 타입: `boolean | { radius?: number; intensity?: number }`, 기본값: `undefined`
+  - 에지 검출 + 소프트 블러 + 색상 확산 기법의 수채화 페인팅 효과
+  - radius: 블러 반경 (기본값 3)
+  - intensity: 색상 확산 강도 (기본값 0.5)
+  - `pixel-conversion.ts`의 `applyWatercolor()` 함수로 처리
+  - 적용 순서: ripple 이후, sepia 이전
+- **`JP2LayerOptions.glitch`**: 디지털 글리치 효과 옵션 추가 (closes #262, PR #263)
+  - 타입: `boolean | { amount?: number; slices?: number; seed?: number }`, 기본값: `undefined`
+  - RGB 채널 시프트 + 수평 슬라이스 왜곡의 디지털 글리치 효과
+  - amount: RGB 채널 시프트 강도 (기본값 10, 픽셀 단위)
+  - slices: 수평 슬라이스 수 (기본값 8)
+  - seed: 난수 시드 (기본값 0)
+  - `pixel-conversion.ts`의 `applyGlitch()` 함수로 처리
+  - 적용 순서: watercolor 이후, sepia 이전
+
+---
+
 ## [Unreleased] — Sprint 69
 
 ### Added

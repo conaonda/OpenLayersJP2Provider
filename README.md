@@ -153,6 +153,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `crystallize` | `boolean \| { cellSize?: number }` | `undefined` | 크리스탈 모자이크 효과. cellSize: 크리스탈 셀 크기 (기본값 10). 보로노이 다이어그램 기반 효과 |
 | `swirl` | `boolean \| { angle?: number; radius?: number }` | `undefined` | 소용돌이 왜곡 효과. angle: 최대 회전 각도(라디안, 기본값 π), radius: 왜곡 반경(픽셀, 기본값 이미지 단변의 절반) |
 | `ripple` | `boolean \| { amplitudeX?: number; amplitudeY?: number; frequencyX?: number; frequencyY?: number }` | `undefined` | 물결 파동 왜곡 효과. amplitudeX/Y: X/Y축 진폭(픽셀, 기본값 10), frequencyX/Y: X/Y축 주파수(기본값 0.1) |
+| `watercolor` | `boolean \| { radius?: number; intensity?: number }` | `undefined` | 수채화 페인팅 효과. radius: 블러 반경 (기본값 3), intensity: 색상 확산 강도 (기본값 0.5). 에지 검출 + 소프트 블러 + 색상 확산 기법 |
+| `glitch` | `boolean \| { amount?: number; slices?: number; seed?: number }` | `undefined` | 디지털 글리치 효과. amount: RGB 채널 시프트 강도 (기본값 10), slices: 수평 슬라이스 수 (기본값 8), seed: 난수 시드 (기본값 0) |
 
 #### 반환값 (`JP2LayerResult`)
 
