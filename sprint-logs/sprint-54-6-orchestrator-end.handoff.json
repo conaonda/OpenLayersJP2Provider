@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 54,
+  "status": "success",
+  "merged_prs": [194, 195, 196, 192],
+  "closed_issues": [190, 191, 193],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter: Sprint 54 결과(levels 유효성 검사 PR #194, noise 클리핑 PR #195, tint 옵션 PR #196) CHANGELOG 및 README 업데이트"
+}

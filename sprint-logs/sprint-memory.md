@@ -50,6 +50,13 @@
 - JP2LayerOptions.contrast: 픽셀 대비 조정 옵션 (number, 기본값 0), pixel-conversion.ts의 applyContrast() 함수로 처리, factor = (259*(contrast+255))/(255*(259-contrast)) 공식 적용 (PR #145, closes #144)
 - JP2LayerOptions.saturation: 픽셀 채도 조정 옵션 (number, 기본값 1.0), pixel-conversion.ts의 applySaturation() 함수로 처리, RGB↔HSL 변환 후 S 채널에 배율 적용 (PR #149, closes #147)
 - JP2LayerOptions.hue: 픽셀 색조 회전 옵션 (number, 기본값 0, 도 단위), pixel-conversion.ts의 applyHue() 함수로 처리, RGB↔HSL 변환 후 H 채널에 각도 가산 후 mod 360 적용 (PR #149, closes #148)
+- JP2LayerOptions.colorBalance: RGB 채널별 색상 균형 조정 옵션 ({r, g, b}: 각 채널에 가산 적용), pixel-conversion.ts의 applyColorBalance() 함수로 처리, 0~255 클램프 (PR #184, closes #182)
+- JP2LayerOptions.exposure: 픽셀 노출 조정 옵션 (number, 기본값 1.0), pixel-conversion.ts의 applyExposure() 함수로 처리, 각 RGB 채널에 승산 방식 밝기 보정 적용 (PR #184, closes #183)
+- JP2LayerOptions.levels: 픽셀 입력 레벨 범위 재매핑 옵션 ({inputMin?, inputMax?}), inputMin~inputMax를 0~255로 선형 재매핑, pixel-conversion.ts의 applyLevels() 함수로 처리 (PR #188, closes #186)
+- JP2LayerOptions.noise: 랜덤 노이즈 강도 옵션 (number, 0~255), 각 RGB 채널에 [-noise, +noise] 균등 분포 랜덤값 가산, pixel-conversion.ts의 applyNoise() 함수로 처리 (PR #189, closes #187)
+- JP2LayerOptions.levels 유효성 검사: validateLevels() 함수 추가 (inputMin/Max를 0-255 클램프, min>max 시 자동 스왑), source.ts에서 levels 적용 전 validateLevels() 호출 (PR #194, closes #190)
+- JP2LayerOptions.noise 최대값 클리핑: noise > 255 시 255로 클리핑, JSDoc에 권장 범위(0~50) 문서화 (PR #195, closes #191)
+- JP2LayerOptions.tint: 이미지 전체에 색조 오버레이 적용 옵션 ([R, G, B, strength?], strength 기본값 0.5), pixel-conversion.ts의 applyTint() 함수로 처리, 파이프라인에서 noise 이후 적용 (PR #196, closes #193)
 
 ## 반복 패턴 & 주의사항
 - 동일 작성자 PR은 GitHub 정책상 공식 approve 불가 → 리뷰 코멘트로 대체
@@ -67,14 +74,14 @@
 - [x] JP2LayerOptions에 requestHeaders 옵션 미포함 — PR #55로 해결 (Sprint 13)
 
 ## 최근 3개 스프린트 요약
-### Sprint 43 (2026-03-14)
-- 완료: PR #149(saturation/hue 옵션) 머지, PR #146(docs sprint-41-42) 머지, 이슈 #147/#148 닫힘, 단위 테스트 51개 전체 통과
-- 발견된 문제: 없음
+### Sprint 54 (2026-03-16)
+- 완료: PR #194(levels 유효성 검사) 머지, PR #195(noise 클리핑) 머지, PR #196(tint 옵션) 머지, PR #192(docs sprint-53) 머지, 이슈 #190/#191/#193 닫힘, 단위 테스트 398개 전체 통과
+- 발견된 문제: PR #196이 main 머지 후 충돌 → rebase 해결, docs PR #192도 CHANGELOG 충돌 → rebase 해결
 
-### Sprint 42 (2026-03-14)
-- 완료: PR #145(brightness/contrast 옵션) 머지, 이슈 #143/#144 닫힘, 단위 테스트 12개 전체 통과
-- 발견된 문제: 없음
+### Sprint 53 (2026-03-16)
+- 완료: PR #188(levels 옵션) 머지, PR #189(noise 옵션) 머지, PR #185(docs sprint-52) 머지, 이슈 #186/#187 닫힘, 단위 테스트 388개 전체 통과
+- 발견된 문제: PR #189가 #188 머지 후 충돌 → rebase 후 noise/levels 동시 지원으로 해결, 개선 이슈 #190/#191 신규 등록
 
-### Sprint 41 (2026-03-14)
-- 완료: PR #142(gamma/nodataTolerance 옵션) 머지, 이슈 #140/#141 닫힘, 단위 테스트 55개 전체 통과, docs PR #139 충돌로 닫힘
+### Sprint 52 (2026-03-16)
+- 완료: PR #184(colorBalance/exposure 옵션) 머지, 이슈 #182/#183 닫힘, 단위 테스트 102개 전체 통과, docs PR #181 충돌로 닫힘
 - 발견된 문제: 없음
