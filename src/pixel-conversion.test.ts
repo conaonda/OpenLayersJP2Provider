@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint, applyKuwahara, applyCrystallize, applySwirl, applyRipple } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint, applyKuwahara, applyCrystallize, applySwirl, applyRipple, applyWatercolor, applyGlitch } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -2323,6 +2323,112 @@ describe('applyRipple', () => {
     }
     const original = new Uint8ClampedArray(rgba);
     applyRipple(rgba, 4, 4, 0, 0, 5, 5);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+});
+
+describe('applyWatercolor', () => {
+  it('modifies pixels with watercolor effect', () => {
+    const rgba = new Uint8ClampedArray(8 * 8 * 4);
+    for (let i = 0; i < 64; i++) {
+      rgba[i * 4] = i * 4; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyWatercolor(rgba, 8, 8, 2, 0.7);
+    let changed = false;
+    for (let i = 0; i < rgba.length; i++) {
+      if (i % 4 !== 3 && rgba[i] !== original[i]) { changed = true; break; }
+    }
+    expect(changed).toBe(true);
+  });
+
+  it('preserves alpha channel', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = i * 10;
+    }
+    const alphas = Array.from({length: 16}, (_, i) => rgba[i * 4 + 3]);
+    applyWatercolor(rgba, 4, 4, 2, 0.5);
+    for (let i = 0; i < 16; i++) {
+      expect(rgba[i * 4 + 3]).toBe(alphas[i]);
+    }
+  });
+
+  it('uniform image stays unchanged', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = 100; rgba[i * 4 + 1] = 100; rgba[i * 4 + 2] = 100; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyWatercolor(rgba, 4, 4, 2, 0.7);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+
+  it('zero intensity produces no change', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyWatercolor(rgba, 4, 4, 2, 0);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+});
+
+describe('applyGlitch', () => {
+  it('modifies pixels with glitch effect', () => {
+    const rgba = new Uint8ClampedArray(8 * 8 * 4);
+    for (let i = 0; i < 64; i++) {
+      rgba[i * 4] = i * 4; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyGlitch(rgba, 8, 8, 10, 8, 42);
+    let changed = false;
+    for (let i = 0; i < rgba.length; i++) {
+      if (i % 4 !== 3 && rgba[i] !== original[i]) { changed = true; break; }
+    }
+    expect(changed).toBe(true);
+  });
+
+  it('preserves alpha channel', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = i * 10;
+    }
+    const alphas = Array.from({length: 16}, (_, i) => rgba[i * 4 + 3]);
+    applyGlitch(rgba, 4, 4, 10, 8, 42);
+    for (let i = 0; i < 16; i++) {
+      expect(rgba[i * 4 + 3]).toBe(alphas[i]);
+    }
+  });
+
+  it('same seed produces same result', () => {
+    const rgba1 = new Uint8ClampedArray(8 * 8 * 4);
+    const rgba2 = new Uint8ClampedArray(8 * 8 * 4);
+    for (let i = 0; i < 64; i++) {
+      rgba1[i * 4] = i * 4; rgba1[i * 4 + 1] = 128; rgba1[i * 4 + 2] = 64; rgba1[i * 4 + 3] = 255;
+      rgba2[i * 4] = i * 4; rgba2[i * 4 + 1] = 128; rgba2[i * 4 + 2] = 64; rgba2[i * 4 + 3] = 255;
+    }
+    applyGlitch(rgba1, 8, 8, 10, 8, 123);
+    applyGlitch(rgba2, 8, 8, 10, 8, 123);
+    for (let i = 0; i < rgba1.length; i++) {
+      expect(rgba1[i]).toBe(rgba2[i]);
+    }
+  });
+
+  it('uniform image R/B channels stay unchanged with channel shift', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = 100; rgba[i * 4 + 1] = 100; rgba[i * 4 + 2] = 100; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyGlitch(rgba, 4, 4, 5, 4, 0);
     for (let i = 0; i < rgba.length; i++) {
       expect(rgba[i]).toBe(original[i]);
     }

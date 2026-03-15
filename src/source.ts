@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint, applyKuwahara, applyCrystallize, applySwirl, applyRipple } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint, applyKuwahara, applyCrystallize, applySwirl, applyRipple, applyWatercolor, applyGlitch } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -293,6 +293,10 @@ export interface JP2LayerOptions {
   swirl?: boolean | { angle?: number; radius?: number };
   /** 물결 파동 왜곡 효과. true 시 기본값 적용. amplitudeX/Y: 진폭(px, 기본 10), frequencyX/Y: 주파수(기본 5) */
   ripple?: boolean | { amplitudeX?: number; amplitudeY?: number; frequencyX?: number; frequencyY?: number };
+  /** 수채화 페인팅 효과. true 시 기본값 적용. radius: 블러 반경(기본 4), intensity: 효과 강도(기본 0.7, 0~1) */
+  watercolor?: boolean | { radius?: number; intensity?: number };
+  /** 디지털 글리치 왜곡 효과. true 시 기본값 적용. amount: 채널 시프트 최대 px(기본 10), slices: 왜곡 슬라이스 수(기본 8), seed: 난수 시드(기본 0) */
+  glitch?: boolean | { amount?: number; slices?: number; seed?: number };
 }
 
 export interface JP2LayerResult {
@@ -538,6 +542,20 @@ export async function createJP2TileLayer(
         ? undefined
         : { amplitudeX: options.ripple.amplitudeX ?? 10, amplitudeY: options.ripple.amplitudeY ?? 10, frequencyX: options.ripple.frequencyX ?? 5, frequencyY: options.ripple.frequencyY ?? 5 })
     : undefined;
+  const watercolorOpt = options?.watercolor != null
+    ? (options.watercolor === true
+      ? { radius: 4, intensity: 0.7 }
+      : options.watercolor === false
+        ? undefined
+        : { radius: options.watercolor.radius ?? 4, intensity: options.watercolor.intensity ?? 0.7 })
+    : undefined;
+  const glitchOpt = options?.glitch != null
+    ? (options.glitch === true
+      ? { amount: 10, slices: 8, seed: 0 }
+      : options.glitch === false
+        ? undefined
+        : { amount: options.glitch.amount ?? 10, slices: options.glitch.slices ?? 8, seed: options.glitch.seed ?? 0 })
+    : undefined;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -781,6 +799,14 @@ export async function createJP2TileLayer(
 
           if (rippleOpt) {
             applyRipple(decoded.data, decoded.width, decoded.height, rippleOpt.amplitudeX, rippleOpt.amplitudeY, rippleOpt.frequencyX, rippleOpt.frequencyY);
+          }
+
+          if (watercolorOpt) {
+            applyWatercolor(decoded.data, decoded.width, decoded.height, watercolorOpt.radius, watercolorOpt.intensity);
+          }
+
+          if (glitchOpt) {
+            applyGlitch(decoded.data, decoded.width, decoded.height, glitchOpt.amount, glitchOpt.slices, glitchOpt.seed);
           }
 
           if (sepia != null && sepia !== 0) {

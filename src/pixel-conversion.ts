@@ -2078,3 +2078,143 @@ export function applyRipple(
   }
   rgba.set(out);
 }
+
+/**
+ * 수채화 페인팅 효과.
+ * 에지 검출 + 소프트 블러 + 색상 확산 기법으로 수채화 느낌을 구현한다.
+ */
+export function applyWatercolor(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  radius: number = 4,
+  intensity: number = 0.7,
+): void {
+  const clampedIntensity = Math.max(0, Math.min(1, intensity));
+  const clampedRadius = Math.max(1, Math.min(20, Math.round(radius)));
+
+  // Step 1: Apply averaging blur for color simplification
+  const simplified = new Uint8ClampedArray(rgba.length);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let rSum = 0, gSum = 0, bSum = 0, count = 0;
+      for (let dy = -clampedRadius; dy <= clampedRadius; dy++) {
+        for (let dx = -clampedRadius; dx <= clampedRadius; dx++) {
+          const nx = Math.max(0, Math.min(width - 1, x + dx));
+          const ny = Math.max(0, Math.min(height - 1, y + dy));
+          const ni = (ny * width + nx) * 4;
+          rSum += rgba[ni];
+          gSum += rgba[ni + 1];
+          bSum += rgba[ni + 2];
+          count++;
+        }
+      }
+      const idx = (y * width + x) * 4;
+      simplified[idx] = rSum / count;
+      simplified[idx + 1] = gSum / count;
+      simplified[idx + 2] = bSum / count;
+    }
+  }
+
+  // Step 2: Edge detection for dark outlines
+  const edges = new Float32Array(width * height);
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const idxL = (y * width + (x - 1)) * 4;
+      const idxR = (y * width + (x + 1)) * 4;
+      const idxU = ((y - 1) * width + x) * 4;
+      const idxD = ((y + 1) * width + x) * 4;
+      const lL = 0.299 * rgba[idxL] + 0.587 * rgba[idxL + 1] + 0.114 * rgba[idxL + 2];
+      const lR = 0.299 * rgba[idxR] + 0.587 * rgba[idxR + 1] + 0.114 * rgba[idxR + 2];
+      const lU = 0.299 * rgba[idxU] + 0.587 * rgba[idxU + 1] + 0.114 * rgba[idxU + 2];
+      const lD = 0.299 * rgba[idxD] + 0.587 * rgba[idxD + 1] + 0.114 * rgba[idxD + 2];
+      const gx = lR - lL;
+      const gy = lD - lU;
+      edges[y * width + x] = Math.min(1, Math.sqrt(gx * gx + gy * gy) / 255);
+    }
+  }
+
+  // Step 3: Blend simplified colors with edge darkening
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const edge = edges[y * width + x];
+      const edgeDarken = 1 - edge * clampedIntensity * 0.5;
+      const r = simplified[idx] * edgeDarken;
+      const g = simplified[idx + 1] * edgeDarken;
+      const b = simplified[idx + 2] * edgeDarken;
+      rgba[idx] = Math.max(0, Math.min(255, Math.round(rgba[idx] * (1 - clampedIntensity) + r * clampedIntensity)));
+      rgba[idx + 1] = Math.max(0, Math.min(255, Math.round(rgba[idx + 1] * (1 - clampedIntensity) + g * clampedIntensity)));
+      rgba[idx + 2] = Math.max(0, Math.min(255, Math.round(rgba[idx + 2] * (1 - clampedIntensity) + b * clampedIntensity)));
+    }
+  }
+}
+
+/**
+ * 디지털 글리치 왜곡 효과.
+ * RGB 채널 수평 시프트 + 랜덤 수평 슬라이스 왜곡으로 글리치 느낌을 구현한다.
+ */
+export function applyGlitch(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  amount: number = 10,
+  slices: number = 8,
+  seed: number = 0,
+): void {
+  const clampedAmount = Math.max(1, Math.min(100, Math.round(amount)));
+  const clampedSlices = Math.max(1, Math.min(64, Math.round(slices)));
+  const out = new Uint8ClampedArray(rgba.length);
+  out.set(rgba);
+
+  // Simple seeded PRNG (mulberry32)
+  let s = seed | 0;
+  const rand = () => {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  // Step 1: RGB channel horizontal shift
+  const rShift = Math.round((rand() - 0.5) * 2 * clampedAmount);
+  const bShift = Math.round((rand() - 0.5) * 2 * clampedAmount);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const rSrcX = Math.max(0, Math.min(width - 1, x + rShift));
+      const bSrcX = Math.max(0, Math.min(width - 1, x + bShift));
+      out[idx] = rgba[(y * width + rSrcX) * 4];
+      out[idx + 2] = rgba[(y * width + bSrcX) * 4 + 2];
+    }
+  }
+
+  // Step 2: Random horizontal slice displacement
+  const sliceHeight = Math.max(1, Math.floor(height / clampedSlices));
+  for (let i = 0; i < clampedSlices; i++) {
+    if (rand() < 0.5) continue;
+    const yStart = Math.min(i * sliceHeight, height - 1);
+    const yEnd = Math.min(yStart + sliceHeight, height);
+    const shift = Math.round((rand() - 0.5) * 2 * clampedAmount);
+
+    for (let y = yStart; y < yEnd; y++) {
+      for (let x = 0; x < width; x++) {
+        const srcX = Math.max(0, Math.min(width - 1, x + shift));
+        const dstIdx = (y * width + x) * 4;
+        const srcIdx = (y * width + srcX) * 4;
+        out[dstIdx] = out[srcIdx];
+        out[dstIdx + 1] = out[srcIdx + 1];
+        out[dstIdx + 2] = out[srcIdx + 2];
+      }
+    }
+  }
+
+  // Preserve alpha
+  for (let i = 0; i < width * height; i++) {
+    out[i * 4 + 3] = rgba[i * 4 + 3];
+  }
+
+  rgba.set(out);
+}
