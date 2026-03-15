@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 51
+
+### Added
+- **`JP2LayerOptions.pixelate`**: 픽셀화(블록 모자이크) 효과 옵션 추가 (closes #178, PR #180)
+  - 타입: `number` (블록 크기, px), 기본값: 미적용 (2 이상 시 활성화)
+  - 각 블록 영역의 평균 색상으로 해당 블록 픽셀들을 채움
+  - `pixel-conversion.ts`의 `applyPixelate()` 함수로 처리
+- **`JP2LayerOptions.channelSwap`**: RGB 채널 순서 변경 옵션 추가 (closes #179, PR #180)
+  - 타입: `[number, number, number]` (소스 채널 인덱스 배열, 예: [2,1,0]은 BGR→RGB)
+  - 유효하지 않은 인덱스(0-2 범위 밖)는 무시 처리
+  - `pixel-conversion.ts`의 `applyChannelSwap()` 함수로 처리
+  - 적용 순서: ...emboss → pixelate → channelSwap → colorMap...
+
+---
+
 ## [Unreleased] — Sprint 47
 
 ### Added
