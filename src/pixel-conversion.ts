@@ -726,6 +726,25 @@ export function applyExposure(
 }
 
 /**
+ * Validates and normalizes levels input values.
+ * Clamps inputMin/inputMax to 0-255 range.
+ * If inputMin > inputMax, swaps them and returns swapped=true.
+ */
+export function validateLevels(
+  inputMin: number,
+  inputMax: number,
+): { inputMin: number; inputMax: number; swapped: boolean } {
+  let min = Math.max(0, Math.min(255, Math.round(inputMin)));
+  let max = Math.max(0, Math.min(255, Math.round(inputMax)));
+  let swapped = false;
+  if (min > max) {
+    [min, max] = [max, min];
+    swapped = true;
+  }
+  return { inputMin: min, inputMax: max, swapped };
+}
+
+/**
  * Remaps pixel input levels: maps [inputMin, inputMax] → [0, 255] linearly.
  * Values below inputMin become 0, values above inputMax become 255.
  * Alpha channel is not modified.

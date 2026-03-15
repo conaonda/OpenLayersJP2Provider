@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, applyNoise } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1139,5 +1139,32 @@ describe('applyNoise', () => {
     const rgba = new Uint8ClampedArray([100, 150, 200, 77]);
     applyNoise(rgba, 1, 1, 50);
     expect(rgba[3]).toBe(77);
+  });
+});
+
+describe('validateLevels', () => {
+  it('returns values unchanged when valid', () => {
+    const result = validateLevels(50, 200);
+    expect(result).toEqual({ inputMin: 50, inputMax: 200, swapped: false });
+  });
+
+  it('clamps values to 0-255 range', () => {
+    const result = validateLevels(-10, 300);
+    expect(result).toEqual({ inputMin: 0, inputMax: 255, swapped: false });
+  });
+
+  it('swaps when inputMin > inputMax', () => {
+    const result = validateLevels(200, 50);
+    expect(result).toEqual({ inputMin: 50, inputMax: 200, swapped: true });
+  });
+
+  it('rounds fractional values', () => {
+    const result = validateLevels(10.7, 200.3);
+    expect(result).toEqual({ inputMin: 11, inputMax: 200, swapped: false });
+  });
+
+  it('handles equal values', () => {
+    const result = validateLevels(128, 128);
+    expect(result).toEqual({ inputMin: 128, inputMax: 128, swapped: false });
   });
 });
