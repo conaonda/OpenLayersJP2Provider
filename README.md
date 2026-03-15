@@ -128,6 +128,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `outputLevels` | `{ outputMin?: number; outputMax?: number }` | `{ outputMin: 0, outputMax: 255 }` | 픽셀 출력 레벨 범위 재매핑. `[0, 255]` → `[outputMin, outputMax]` 선형 재매핑 |
 | `temperature` | `number` | `0` | 색 온도 조정 (-100 ~ +100). 양수=난색(주황빛), 음수=한색(파란빛) |
 | `flip` | `{ horizontal?: boolean; vertical?: boolean }` | - | 이미지 반전. `horizontal`=좌우 반전, `vertical`=상하 반전 |
+| `vibrance` | `number` | `0` | 저채도 색상에 선택적 채도 증폭 (-1 ~ 1). 이미 채도가 높은 색상에는 적게 적용 |
+| `curves` | `{ all?: number[]; r?: number[]; g?: number[]; b?: number[] }` | `undefined` | 채널별 톤 커브(256-entry LUT) 적용. `all`은 모든 채널, `r`/`g`/`b`는 개별 채널 |
 
 #### 반환값 (`JP2LayerResult`)
 

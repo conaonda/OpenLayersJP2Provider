@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 56
+
+### Added
+- **`JP2LayerOptions.vibrance`**: 저채도 색상에 선택적 채도 증폭 옵션 추가 (closes #203, PR #205)
+  - 타입: `number` (-1 ~ 1), 기본값: `0` (변화 없음)
+  - 이미 채도가 높은 색상에는 적게, 채도가 낮은 색상에는 더 많이 적용하는 지능형 채도 조정
+  - `pixel-conversion.ts`의 `applyVibrance()`, `validateVibrance()` 함수로 처리
+  - 적용 순서: ...saturation → vibrance → hue...
+- **`JP2LayerOptions.curves`**: 채널별 톤 커브(256-entry LUT) 적용 옵션 추가 (closes #204, PR #205)
+  - 타입: `{ all?: number[]; r?: number[]; g?: number[]; b?: number[] }`, 기본값: `undefined`
+  - `all`: 모든 채널에 적용할 256 엔트리 LUT
+  - `r`, `g`, `b`: 각 채널에 개별 적용할 256 엔트리 LUT (채널 LUT가 all보다 우선)
+  - `pixel-conversion.ts`의 `applyCurves()`, `validateCurves()` 함수로 처리
+  - 적용 순서: ...levels → curves → colorMap...
+
+---
+
 ## [Unreleased] — Sprint 55
 
 ### Added
