@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint, applyKuwahara, applyCrystallize } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -2114,6 +2114,111 @@ describe('applyOilPaint', () => {
     }
     // should not throw
     applyOilPaint(rgba, 4, 4, 3, 6);
+    expect(rgba[3]).toBe(255);
+  });
+});
+
+describe('applyKuwahara', () => {
+  it('smooths noisy pixel using lowest-variance quadrant', () => {
+    // 3x3 image: uniform 100 except center is 200
+    const v = 100;
+    const rgba = new Uint8ClampedArray([
+      v,v,v,255, v,v,v,255, v,v,v,255,
+      v,v,v,255, 200,200,200,255, v,v,v,255,
+      v,v,v,255, v,v,v,255, v,v,v,255,
+    ]);
+    applyKuwahara(rgba, 3, 3, 1);
+    // center pixel should be smoothed toward 100
+    const center = 4 * 4;
+    expect(rgba[center]).toBeLessThan(200);
+  });
+
+  it('preserves uniform image', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = 100; rgba[i * 4 + 1] = 100; rgba[i * 4 + 2] = 100; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyKuwahara(rgba, 4, 4, 2);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+
+  it('preserves alpha channel', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = i * 10;
+    }
+    const alphas = Array.from({length: 16}, (_, i) => rgba[i * 4 + 3]);
+    applyKuwahara(rgba, 4, 4, 2);
+    for (let i = 0; i < 16; i++) {
+      expect(rgba[i * 4 + 3]).toBe(alphas[i]);
+    }
+  });
+
+  it('modifies pixel values on varied image', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16; rgba[i * 4 + 1] = 255 - i * 16; rgba[i * 4 + 2] = (i * 37) % 256; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyKuwahara(rgba, 4, 4, 2);
+    let changed = false;
+    for (let i = 0; i < rgba.length; i++) {
+      if (i % 4 !== 3 && rgba[i] !== original[i]) { changed = true; break; }
+    }
+    expect(changed).toBe(true);
+  });
+});
+
+describe('applyCrystallize', () => {
+  it('creates mosaic effect — reduces unique colors', () => {
+    // 8x8 image with gradient
+    const rgba = new Uint8ClampedArray(8 * 8 * 4);
+    for (let i = 0; i < 64; i++) {
+      rgba[i * 4] = i * 4; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 255 - i * 4; rgba[i * 4 + 3] = 255;
+    }
+    applyCrystallize(rgba, 8, 8, 4);
+    // Count unique colors — should be fewer than 64
+    const colors = new Set<string>();
+    for (let i = 0; i < 64; i++) {
+      colors.add(`${rgba[i*4]},${rgba[i*4+1]},${rgba[i*4+2]}`);
+    }
+    expect(colors.size).toBeLessThan(64);
+  });
+
+  it('preserves alpha channel', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = i * 10;
+    }
+    const alphas = Array.from({length: 16}, (_, i) => rgba[i * 4 + 3]);
+    applyCrystallize(rgba, 4, 4, 2);
+    for (let i = 0; i < 16; i++) {
+      expect(rgba[i * 4 + 3]).toBe(alphas[i]);
+    }
+  });
+
+  it('uniform image stays unchanged', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = 100; rgba[i * 4 + 1] = 100; rgba[i * 4 + 2] = 100; rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyCrystallize(rgba, 4, 4, 2);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+
+  it('works with custom cellSize', () => {
+    const rgba = new Uint8ClampedArray(8 * 8 * 4);
+    for (let i = 0; i < 64; i++) {
+      rgba[i * 4] = i * 4; rgba[i * 4 + 1] = 128; rgba[i * 4 + 2] = 64; rgba[i * 4 + 3] = 255;
+    }
+    // should not throw
+    applyCrystallize(rgba, 8, 8, 8);
     expect(rgba[3]).toBe(255);
   });
 });
