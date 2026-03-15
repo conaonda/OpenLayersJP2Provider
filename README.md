@@ -100,6 +100,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `nodata` | `number` | `undefined` | 투명하게 처리할 픽셀 값. 지정된 값과 일치하는 픽셀의 알파 채널을 0으로 설정하여 투명하게 렌더링 |
 | `nodataTolerance` | `number` | `0` | nodata 값 매칭 허용 오차. `\|pixel - nodata\| <= tolerance` 조건으로 매칭. 16비트→8비트 양자화 오차 보정에 유용 |
 | `gamma` | `number` | `1.0` | 픽셀 감마 보정 값. 1보다 크면 밝아지고, 1보다 작으면 어두워짐. `out = 255 × (in/255)^(1/gamma)` 공식 적용 |
+| `pixelate` | `number` | `undefined` | 픽셀화(블록 모자이크) 효과의 블록 크기 (px). 2 이상이면 해당 크기의 블록으로 이미지를 픽셀화. 각 블록의 평균 색상으로 채움 |
+| `channelSwap` | `[number, number, number]` | `undefined` | RGB 채널 순서 변경. `[소스R인덱스, 소스G인덱스, 소스B인덱스]` 형태 (0=R, 1=G, 2=B). 예: `[2,1,0]`은 BGR→RGB 변환. 유효하지 않은 인덱스(0-2 범위 밖)는 무시 |
 
 #### 반환값 (`JP2LayerResult`)
 
