@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 66
+
+### Added
+- **`JP2LayerOptions.radialBlur`**: 방사형 줌 블러 효과 옵션 추가 (closes #245, PR #247)
+  - 타입: `number | { amount?: number; centerX?: number; centerY?: number }`, 기본값: `undefined`
+  - `number` 단축 표기 시 amount로 직접 사용
+  - amount: 블러 강도/샘플 수 (기본값 10), centerX/centerY: 중심점 (0~1, 기본값 0.5)
+  - `pixel-conversion.ts`의 `applyRadialBlur()` 함수로 처리
+  - 적용 순서: bloom 이후
+- **`JP2LayerOptions.motionBlur`**: 선형 모션 블러 효과 옵션 추가 (closes #246, PR #247)
+  - 타입: `number | { distance?: number; angle?: number }`, 기본값: `undefined`
+  - `number` 단축 표기 시 distance로 직접 사용
+  - distance: 블러 거리/샘플 수 (기본값 10), angle: 블러 방향 각도 (도, 기본값 0)
+  - `pixel-conversion.ts`의 `applyMotionBlur()` 함수로 처리
+  - 적용 순서: radialBlur 이후
+
+---
+
 ## [Unreleased] — Sprint 65
 
 ### Added
