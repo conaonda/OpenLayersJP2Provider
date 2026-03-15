@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1998,6 +1998,122 @@ describe('applyMotionBlur', () => {
     ]);
     // should not throw
     applyMotionBlur(rgba, 2, 2, 4, 45);
+    expect(rgba[3]).toBe(255);
+  });
+});
+
+describe('applyPencilSketch', () => {
+  it('modifies pixel values with default settings', () => {
+    const rgba = new Uint8ClampedArray([
+      100,150,200,255, 50,80,120,255,
+      200,100,50,255, 10,20,30,255,
+    ]);
+    const original = new Uint8ClampedArray(rgba);
+    applyPencilSketch(rgba, 2, 2);
+    let changed = false;
+    for (let i = 0; i < rgba.length; i++) {
+      if (i % 4 !== 3 && rgba[i] !== original[i]) { changed = true; break; }
+    }
+    expect(changed).toBe(true);
+    // alpha preserved
+    expect(rgba[3]).toBe(255);
+    expect(rgba[7]).toBe(255);
+  });
+
+  it('preserves alpha channel', () => {
+    const rgba = new Uint8ClampedArray([
+      100,100,100,128, 200,200,200,64,
+      50,50,50,255, 150,150,150,0,
+    ]);
+    applyPencilSketch(rgba, 2, 2);
+    expect(rgba[3]).toBe(128);
+    expect(rgba[7]).toBe(64);
+    expect(rgba[11]).toBe(255);
+    expect(rgba[15]).toBe(0);
+  });
+
+  it('works with screen blend mode', () => {
+    const rgba = new Uint8ClampedArray([
+      100,150,200,255, 50,80,120,255,
+      200,100,50,255, 10,20,30,255,
+    ]);
+    // should not throw
+    applyPencilSketch(rgba, 2, 2, 1.0, 'screen');
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('intensity=0 leaves image mostly unchanged', () => {
+    const rgba = new Uint8ClampedArray([
+      100,150,200,255, 50,80,120,255,
+      200,100,50,255, 10,20,30,255,
+    ]);
+    const original = new Uint8ClampedArray(rgba);
+    applyPencilSketch(rgba, 2, 2, 0);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(Math.abs(rgba[i] - original[i])).toBeLessThanOrEqual(1);
+    }
+  });
+});
+
+describe('applyOilPaint', () => {
+  it('modifies pixel values', () => {
+    // 4x4 image with varied colors
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16;
+      rgba[i * 4 + 1] = 255 - i * 16;
+      rgba[i * 4 + 2] = (i * 37) % 256;
+      rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyOilPaint(rgba, 4, 4);
+    let changed = false;
+    for (let i = 0; i < rgba.length; i++) {
+      if (i % 4 !== 3 && rgba[i] !== original[i]) { changed = true; break; }
+    }
+    expect(changed).toBe(true);
+  });
+
+  it('preserves alpha channel', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16;
+      rgba[i * 4 + 1] = 128;
+      rgba[i * 4 + 2] = 64;
+      rgba[i * 4 + 3] = i * 10;
+    }
+    const alphas = Array.from({length: 16}, (_, i) => rgba[i * 4 + 3]);
+    applyOilPaint(rgba, 4, 4);
+    for (let i = 0; i < 16; i++) {
+      expect(rgba[i * 4 + 3]).toBe(alphas[i]);
+    }
+  });
+
+  it('uniform image stays unchanged', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = 100;
+      rgba[i * 4 + 1] = 100;
+      rgba[i * 4 + 2] = 100;
+      rgba[i * 4 + 3] = 255;
+    }
+    const original = new Uint8ClampedArray(rgba);
+    applyOilPaint(rgba, 4, 4, 2, 8);
+    for (let i = 0; i < rgba.length; i++) {
+      expect(rgba[i]).toBe(original[i]);
+    }
+  });
+
+  it('works with custom radius and levels', () => {
+    const rgba = new Uint8ClampedArray(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      rgba[i * 4] = i * 16;
+      rgba[i * 4 + 1] = 128;
+      rgba[i * 4 + 2] = 64;
+      rgba[i * 4 + 3] = 255;
+    }
+    // should not throw
+    applyOilPaint(rgba, 4, 4, 3, 6);
     expect(rgba[3]).toBe(255);
   });
 });

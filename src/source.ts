@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur, applyPencilSketch, applyOilPaint } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -281,6 +281,10 @@ export interface JP2LayerOptions {
   radialBlur?: number | { strength?: number; centerX?: number; centerY?: number };
   /** 선형 모션 블러 효과. number 단축 시 strength만 설정. strength: 샘플 수(기본 8, 최대 32), angle: 방향(도, 기본 0=수평) */
   motionBlur?: number | { strength?: number; angle?: number };
+  /** 연필 스케치 효과. true 시 기본값 적용. intensity: 강도(기본 1.0), blendMode: 블렌드 모드(기본 'multiply') */
+  pencilSketch?: boolean | { intensity?: number; blendMode?: 'multiply' | 'screen' };
+  /** 유화 페인팅 효과. true 시 기본값 적용. radius: 커널 반경(기본 4), levels: 밝기 양자화 레벨(기본 8) */
+  oilPaint?: boolean | { radius?: number; levels?: number };
 }
 
 export interface JP2LayerResult {
@@ -483,6 +487,20 @@ export async function createJP2TileLayer(
     ? (typeof options.motionBlur === 'number'
       ? { strength: options.motionBlur, angle: 0 }
       : { strength: options.motionBlur.strength ?? 8, angle: options.motionBlur.angle ?? 0 })
+    : undefined;
+  const pencilSketchOpt = options?.pencilSketch != null
+    ? (options.pencilSketch === true
+      ? { intensity: 1.0, blendMode: 'multiply' as const }
+      : options.pencilSketch === false
+        ? undefined
+        : { intensity: options.pencilSketch.intensity ?? 1.0, blendMode: options.pencilSketch.blendMode ?? 'multiply' as const })
+    : undefined;
+  const oilPaintOpt = options?.oilPaint != null
+    ? (options.oilPaint === true
+      ? { radius: 4, levels: 8 }
+      : options.oilPaint === false
+        ? undefined
+        : { radius: options.oilPaint.radius ?? 4, levels: options.oilPaint.levels ?? 8 })
     : undefined;
 
   // Progress tracking state
@@ -703,6 +721,14 @@ export async function createJP2TileLayer(
 
           if (motionBlurOpt) {
             applyMotionBlur(decoded.data, decoded.width, decoded.height, motionBlurOpt.strength, motionBlurOpt.angle);
+          }
+
+          if (pencilSketchOpt) {
+            applyPencilSketch(decoded.data, decoded.width, decoded.height, pencilSketchOpt.intensity, pencilSketchOpt.blendMode);
+          }
+
+          if (oilPaintOpt) {
+            applyOilPaint(decoded.data, decoded.width, decoded.height, oilPaintOpt.radius, oilPaintOpt.levels);
           }
 
           if (sepia != null && sepia !== 0) {
