@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 65
+
+### Added
+- **`JP2LayerOptions.unsharpMask`**: 언샤프 마스크(엣지 선명화) 옵션 추가 (closes #241, PR #243)
+  - 타입: `{ amount?: number; radius?: number; threshold?: number }`, 기본값: `undefined`
+  - amount: 선명화 강도 (0~5, 기본값 1), radius: 블러 반경 (1~10, 기본값 1), threshold: 적용 최소 차이값 (0~255, 기본값 0)
+  - `pixel-conversion.ts`의 `applyUnsharpMask()` 함수로 처리
+  - 적용 순서: median 이후, sepia 이전
+- **`JP2LayerOptions.bloom`**: 블룸(밝은 영역 발광) 효과 옵션 추가 (closes #242, PR #243)
+  - 타입: `{ threshold?: number; intensity?: number; radius?: number }`, 기본값: `undefined`
+  - threshold: 발광 적용 최소 밝기 (0~255, 기본값 200), intensity: 발광 강도 (0~1, 기본값 0.5), radius: 발광 반경 (1~10, 기본값 2)
+  - `pixel-conversion.ts`의 `applyBloom()` 함수로 처리
+  - 적용 순서: unsharpMask 이후, sepia 이전
+
+---
+
 ## [Unreleased] — Sprint 64
 
 ### Changed
