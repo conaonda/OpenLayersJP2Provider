@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyVibrance, applyCurves, validateCurves } from './pixel-conversion';
+import { applyVibrance, applyCurves, validateCurves, applyHistogramEqualize, applyColorGrade } from './pixel-conversion';
 
 describe('applyVibrance', () => {
   it('vibrance=0이면 변경 없음', () => {
@@ -116,5 +116,91 @@ describe('applyCurves', () => {
     const rgba = new Uint8ClampedArray([100, 150, 200, 128]);
     applyCurves(rgba, 1, 1, { all: invert });
     expect(rgba[3]).toBe(128);
+  });
+});
+
+describe('applyHistogramEqualize', () => {
+  it('균등 분포 입력은 크게 변하지 않는다', () => {
+    // 4 pixels with values spread across range
+    const rgba = new Uint8ClampedArray([
+      0, 0, 0, 255,
+      85, 85, 85, 255,
+      170, 170, 170, 255,
+      255, 255, 255, 255,
+    ]);
+    applyHistogramEqualize(rgba, 2, 2);
+    // With 4 distinct values, equalization maps to 0, 85, 170, 255
+    expect(rgba[0]).toBe(0);
+    expect(rgba[4]).toBe(85);
+    expect(rgba[8]).toBe(170);
+    expect(rgba[12]).toBe(255);
+  });
+
+  it('저대비 이미지의 범위를 확장한다', () => {
+    // All pixels clustered in narrow range 100-110
+    const rgba = new Uint8ClampedArray([
+      100, 100, 100, 255,
+      105, 105, 105, 255,
+      108, 108, 108, 255,
+      110, 110, 110, 255,
+    ]);
+    applyHistogramEqualize(rgba, 2, 2);
+    // After equalization, the range should be wider than 100-110
+    const min = Math.min(rgba[0], rgba[4], rgba[8], rgba[12]);
+    const max = Math.max(rgba[0], rgba[4], rgba[8], rgba[12]);
+    expect(max - min).toBeGreaterThan(10);
+  });
+
+  it('알파 채널은 변경하지 않는다', () => {
+    const rgba = new Uint8ClampedArray([50, 50, 50, 128, 200, 200, 200, 64]);
+    applyHistogramEqualize(rgba, 2, 1);
+    expect(rgba[3]).toBe(128);
+    expect(rgba[7]).toBe(64);
+  });
+});
+
+describe('applyColorGrade', () => {
+  it('strength=0이면 변경 없음', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyColorGrade(rgba, 1, 1, { strength: 0 });
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('어두운 픽셀에 shadows 색조를 적용한다', () => {
+    // Very dark pixel (lum ≈ 20)
+    const rgba = new Uint8ClampedArray([20, 20, 20, 255]);
+    applyColorGrade(rgba, 1, 1, {
+      shadows: [0, 0, 255],  // blue shadows
+      highlights: [255, 255, 255],
+      balance: 128,
+      strength: 1.0,
+    });
+    // Blue channel should increase toward 255
+    expect(rgba[2]).toBeGreaterThan(20);
+    // Red should decrease toward 0
+    expect(rgba[0]).toBeLessThan(20);
+  });
+
+  it('밝은 픽셀에 highlights 색조를 적용한다', () => {
+    // Bright pixel (lum ≈ 230)
+    const rgba = new Uint8ClampedArray([230, 230, 230, 255]);
+    applyColorGrade(rgba, 1, 1, {
+      shadows: [0, 0, 0],
+      highlights: [255, 100, 0],  // orange highlights
+      balance: 128,
+      strength: 1.0,
+    });
+    // Green should decrease (toward 100)
+    expect(rgba[1]).toBeLessThan(230);
+    // Blue should decrease (toward 0)
+    expect(rgba[2]).toBeLessThan(230);
+  });
+
+  it('알파 채널은 변경하지 않는다', () => {
+    const rgba = new Uint8ClampedArray([100, 100, 100, 42]);
+    applyColorGrade(rgba, 1, 1, { shadows: [255, 0, 0], strength: 0.5 });
+    expect(rgba[3]).toBe(42);
   });
 });

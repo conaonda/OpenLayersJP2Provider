@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -248,6 +248,15 @@ export interface JP2LayerOptions {
   grainFilm?: number;
   /** 하프톤 도트 패턴 효과 (도트 크기, 기본값: 0 = 비활성화). 인쇄 스타일 도트 패턴 */
   halftone?: number;
+  /** 히스토그램 평활화 (기본값: false). 각 RGB 채널의 픽셀 분포를 0~255 전체 범위로 균등 재분배하여 저대비 이미지의 가시성 향상 */
+  histogramEqualize?: boolean;
+  /** 스플릿 토닝 색상 그레이딩. 섀도우/하이라이트 영역에 각각 다른 색조를 적용 */
+  colorGrade?: {
+    shadows?: [number, number, number];
+    highlights?: [number, number, number];
+    balance?: number;
+    strength?: number;
+  };
 }
 
 export interface JP2LayerResult {
@@ -429,6 +438,8 @@ export async function createJP2TileLayer(
   const crossProcess = options?.crossProcess;
   const grainFilm = options?.grainFilm;
   const halftone = options?.halftone;
+  const histogramEqualize = options?.histogramEqualize;
+  const colorGrade = options?.colorGrade;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -582,6 +593,10 @@ export async function createJP2TileLayer(
             applyCrossProcess(decoded.data, decoded.width, decoded.height, crossProcess);
           }
 
+          if (colorGrade) {
+            applyColorGrade(decoded.data, decoded.width, decoded.height, colorGrade);
+          }
+
           if (temperature != null && temperature !== 0) {
             applyTemperature(decoded.data, decoded.width, decoded.height, temperature);
           }
@@ -699,6 +714,10 @@ export async function createJP2TileLayer(
             applyColorMap(decoded.data, decoded.width, decoded.height, colorMapLUT);
           } else if (grayscale) {
             applyGrayscale(decoded.data, decoded.width, decoded.height);
+          }
+
+          if (histogramEqualize) {
+            applyHistogramEqualize(decoded.data, decoded.width, decoded.height);
           }
 
           if (colormap && info.componentCount === 1) {

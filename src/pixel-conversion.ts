@@ -1313,3 +1313,94 @@ export function computeMinMax(
   }
   return { min, max };
 }
+
+/**
+ * Applies histogram equalization to RGB channels independently.
+ * Redistributes pixel intensity to span the full 0–255 range uniformly,
+ * improving contrast in low-dynamic-range images.
+ * Alpha channel is not modified.
+ */
+export function applyHistogramEqualize(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+): void {
+  const pixelCount = width * height;
+  if (pixelCount === 0) return;
+
+  for (let ch = 0; ch < 3; ch++) {
+    const hist = new Uint32Array(256);
+    for (let i = 0; i < pixelCount; i++) {
+      hist[rgba[i * 4 + ch]]++;
+    }
+
+    const cdf = new Uint32Array(256);
+    cdf[0] = hist[0];
+    for (let v = 1; v < 256; v++) {
+      cdf[v] = cdf[v - 1] + hist[v];
+    }
+
+    let cdfMin = 0;
+    for (let v = 0; v < 256; v++) {
+      if (cdf[v] > 0) { cdfMin = cdf[v]; break; }
+    }
+
+    const denom = pixelCount - cdfMin;
+    if (denom <= 0) continue;
+
+    const lut = new Uint8Array(256);
+    for (let v = 0; v < 256; v++) {
+      lut[v] = Math.round((cdf[v] - cdfMin) / denom * 255);
+    }
+
+    for (let i = 0; i < pixelCount; i++) {
+      rgba[i * 4 + ch] = lut[rgba[i * 4 + ch]];
+    }
+  }
+}
+
+/**
+ * Applies split-toning color grading: shadows receive one tint, highlights another.
+ * The balance parameter controls the luminance threshold between shadow and highlight regions.
+ * Alpha channel is not modified.
+ */
+export function applyColorGrade(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  options: {
+    shadows?: [number, number, number];
+    highlights?: [number, number, number];
+    balance?: number;
+    strength?: number;
+  },
+): void {
+  const shadows = options.shadows ?? [0, 0, 0];
+  const highlights = options.highlights ?? [255, 255, 255];
+  const balance = Math.max(0, Math.min(255, options.balance ?? 128));
+  const strength = Math.max(0, Math.min(1, options.strength ?? 0.3));
+  if (strength === 0) return;
+
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const r = rgba[off];
+    const g = rgba[off + 1];
+    const b = rgba[off + 2];
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+    let tone: [number, number, number];
+    let t: number;
+    if (lum < balance) {
+      tone = shadows;
+      t = balance > 0 ? (balance - lum) / balance : 0;
+    } else {
+      tone = highlights;
+      t = balance < 255 ? (lum - balance) / (255 - balance) : 0;
+    }
+    const blend = t * strength;
+    rgba[off]     = Math.max(0, Math.min(255, Math.round(r + blend * (tone[0] - r))));
+    rgba[off + 1] = Math.max(0, Math.min(255, Math.round(g + blend * (tone[1] - g))));
+    rgba[off + 2] = Math.max(0, Math.min(255, Math.round(b + blend * (tone[2] - b))));
+  }
+}
