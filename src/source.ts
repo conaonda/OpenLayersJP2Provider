@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -210,6 +210,10 @@ export interface JP2LayerOptions {
   pixelate?: number;
   /** RGB 채널 순서 변경. [소스R인덱스, 소스G인덱스, 소스B인덱스] (0=R, 1=G, 2=B). 예: [2,1,0]은 BGR→RGB 변환 */
   channelSwap?: [number, number, number];
+  /** RGB 채널별 색상 균형 조정 [R, G, B] (각 -255 ~ 255). 각 채널에 가산 적용 */
+  colorBalance?: [number, number, number];
+  /** 승산 방식 밝기 보정 (기본값: 1.0, 변화 없음). >1.0 밝아짐, <1.0 어두워짐 */
+  exposure?: number;
 }
 
 export interface JP2LayerResult {
@@ -370,6 +374,8 @@ export async function createJP2TileLayer(
   const emboss = options?.emboss;
   const pixelate = options?.pixelate;
   const channelSwap = options?.channelSwap;
+  const colorBalance = options?.colorBalance;
+  const exposure = options?.exposure;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -553,6 +559,14 @@ export async function createJP2TileLayer(
 
           if (channelSwap) {
             applyChannelSwap(decoded.data, decoded.width, decoded.height, channelSwap);
+          }
+
+          if (colorBalance) {
+            applyColorBalance(decoded.data, decoded.width, decoded.height, colorBalance);
+          }
+
+          if (exposure != null && exposure !== 1.0) {
+            applyExposure(decoded.data, decoded.width, decoded.height, exposure);
           }
 
           if (colorMapLUT && info.componentCount === 1) {
