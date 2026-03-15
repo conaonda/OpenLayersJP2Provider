@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 67
+
+### Added
+- **`JP2LayerOptions.pencilSketch`**: 연필 스케치 효과 옵션 추가 (closes #249, PR #251)
+  - 타입: `boolean | { intensity?: number; blendMode?: 'multiply' | 'screen' }`, 기본값: `undefined`
+  - 그레이스케일→반전→블러→Dodge 블렌드 기반 연필 스케치 효과
+  - intensity: 효과 강도 (기본값 1.0), blendMode: 블렌드 모드 ('multiply' 또는 'screen', 기본값 'multiply')
+  - `pixel-conversion.ts`의 `applyPencilSketch()` 함수로 처리
+  - 적용 순서: motionBlur 이후
+- **`JP2LayerOptions.oilPaint`**: 유화 페인팅 효과 옵션 추가 (closes #250, PR #251)
+  - 타입: `boolean | { radius?: number; levels?: number }`, 기본값: `undefined`
+  - 커널 내 밝기 양자화 기반 유화 페인팅 효과
+  - radius: 커널 반경 (기본값 4), levels: 밝기 양자화 레벨 (기본값 8)
+  - `pixel-conversion.ts`의 `applyOilPaint()` 함수로 처리
+  - 적용 순서: pencilSketch 이후
+
+---
+
 ## [Unreleased] — Sprint 65
 
 ### Added

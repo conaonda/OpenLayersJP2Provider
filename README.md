@@ -145,6 +145,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `median` | `number \| { kernelSize: number }` | `undefined` | 중앙값 필터. kernelSize: 홀수 3~11 (짝수→+1, 범위 밖→클램프). salt-and-pepper 노이즈 제거, 엣지 보존, 가장자리 skip |
 | `unsharpMask` | `{ amount?: number; radius?: number; threshold?: number }` | `undefined` | 언샤프 마스크(엣지 선명화) 효과. amount: 강도 (0~5, 기본값 1), radius: 블러 반경 (1~10, 기본값 1), threshold: 적용 최소 차이값 (0~255, 기본값 0) |
 | `bloom` | `{ threshold?: number; intensity?: number; radius?: number }` | `undefined` | 블룸(밝은 영역 발광) 효과. threshold: 발광 적용 최소 밝기 (0~255, 기본값 200), intensity: 발광 강도 (0~1, 기본값 0.5), radius: 발광 반경 (1~10, 기본값 2) |
+| `pencilSketch` | `boolean \| { intensity?: number; blendMode?: 'multiply' \| 'screen' }` | `undefined` | 연필 스케치 효과. intensity: 효과 강도 (기본값 1.0), blendMode: 블렌드 모드 ('multiply' 또는 'screen', 기본값 'multiply') |
+| `oilPaint` | `boolean \| { radius?: number; levels?: number }` | `undefined` | 유화 페인팅 효과. radius: 커널 반경 (기본값 4), levels: 밝기 양자화 레벨 (기본값 8) |
 
 #### 반환값 (`JP2LayerResult`)
 
