@@ -142,7 +142,7 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `histogramEqualize` | `boolean` | `false` | 각 RGB 채널별 히스토그램 평활화. 저대비 원격탐사 JP2 이미지의 가시성 향상 |
 | `colorGrade` | `{ shadows?: [number, number, number]; highlights?: [number, number, number]; balance?: number; strength?: number }` | `undefined` | 섀도우/하이라이트 영역에 독립적 색조를 적용하는 스플릿 토닝 효과 |
 | `chromaKey` | `{ color: [number, number, number]; tolerance?: number }` | `undefined` | 특정 RGB 색상을 투명 처리 (크로마키 효과). tolerance: 유클리드 거리 허용 오차 (기본값: 0) |
-| `median` | `number` | `undefined` | 중앙값 필터 반경 (1~5). salt-and-pepper 노이즈 제거, 엣지 보존. 1 미만 시 적용 안 됨 |
+| `median` | `number \| { kernelSize: number }` | `undefined` | 중앙값 필터. kernelSize: 홀수 3~11 (짝수→+1, 범위 밖→클램프). salt-and-pepper 노이즈 제거, 엣지 보존, 가장자리 skip |
 
 #### 반환값 (`JP2LayerResult`)
 
