@@ -1997,3 +1997,84 @@ export function applyCrystallize(
   }
   rgba.set(out);
 }
+
+/**
+ * 소용돌이(swirl) 왜곡 효과.
+ * 이미지 중심을 기준으로 거리에 반비례하는 회전을 적용한다.
+ */
+export function applySwirl(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  angleDeg: number = 90,
+  radius: number = 0.5,
+): void {
+  const angleRad = (angleDeg * Math.PI) / 180;
+  radius = Math.max(0.01, Math.min(1, radius));
+  const cx = width / 2;
+  const cy = height / 2;
+  const maxR = Math.min(width, height) * radius;
+
+  const out = new Uint8ClampedArray(rgba.length);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const idx = (y * width + x) * 4;
+
+      if (dist < maxR) {
+        const factor = 1 - dist / maxR;
+        const theta = factor * factor * angleRad;
+        const cosT = Math.cos(theta);
+        const sinT = Math.sin(theta);
+        const srcX = Math.max(0, Math.min(width - 1, Math.round(cx + dx * cosT - dy * sinT)));
+        const srcY = Math.max(0, Math.min(height - 1, Math.round(cy + dx * sinT + dy * cosT)));
+        const srcIdx = (srcY * width + srcX) * 4;
+        out[idx] = rgba[srcIdx];
+        out[idx + 1] = rgba[srcIdx + 1];
+        out[idx + 2] = rgba[srcIdx + 2];
+        out[idx + 3] = rgba[idx + 3];
+      } else {
+        out[idx] = rgba[idx];
+        out[idx + 1] = rgba[idx + 1];
+        out[idx + 2] = rgba[idx + 2];
+        out[idx + 3] = rgba[idx + 3];
+      }
+    }
+  }
+  rgba.set(out);
+}
+
+/**
+ * 물결(ripple) 파동 왜곡 효과.
+ * 사인파 기반으로 각 픽셀 위치에 오프셋을 적용하여 왜곡한다.
+ */
+export function applyRipple(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  amplitudeX: number = 10,
+  amplitudeY: number = 10,
+  frequencyX: number = 5,
+  frequencyY: number = 5,
+): void {
+  const out = new Uint8ClampedArray(rgba.length);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const offsetX = Math.round(amplitudeX * Math.sin((2 * Math.PI * frequencyY * y) / height));
+      const offsetY = Math.round(amplitudeY * Math.sin((2 * Math.PI * frequencyX * x) / width));
+      const srcX = Math.max(0, Math.min(width - 1, x + offsetX));
+      const srcY = Math.max(0, Math.min(height - 1, y + offsetY));
+      const srcIdx = (srcY * width + srcX) * 4;
+      out[idx] = rgba[srcIdx];
+      out[idx + 1] = rgba[srcIdx + 1];
+      out[idx + 2] = rgba[srcIdx + 2];
+      out[idx + 3] = rgba[idx + 3];
+    }
+  }
+  rgba.set(out);
+}
