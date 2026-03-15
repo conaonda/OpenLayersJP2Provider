@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 62
+
+### Added
+- **`JP2LayerOptions.colorMatrix`**: 4×4 선형 색상 변환 행렬 옵션 추가 (closes #229, PR #231)
+  - 타입: `number[]` (row-major 16개 원소), 길이가 16이 아니면 무시
+  - 각 픽셀의 [R, G, B, A]에 행렬 곱을 적용한 뒤 0~255 클램프
+  - 채널 믹싱, 색공간 보정 등 다양한 선형 색상 변환에 활용
+  - `pixel-conversion.ts`의 `applyColorMatrix()` 함수로 처리
+  - 적용 순서: colorGrade 이후 temperature 이전
+- **`JP2LayerOptions.autoContrast`**: 타일별 자동 대비 스트레칭 옵션 추가 (closes #230, PR #231)
+  - 타입: `boolean`, 기본값: `false`
+  - 각 RGB 채널의 min/max를 0~255로 선형 재매핑하여 대비 자동 최적화
+  - 단색(min === max) 타일에는 적용하지 않아 안정적
+  - `pixel-conversion.ts`의 `applyAutoContrast()` 함수로 처리
+  - 적용 순서: histogramEqualize 이후 (colormap 이전)
+
+---
+
 ## [Unreleased] — Sprint 61
 
 ### Added
