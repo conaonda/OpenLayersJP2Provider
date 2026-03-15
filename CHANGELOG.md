@@ -4,22 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased] — Sprint 54
+## [Unreleased] — Sprint 55
 
 ### Added
-- **`JP2LayerOptions.tint`**: 색조 오버레이 블렌딩 옵션 추가 (closes #193, PR #196)
-  - 타입: `[r: number, g: number, b: number, strength?: number]`, 기본값: `undefined`
-  - 원본 색상과 지정 색상을 `strength` 비율로 블렌딩. `strength` 기본값: `0.5`
-  - 예: `[255, 0, 0, 0.3]`은 붉은 색조 30% 오버레이
-  - `pixel-conversion.ts`의 `applyTint()` 함수로 처리
-  - 적용 순서: ...noise → tint → colorMap...
-- **`levels` 옵션 유효성 검사 강화**: `validateLevels()` 함수 추가 (closes #190, PR #194)
-  - `inputMin`/`inputMax`를 0~255 범위로 자동 클램프
-  - `inputMin > inputMax` 시 경고 로그 출력 후 자동 스왑
-  - `pixel-conversion.ts`의 `validateLevels()` 함수로 처리, `source.ts`에서 적용 전 호출
-- **`noise` 최대값 클리핑 및 권장 범위 문서화** (closes #191, PR #195)
-  - noise 값 255 초과 시 255로 자동 클리핑
-  - JSDoc에 권장 범위(0~50) 및 클리핑 동작 명시
+- **`JP2LayerOptions.outputLevels`**: 픽셀 출력 레벨 범위 재매핑 옵션 추가 (closes #198, PR #201)
+  - 타입: `{ outputMin?: number; outputMax?: number }`, 기본값: `{ outputMin: 0, outputMax: 255 }`
+  - `[0, 255]`를 `[outputMin, outputMax]` 범위로 선형 재매핑
+  - `pixel-conversion.ts`의 `applyOutputLevels()`, `validateOutputLevels()` 함수로 처리
+  - outputMin > outputMax인 경우 자동 스왑 처리
+- **`JP2LayerOptions.temperature`**: 색 온도 조정 옵션 추가 (closes #199, PR #201)
+  - 타입: `number` (-100 ~ +100), 기본값: `0` (변화 없음)
+  - 양수=난색(주황빛, R 채널 증가/B 채널 감소), 음수=한색(파란빛, B 채널 증가/R 채널 감소)
+  - `pixel-conversion.ts`의 `applyTemperature()` 함수로 처리
+  - 적용 순서: ...brightness → contrast → temperature → saturation → hue...
+- **`JP2LayerOptions.flip`**: 이미지 반전 옵션 추가 (closes #200, PR #201)
+  - 타입: `{ horizontal?: boolean; vertical?: boolean }`, 기본값: `{ horizontal: false, vertical: false }`
+  - 수평(좌우) 반전 및/또는 수직(상하) 반전 동시 적용 가능
+  - `pixel-conversion.ts`의 `applyFlip()` 함수로 처리
+  - 적용 순서: bands → flip (마지막 단계)
 
 ---
 
