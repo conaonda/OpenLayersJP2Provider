@@ -139,6 +139,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `crossProcess` | `number` | `0` | 크로스 프로세싱 효과 (0 ~ 1). 슬라이드 필름을 네거티브 현상액으로 처리한 것처럼 채널별 S커브/리프트/크러시 적용 |
 | `grainFilm` | `number` | `0` | 필름 그레인 텍스처 효과 (0 ~ 1). 어두운 영역에 더 강한 그레인 노이즈 추가로 실제 필름 질감 시뮬레이션 |
 | `halftone` | `number` | `0` | 하프톤 점 패턴 효과 (도트 크기, 픽셀 단위). 셀 평균 휘도에 따라 원형 도트 크기 조절, 2 미만이면 변화 없음 |
+| `histogramEqualize` | `boolean` | `false` | 각 RGB 채널별 히스토그램 평활화. 저대비 원격탐사 JP2 이미지의 가시성 향상 |
+| `colorGrade` | `{ shadows?: [number, number, number]; highlights?: [number, number, number]; balance?: number; strength?: number }` | `undefined` | 섀도우/하이라이트 영역에 독립적 색조를 적용하는 스플릿 토닝 효과 |
 
 #### 반환값 (`JP2LayerResult`)
 
