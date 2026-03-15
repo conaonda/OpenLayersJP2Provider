@@ -1004,6 +1004,79 @@ export function applyCurves(
 }
 
 /**
+ * Applies duotone effect: maps pixel luminance to a two-color gradient.
+ * Shadows color is used for dark pixels, highlights color for bright pixels.
+ * Alpha channel is not modified.
+ */
+export function applyDuotone(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  shadows: [number, number, number],
+  highlights: [number, number, number],
+): void {
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const lum = (0.2126 * rgba[off] + 0.7152 * rgba[off + 1] + 0.0722 * rgba[off + 2]) / 255;
+    rgba[off]     = Math.round(shadows[0] + lum * (highlights[0] - shadows[0]));
+    rgba[off + 1] = Math.round(shadows[1] + lum * (highlights[1] - shadows[1]));
+    rgba[off + 2] = Math.round(shadows[2] + lum * (highlights[2] - shadows[2]));
+  }
+}
+
+/**
+ * Applies dodge effect: selectively brightens highlights.
+ * Formula: result = pixel / (1 - dodge * normalized), where normalized = pixel / 255.
+ * dodge=0: no change, dodge=1: maximum dodge.
+ * Alpha channel is not modified.
+ */
+export function applyDodge(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  dodge: number,
+): void {
+  if (dodge === 0) return;
+  const d = Math.max(0, Math.min(1, dodge));
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    for (let c = 0; c < 3; c++) {
+      const v = rgba[off + c];
+      const normalized = v / 255;
+      const divisor = 1 - d * normalized;
+      rgba[off + c] = Math.round(Math.max(0, Math.min(255, divisor <= 0 ? 255 : v / divisor)));
+    }
+  }
+}
+
+/**
+ * Applies burn effect: selectively darkens shadows.
+ * Formula: result = pixel * (1 - burn * (1 - normalized)), where normalized = pixel / 255.
+ * burn=0: no change, burn=1: maximum burn.
+ * Alpha channel is not modified.
+ */
+export function applyBurn(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  burn: number,
+): void {
+  if (burn === 0) return;
+  const b = Math.max(0, Math.min(1, burn));
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    for (let c = 0; c < 3; c++) {
+      const v = rgba[off + c];
+      const normalized = v / 255;
+      rgba[off + c] = Math.round(Math.max(0, Math.min(255, v * (1 - b * (1 - normalized)))));
+    }
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(

@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -230,6 +230,12 @@ export interface JP2LayerOptions {
   vibrance?: number;
   /** 톤 커브 조정 — 채널별 입출력 매핑. 각 채널은 256개 요소 배열(index→출력값). all은 공통 커브(채널별보다 먼저 적용) */
   curves?: { r?: number[]; g?: number[]; b?: number[]; all?: number[] };
+  /** 두 가지 색상 그라디언트 톤 매핑. 밝기 기반으로 shadows→highlights 선형 보간 */
+  duotone?: { shadows: [number, number, number]; highlights: [number, number, number] };
+  /** 하이라이트 밝기 증폭 — 닷지 효과 (0~1, 기본값: 0). 밝은 영역을 선택적으로 밝게 처리 */
+  dodge?: number;
+  /** 섀도우 어둡기 증폭 — 번 효과 (0~1, 기본값: 0). 어두운 영역을 선택적으로 어둡게 처리 */
+  burn?: number;
 }
 
 export interface JP2LayerResult {
@@ -402,6 +408,9 @@ export async function createJP2TileLayer(
   const curvesOpt = options?.curves != null && validateCurves(options.curves)
     ? options.curves
     : undefined;
+  const duotone = options?.duotone;
+  const dodge = options?.dodge;
+  const burn = options?.burn;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -527,6 +536,14 @@ export async function createJP2TileLayer(
             applyBrightness(decoded.data, decoded.width, decoded.height, brightness);
           }
 
+          if (dodge != null && dodge !== 0) {
+            applyDodge(decoded.data, decoded.width, decoded.height, dodge);
+          }
+
+          if (burn != null && burn !== 0) {
+            applyBurn(decoded.data, decoded.width, decoded.height, burn);
+          }
+
           if (contrast != null && contrast !== 1.0) {
             applyContrast(decoded.data, decoded.width, decoded.height, contrast);
           }
@@ -629,6 +646,10 @@ export async function createJP2TileLayer(
 
           if (tint) {
             applyTint(decoded.data, decoded.width, decoded.height, tint[0], tint[1], tint[2], tint[3]);
+          }
+
+          if (duotone) {
+            applyDuotone(decoded.data, decoded.width, decoded.height, duotone.shadows, duotone.highlights);
           }
 
           if (colorMapLUT && info.componentCount === 1) {
