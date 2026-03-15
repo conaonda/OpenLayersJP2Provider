@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 64
+
+### Changed
+- **`JP2LayerOptions.median`**: 파라미터를 반경(`number`) → `number | { kernelSize: number }` 형태로 변경 (closes #237, PR #239)
+  - 타입: `number | { kernelSize: number }`, 기본값: `undefined`
+  - `number` 전달 시 kernelSize로 직접 사용, `{ kernelSize }` 객체 형태도 지원
+  - kernelSize: 홀수 3~11, 짝수 입력 시 +1 자동 처리, 범위 밖이면 클램프
+  - 가장자리 픽셀(경계)은 연산 건너뜀(skip boundary) 처리로 아티팩트 방지
+
+### Tests
+- **`applyChromaKey()` tolerance**: 경계값(0, 0.1), 기본값(undefined), 넓은 범위 테스트 추가 (closes #236, PR #239)
+
+---
+
 ## [Unreleased] — Sprint 63
 
 ### Added
@@ -14,9 +28,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `pixel-conversion.ts`의 `applyChromaKey()` 함수로 처리
   - 적용 순서: nodata 이후 (파이프라인 초기 단계)
 - **`JP2LayerOptions.median`**: 중앙값 필터 옵션 추가 (closes #234, PR #235)
-  - 타입: `number` (필터 반경 1~5), 기본값: `undefined`
+  - 타입: `number` (필터 반경 1~5), 기본값: `undefined` → Sprint 64에서 API 변경
   - 중앙값 필터로 salt-and-pepper 노이즈 제거, 엣지 보존
-  - 1 미만이면 적용 안 됨, 최대 반경 5로 클램프
   - `pixel-conversion.ts`의 `applyMedian()` 함수로 처리
   - 적용 순서: blur 이후
 
