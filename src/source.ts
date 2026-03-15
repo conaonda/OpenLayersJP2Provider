@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -206,6 +206,10 @@ export interface JP2LayerOptions {
   edgeDetect?: boolean;
   /** 엠보스(양각) 효과 적용 (기본값: false) */
   emboss?: boolean;
+  /** 픽셀화(블록 모자이크) 효과의 블록 크기 (px, 기본값: 미적용). 2 이상이면 해당 크기의 블록으로 이미지를 픽셀화 */
+  pixelate?: number;
+  /** RGB 채널 순서 변경. [소스R인덱스, 소스G인덱스, 소스B인덱스] (0=R, 1=G, 2=B). 예: [2,1,0]은 BGR→RGB 변환 */
+  channelSwap?: [number, number, number];
 }
 
 export interface JP2LayerResult {
@@ -364,6 +368,8 @@ export async function createJP2TileLayer(
   const vignette = options?.vignette;
   const edgeDetect = options?.edgeDetect;
   const emboss = options?.emboss;
+  const pixelate = options?.pixelate;
+  const channelSwap = options?.channelSwap;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -539,6 +545,14 @@ export async function createJP2TileLayer(
 
           if (emboss) {
             applyEmboss(decoded.data, decoded.width, decoded.height);
+          }
+
+          if (pixelate != null && pixelate >= 2) {
+            applyPixelate(decoded.data, decoded.width, decoded.height, pixelate);
+          }
+
+          if (channelSwap) {
+            applyChannelSwap(decoded.data, decoded.width, decoded.height, channelSwap);
           }
 
           if (colorMapLUT && info.componentCount === 1) {

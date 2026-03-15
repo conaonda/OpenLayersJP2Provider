@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -903,6 +903,99 @@ describe('applyEmboss', () => {
   it('alpha channel unchanged', () => {
     const rgba = new Uint8ClampedArray([100, 100, 100, 50]);
     applyEmboss(rgba, 1, 1);
+    expect(rgba[3]).toBe(50);
+  });
+});
+
+describe('applyPixelate', () => {
+  it('blockSize < 2: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyPixelate(rgba, 1, 1, 1);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('fills block with average color', () => {
+    // 2x2 image, blockSize=2 → single block
+    const rgba = new Uint8ClampedArray([
+      0, 0, 0, 255,     100, 0, 0, 255,
+      0, 100, 0, 255,   0, 0, 100, 255,
+    ]);
+    applyPixelate(rgba, 2, 2, 2);
+    // avg R=25, G=25, B=25
+    for (let i = 0; i < 4; i++) {
+      expect(rgba[i * 4]).toBe(25);
+      expect(rgba[i * 4 + 1]).toBe(25);
+      expect(rgba[i * 4 + 2]).toBe(25);
+    }
+  });
+
+  it('handles non-uniform block sizes at edges', () => {
+    // 3x1 image, blockSize=2 → block1=[0,1], block2=[2]
+    const rgba = new Uint8ClampedArray([
+      100, 100, 100, 255,
+      200, 200, 200, 255,
+      50, 50, 50, 255,
+    ]);
+    applyPixelate(rgba, 3, 1, 2);
+    // block1 avg = 150, block2 avg = 50
+    expect(rgba[0]).toBe(150);
+    expect(rgba[4]).toBe(150);
+    expect(rgba[8]).toBe(50);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([
+      100, 100, 100, 50,
+      200, 200, 200, 80,
+      100, 100, 100, 50,
+      200, 200, 200, 80,
+    ]);
+    applyPixelate(rgba, 2, 2, 2);
+    expect(rgba[3]).toBe(50);
+    expect(rgba[7]).toBe(80);
+    expect(rgba[11]).toBe(50);
+    expect(rgba[15]).toBe(80);
+  });
+});
+
+describe('applyChannelSwap', () => {
+  it('identity swap [0,1,2]: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyChannelSwap(rgba, 1, 1, [0, 1, 2]);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('BGR swap [2,1,0]: swaps R and B', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyChannelSwap(rgba, 1, 1, [2, 1, 0]);
+    expect(rgba[0]).toBe(200);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(100);
+  });
+
+  it('arbitrary swap [1,2,0]: R←G, G←B, B←R', () => {
+    const rgba = new Uint8ClampedArray([10, 20, 30, 255]);
+    applyChannelSwap(rgba, 1, 1, [1, 2, 0]);
+    expect(rgba[0]).toBe(20);
+    expect(rgba[1]).toBe(30);
+    expect(rgba[2]).toBe(10);
+  });
+
+  it('invalid indices: no change', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyChannelSwap(rgba, 1, 1, [3, 1, 0]);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 50]);
+    applyChannelSwap(rgba, 1, 1, [2, 1, 0]);
     expect(rgba[3]).toBe(50);
   });
 });

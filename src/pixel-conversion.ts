@@ -615,6 +615,72 @@ export function applyEmboss(
 }
 
 /**
+ * Applies pixelation (block mosaic) effect to RGBA data.
+ * Divides the image into blocks of the given size and fills each block
+ * with the average color of its pixels. Alpha channel is not modified.
+ */
+export function applyPixelate(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  blockSize: number,
+): void {
+  if (blockSize < 2) return;
+  for (let by = 0; by < height; by += blockSize) {
+    for (let bx = 0; bx < width; bx += blockSize) {
+      const bw = Math.min(blockSize, width - bx);
+      const bh = Math.min(blockSize, height - by);
+      let sumR = 0, sumG = 0, sumB = 0;
+      const count = bw * bh;
+      for (let y = by; y < by + bh; y++) {
+        for (let x = bx; x < bx + bw; x++) {
+          const off = (y * width + x) * 4;
+          sumR += rgba[off];
+          sumG += rgba[off + 1];
+          sumB += rgba[off + 2];
+        }
+      }
+      const avgR = Math.round(sumR / count);
+      const avgG = Math.round(sumG / count);
+      const avgB = Math.round(sumB / count);
+      for (let y = by; y < by + bh; y++) {
+        for (let x = bx; x < bx + bw; x++) {
+          const off = (y * width + x) * 4;
+          rgba[off] = avgR;
+          rgba[off + 1] = avgG;
+          rgba[off + 2] = avgB;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Swaps RGB channels according to the given order array.
+ * order is a 3-element array where order[i] is the source channel index (0=R, 1=G, 2=B)
+ * for output channel i. Invalid indices (outside 0-2) are ignored (channel unchanged).
+ * Alpha channel is not modified.
+ */
+export function applyChannelSwap(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  order: [number, number, number],
+): void {
+  const valid = order.every(i => i >= 0 && i <= 2);
+  if (!valid) return;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    const r = rgba[off], g = rgba[off + 1], b = rgba[off + 2];
+    const channels = [r, g, b];
+    rgba[off] = channels[order[0]];
+    rgba[off + 1] = channels[order[1]];
+    rgba[off + 2] = channels[order[2]];
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(
