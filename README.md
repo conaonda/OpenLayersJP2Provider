@@ -130,6 +130,9 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `flip` | `{ horizontal?: boolean; vertical?: boolean }` | - | 이미지 반전. `horizontal`=좌우 반전, `vertical`=상하 반전 |
 | `vibrance` | `number` | `0` | 저채도 색상에 선택적 채도 증폭 (-1 ~ 1). 이미 채도가 높은 색상에는 적게 적용 |
 | `curves` | `{ all?: number[]; r?: number[]; g?: number[]; b?: number[] }` | `undefined` | 채널별 톤 커브(256-entry LUT) 적용. `all`은 모든 채널, `r`/`g`/`b`는 개별 채널 |
+| `duotone` | `{ shadows: [r,g,b]; highlights: [r,g,b] }` | `undefined` | 두 가지 색상(shadows/highlights) 그라디언트 톤 매핑. 픽셀 휘도에 따라 두 색상 사이를 선형 보간 |
+| `dodge` | `number` | `0` | 하이라이트 밝기 증폭(닷지) 효과 (0 ~ 1). 밝은 픽셀일수록 더 많이 밝아짐 |
+| `burn` | `number` | `0` | 섀도우 어둡기 증폭(번) 효과 (0 ~ 1). 어두운 픽셀일수록 더 많이 어두워짐 |
 
 #### 반환값 (`JP2LayerResult`)
 
