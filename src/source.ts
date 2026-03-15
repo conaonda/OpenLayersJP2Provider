@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom, applyRadialBlur, applyMotionBlur } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -277,6 +277,10 @@ export interface JP2LayerOptions {
   unsharpMask?: { amount?: number; radius?: number; threshold?: number };
   /** 밝은 영역 발광(bloom) 효과. threshold: 최소 밝기(기본 200), intensity: 강도(기본 0.5), radius: 반경(기본 3) */
   bloom?: { threshold?: number; intensity?: number; radius?: number };
+  /** 방사형(줌) 블러 효과. number 단축 시 strength만 설정. strength: 샘플 수(기본 8), centerX/centerY: 중심점(0~1, 기본 0.5) */
+  radialBlur?: number | { strength?: number; centerX?: number; centerY?: number };
+  /** 선형 모션 블러 효과. number 단축 시 strength만 설정. strength: 샘플 수(기본 8, 최대 32), angle: 방향(도, 기본 0=수평) */
+  motionBlur?: number | { strength?: number; angle?: number };
 }
 
 export interface JP2LayerResult {
@@ -470,6 +474,16 @@ export async function createJP2TileLayer(
     : undefined;
   const unsharpMask = options?.unsharpMask;
   const bloom = options?.bloom;
+  const radialBlurOpt = options?.radialBlur != null
+    ? (typeof options.radialBlur === 'number'
+      ? { strength: options.radialBlur, centerX: 0.5, centerY: 0.5 }
+      : { strength: options.radialBlur.strength ?? 8, centerX: options.radialBlur.centerX ?? 0.5, centerY: options.radialBlur.centerY ?? 0.5 })
+    : undefined;
+  const motionBlurOpt = options?.motionBlur != null
+    ? (typeof options.motionBlur === 'number'
+      ? { strength: options.motionBlur, angle: 0 }
+      : { strength: options.motionBlur.strength ?? 8, angle: options.motionBlur.angle ?? 0 })
+    : undefined;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -681,6 +695,14 @@ export async function createJP2TileLayer(
 
           if (bloom) {
             applyBloom(decoded.data, decoded.width, decoded.height, bloom.threshold ?? 200, bloom.intensity ?? 0.5, bloom.radius ?? 3);
+          }
+
+          if (radialBlurOpt) {
+            applyRadialBlur(decoded.data, decoded.width, decoded.height, radialBlurOpt.strength, radialBlurOpt.centerX, radialBlurOpt.centerY);
+          }
+
+          if (motionBlurOpt) {
+            applyMotionBlur(decoded.data, decoded.width, decoded.height, motionBlurOpt.strength, motionBlurOpt.angle);
           }
 
           if (sepia != null && sepia !== 0) {
