@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -218,6 +218,8 @@ export interface JP2LayerOptions {
   levels?: { inputMin?: number; inputMax?: number };
   /** 랜덤 노이즈 강도 (0~255, 기본값: 0). 각 RGB 채널에 [-noise, +noise] 균등 분포 랜덤값 가산. 권장 범위: 0~50 (50 이상은 이미지 품질 저하가 심함). 255 초과 시 255로 클리핑 */
   noise?: number;
+  /** 이미지 전체에 색조 오버레이 적용 [R, G, B, strength] (strength: 0~1, 기본값 0.5). 원본 색상과 지정 색상을 블렌딩 */
+  tint?: [number, number, number, number?];
 }
 
 export interface JP2LayerResult {
@@ -382,6 +384,7 @@ export async function createJP2TileLayer(
   const exposure = options?.exposure;
   const levels = options?.levels;
   const noise = options?.noise;
+  const tint = options?.tint;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -585,6 +588,10 @@ export async function createJP2TileLayer(
 
           if (noise != null && noise > 0) {
             applyNoise(decoded.data, decoded.width, decoded.height, Math.min(noise, 255));
+          }
+
+          if (tint) {
+            applyTint(decoded.data, decoded.width, decoded.height, tint[0], tint[1], tint[2], tint[3]);
           }
 
           if (colorMapLUT && info.componentCount === 1) {

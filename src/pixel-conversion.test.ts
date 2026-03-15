@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1166,5 +1166,47 @@ describe('validateLevels', () => {
   it('handles equal values', () => {
     const result = validateLevels(128, 128);
     expect(result).toEqual({ inputMin: 128, inputMax: 128, swapped: false });
+  });
+});
+
+describe('applyTint', () => {
+  it('no-op when strength=0', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyTint(rgba, 1, 1, 255, 0, 0, 0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('full tint when strength=1', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyTint(rgba, 1, 1, 255, 0, 0, 1);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(0);
+    expect(rgba[2]).toBe(0);
+  });
+
+  it('blends at strength=0.5 (default)', () => {
+    const rgba = new Uint8ClampedArray([100, 200, 0, 255]);
+    applyTint(rgba, 1, 1, 0, 0, 100);
+    // default strength=0.5: result = original*0.5 + tint*0.5
+    expect(rgba[0]).toBe(50);   // 100*0.5 + 0*0.5
+    expect(rgba[1]).toBe(100);  // 200*0.5 + 0*0.5
+    expect(rgba[2]).toBe(50);   // 0*0.5 + 100*0.5
+  });
+
+  it('alpha channel unchanged', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 77]);
+    applyTint(rgba, 1, 1, 255, 0, 0, 0.5);
+    expect(rgba[3]).toBe(77);
+  });
+
+  it('clamps strength to 0-1 range', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyTint(rgba, 1, 1, 255, 0, 0, 2.0);
+    // strength clamped to 1.0
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(0);
+    expect(rgba[2]).toBe(0);
   });
 });
