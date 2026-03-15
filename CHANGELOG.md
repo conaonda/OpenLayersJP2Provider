@@ -4,21 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased] — Sprint 62
+## [Unreleased] — Sprint 63
 
 ### Added
-- **`JP2LayerOptions.colorMatrix`**: 4×4 선형 색상 변환 행렬 옵션 추가 (closes #229, PR #231)
-  - 타입: `number[]` (row-major 16개 원소), 길이가 16이 아니면 무시
-  - 각 픽셀의 [R, G, B, A]에 행렬 곱을 적용한 뒤 0~255 클램프
-  - 채널 믹싱, 색공간 보정 등 다양한 선형 색상 변환에 활용
-  - `pixel-conversion.ts`의 `applyColorMatrix()` 함수로 처리
-  - 적용 순서: colorGrade 이후 temperature 이전
-- **`JP2LayerOptions.autoContrast`**: 타일별 자동 대비 스트레칭 옵션 추가 (closes #230, PR #231)
-  - 타입: `boolean`, 기본값: `false`
-  - 각 RGB 채널의 min/max를 0~255로 선형 재매핑하여 대비 자동 최적화
-  - 단색(min === max) 타일에는 적용하지 않아 안정적
-  - `pixel-conversion.ts`의 `applyAutoContrast()` 함수로 처리
-  - 적용 순서: histogramEqualize 이후 (colormap 이전)
+- **`JP2LayerOptions.chromaKey`**: 크로마키(배경색 투명 처리) 옵션 추가 (closes #233, PR #235)
+  - 타입: `{ color: [number, number, number]; tolerance?: number }`, 기본값: `undefined`
+  - 지정한 RGB 색상과 유클리드 거리 기반으로 픽셀을 투명 처리 (크로마키 효과)
+  - tolerance: 색상 허용 오차 (유클리드 거리, 기본값: 0)
+  - `pixel-conversion.ts`의 `applyChromaKey()` 함수로 처리
+  - 적용 순서: nodata 이후 (파이프라인 초기 단계)
+- **`JP2LayerOptions.median`**: 중앙값 필터 옵션 추가 (closes #234, PR #235)
+  - 타입: `number` (필터 반경 1~5), 기본값: `undefined`
+  - 중앙값 필터로 salt-and-pepper 노이즈 제거, 엣지 보존
+  - 1 미만이면 적용 안 됨, 최대 반경 5로 클램프
+  - `pixel-conversion.ts`의 `applyMedian()` 함수로 처리
+  - 적용 순서: blur 이후
 
 ---
 

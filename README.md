@@ -141,8 +141,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `halftone` | `number` | `0` | 하프톤 점 패턴 효과 (도트 크기, 픽셀 단위). 셀 평균 휘도에 따라 원형 도트 크기 조절, 2 미만이면 변화 없음 |
 | `histogramEqualize` | `boolean` | `false` | 각 RGB 채널별 히스토그램 평활화. 저대비 원격탐사 JP2 이미지의 가시성 향상 |
 | `colorGrade` | `{ shadows?: [number, number, number]; highlights?: [number, number, number]; balance?: number; strength?: number }` | `undefined` | 섀도우/하이라이트 영역에 독립적 색조를 적용하는 스플릿 토닝 효과 |
-| `colorMatrix` | `number[]` | `undefined` | 4×4 선형 색상 변환 행렬 (row-major 16개 원소). 각 픽셀의 [R,G,B,A]에 행렬 곱 적용 후 0~255 클램프. 채널 믹싱·색공간 보정에 활용. 길이가 16이 아니면 무시 |
-| `autoContrast` | `boolean` | `false` | 타일별 자동 대비 스트레칭. 각 RGB 채널의 min/max를 0~255로 선형 재매핑하여 대비 자동 최적화 |
+| `chromaKey` | `{ color: [number, number, number]; tolerance?: number }` | `undefined` | 특정 RGB 색상을 투명 처리 (크로마키 효과). tolerance: 유클리드 거리 허용 오차 (기본값: 0) |
+| `median` | `number` | `undefined` | 중앙값 필터 반경 (1~5). salt-and-pepper 노이즈 제거, 엣지 보존. 1 미만 시 적용 안 됨 |
 
 #### 반환값 (`JP2LayerResult`)
 
