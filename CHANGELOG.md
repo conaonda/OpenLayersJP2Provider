@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 69
+
+### Added
+- **`JP2LayerOptions.swirl`**: 소용돌이 왜곡 효과 옵션 추가 (closes #257, PR #259)
+  - 타입: `boolean | { angle?: number; radius?: number }`, 기본값: `undefined`
+  - 이미지 중심 기준 소용돌이(swirl) 왜곡 효과
+  - angle: 최대 회전 각도(라디안), 기본값 `Math.PI` (180도)
+  - radius: 왜곡 반경(픽셀), 기본값 이미지 단변의 절반
+  - `pixel-conversion.ts`의 `applySwirl()` 함수로 처리
+  - 적용 순서: crystallize 이후, sepia 이전
+- **`JP2LayerOptions.ripple`**: 물결 파동 왜곡 효과 옵션 추가 (closes #258, PR #259)
+  - 타입: `boolean | { amplitudeX?: number; amplitudeY?: number; frequencyX?: number; frequencyY?: number }`, 기본값: `undefined`
+  - 사인파 기반 물결(ripple) 왜곡 효과
+  - amplitudeX/Y: X/Y축 왜곡 진폭(픽셀), 기본값 각 `10`
+  - frequencyX/Y: X/Y축 사인파 주파수, 기본값 각 `0.1`
+  - `pixel-conversion.ts`의 `applyRipple()` 함수로 처리
+  - 적용 순서: swirl 이후, sepia 이전
+
+---
+
 ## [Unreleased] — Sprint 68
 
 ### Added
