@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip } from './pixel-conversion';
+import { decodedBufferToRGBA, computeMinMax, applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyDuotone, applyDodge, applyBurn } from './pixel-conversion';
 
 describe('decodedBufferToRGBA', () => {
   it('8-bit, 3ch: RGB to RGBA with alpha=255', () => {
@@ -1330,5 +1330,86 @@ describe('applyFlip', () => {
     const rgba = new Uint8ClampedArray([100, 200, 50, 255]);
     applyFlip(rgba, 1, 1, false, false);
     expect(rgba[0]).toBe(100);
+  });
+});
+
+describe('applyDuotone', () => {
+  it('maps black pixel to shadows color', () => {
+    const rgba = new Uint8ClampedArray([0, 0, 0, 255]);
+    applyDuotone(rgba, 1, 1, [20, 10, 80], [255, 230, 150]);
+    expect(rgba[0]).toBe(20);
+    expect(rgba[1]).toBe(10);
+    expect(rgba[2]).toBe(80);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('maps white pixel to highlights color', () => {
+    const rgba = new Uint8ClampedArray([255, 255, 255, 255]);
+    applyDuotone(rgba, 1, 1, [20, 10, 80], [255, 230, 150]);
+    expect(rgba[0]).toBe(255);
+    expect(rgba[1]).toBe(230);
+    expect(rgba[2]).toBe(150);
+    expect(rgba[3]).toBe(255);
+  });
+
+  it('interpolates mid-gray between shadows and highlights', () => {
+    const rgba = new Uint8ClampedArray([128, 128, 128, 255]);
+    applyDuotone(rgba, 1, 1, [0, 0, 0], [255, 255, 255]);
+    // lum ≈ 128/255 ≈ 0.502
+    expect(rgba[0]).toBeGreaterThan(120);
+    expect(rgba[0]).toBeLessThan(135);
+  });
+});
+
+describe('applyDodge', () => {
+  it('no-op when dodge=0', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyDodge(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('brightens pixels proportionally to their brightness', () => {
+    const rgba = new Uint8ClampedArray([200, 50, 0, 255]);
+    applyDodge(rgba, 1, 1, 0.5);
+    // bright pixel (200) should increase more than dark pixel (50)
+    expect(rgba[0]).toBeGreaterThan(200);
+    expect(rgba[1]).toBeGreaterThan(50);
+    // dark pixel (0) stays 0
+    expect(rgba[2]).toBe(0);
+  });
+
+  it('clamps to 255', () => {
+    const rgba = new Uint8ClampedArray([255, 255, 255, 255]);
+    applyDodge(rgba, 1, 1, 1.0);
+    expect(rgba[0]).toBe(255);
+  });
+});
+
+describe('applyBurn', () => {
+  it('no-op when burn=0', () => {
+    const rgba = new Uint8ClampedArray([100, 150, 200, 255]);
+    applyBurn(rgba, 1, 1, 0);
+    expect(rgba[0]).toBe(100);
+    expect(rgba[1]).toBe(150);
+    expect(rgba[2]).toBe(200);
+  });
+
+  it('darkens dark pixels more than bright pixels', () => {
+    const rgba = new Uint8ClampedArray([50, 200, 255, 255]);
+    applyBurn(rgba, 1, 1, 0.5);
+    // dark pixel (50) should decrease relatively more
+    expect(rgba[0]).toBeLessThan(50);
+    // bright pixel stays closer to original
+    expect(rgba[1]).toBeLessThan(200);
+    // max bright (255) stays 255: 255 * (1 - 0.5 * 0) = 255
+    expect(rgba[2]).toBe(255);
+  });
+
+  it('preserves alpha', () => {
+    const rgba = new Uint8ClampedArray([100, 100, 100, 128]);
+    applyBurn(rgba, 1, 1, 0.5);
+    expect(rgba[3]).toBe(128);
   });
 });
