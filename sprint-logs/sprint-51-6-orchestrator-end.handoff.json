@@ -1,0 +1,10 @@
+{
+  "role": "orchestrator-end",
+  "sprint": 51,
+  "status": "success",
+  "merged_prs": [180],
+  "closed_issues": [178, 179],
+  "new_issues_created": [],
+  "released": false,
+  "next_action": "Documenter는 PR #180의 pixelate/channelSwap 옵션을 CHANGELOG 및 README에 문서화하고, Sprint 50 docs PR #177이 충돌로 닫혔으므로 Sprint 50/51 통합 문서 PR을 생성하세요."
+}

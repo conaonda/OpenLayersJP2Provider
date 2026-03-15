@@ -50,6 +50,12 @@
 - JP2LayerOptions.contrast: 픽셀 대비 조정 옵션 (number, 기본값 0), pixel-conversion.ts의 applyContrast() 함수로 처리, factor = (259*(contrast+255))/(255*(259-contrast)) 공식 적용 (PR #145, closes #144)
 - JP2LayerOptions.saturation: 픽셀 채도 조정 옵션 (number, 기본값 1.0), pixel-conversion.ts의 applySaturation() 함수로 처리, RGB↔HSL 변환 후 S 채널에 배율 적용 (PR #149, closes #147)
 - JP2LayerOptions.hue: 픽셀 색조 회전 옵션 (number, 기본값 0, 도 단위), pixel-conversion.ts의 applyHue() 함수로 처리, RGB↔HSL 변환 후 H 채널에 각도 가산 후 mod 360 적용 (PR #149, closes #148)
+- JP2LayerOptions.posterize: 픽셀 색상 레벨 감소 옵션 (number, 기본값 미적용), pixel-conversion.ts의 applyPosterize() 함수로 처리, 각 채널을 지정 레벨 수로 양자화 (PR #172, closes #170)
+- JP2LayerOptions.vignette: 비네트 효과 옵션 (number 0~1, 기본값 미적용), pixel-conversion.ts의 applyVignette() 함수로 처리, 이미지 가장자리를 검은색으로 어둡게 처리, 적용 순서: posterize → vignette (PR #172, closes #171)
+- JP2LayerOptions.edgeDetect: 엣지 검출 필터 옵션 (boolean, 기본값 미적용), pixel-conversion.ts의 applyEdgeDetect() 함수로 처리, Sobel 커널 기반 컨볼루션으로 경계선 강조 (PR #176, closes #174)
+- JP2LayerOptions.emboss: 엠보스 효과 옵션 (boolean, 기본값 미적용), pixel-conversion.ts의 applyEmboss() 함수로 처리, 엠보스 커널 기반 컨볼루션으로 부조 효과 생성 (PR #176, closes #175)
+- JP2LayerOptions.pixelate: 픽셀화 블록 효과 옵션 (number, 기본값 미적용), pixel-conversion.ts의 applyPixelate() 함수로 처리, 지정 블록 크기로 이미지를 모자이크 처리 (PR #180, closes #178)
+- JP2LayerOptions.channelSwap: RGB 채널 순서 변경 옵션 ([number, number, number], 기본값 미적용), pixel-conversion.ts의 applyChannelSwap() 함수로 처리, 인덱스 배열로 채널 재매핑 (PR #180, closes #179)
 
 ## 반복 패턴 & 주의사항
 - 동일 작성자 PR은 GitHub 정책상 공식 approve 불가 → 리뷰 코멘트로 대체
@@ -67,14 +73,14 @@
 - [x] JP2LayerOptions에 requestHeaders 옵션 미포함 — PR #55로 해결 (Sprint 13)
 
 ## 최근 3개 스프린트 요약
-### Sprint 43 (2026-03-14)
-- 완료: PR #149(saturation/hue 옵션) 머지, PR #146(docs sprint-41-42) 머지, 이슈 #147/#148 닫힘, 단위 테스트 51개 전체 통과
+### Sprint 51 (2026-03-16)
+- 완료: PR #180(pixelate/channelSwap 옵션) 머지, 이슈 #178/#179 닫힘, 단위 테스트 12개 전체 통과, docs PR #177 충돌로 닫힘
 - 발견된 문제: 없음
 
-### Sprint 42 (2026-03-14)
-- 완료: PR #145(brightness/contrast 옵션) 머지, 이슈 #143/#144 닫힘, 단위 테스트 12개 전체 통과
+### Sprint 50 (2026-03-14)
+- 완료: PR #176(edgeDetect/emboss 옵션) 머지, 이슈 #174/#175 닫힘, 단위 테스트 60개 전체 통과, docs PR #173 충돌로 닫힘
 - 발견된 문제: 없음
 
-### Sprint 41 (2026-03-14)
-- 완료: PR #142(gamma/nodataTolerance 옵션) 머지, 이슈 #140/#141 닫힘, 단위 테스트 55개 전체 통과, docs PR #139 충돌로 닫힘
+### Sprint 49 (2026-03-14)
+- 완료: PR #172(posterize/vignette 옵션) 머지, 이슈 #170/#171 닫힘, 단위 테스트 62개 전체 통과, docs PR #169 충돌로 닫힘
 - 발견된 문제: 없음
