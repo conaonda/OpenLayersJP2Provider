@@ -1717,10 +1717,35 @@ describe('applyChromaKey', () => {
     applyChromaKey(rgba, 1, 1, [100, 100, 100], 5);
     expect(rgba[3]).toBe(255); // outside tolerance
   });
+
+  it('tolerance at exact boundary makes pixel transparent', () => {
+    // color [0,0,0], pixel [3,4,0] → distance = sqrt(9+16) = 5
+    const rgba = new Uint8ClampedArray([3, 4, 0, 255]);
+    applyChromaKey(rgba, 1, 1, [0, 0, 0], 5);
+    expect(rgba[3]).toBe(0); // exactly at tolerance boundary
+  });
+
+  it('default tolerance=0 requires exact match', () => {
+    const rgba = new Uint8ClampedArray([0, 0, 1, 255]);
+    applyChromaKey(rgba, 1, 1, [0, 0, 0]);
+    expect(rgba[3]).toBe(255); // off by 1 → opaque
+  });
+
+  it('large tolerance makes all similar colors transparent', () => {
+    const rgba = new Uint8ClampedArray([
+      255, 0, 0, 255,
+      200, 50, 50, 255,
+      0, 255, 0, 255,
+    ]);
+    applyChromaKey(rgba, 3, 1, [255, 0, 0], 100);
+    expect(rgba[3]).toBe(0);   // exact match
+    expect(rgba[7]).toBe(0);   // within tolerance (dist ≈ 86.6)
+    expect(rgba[11]).toBe(255); // far away
+  });
 });
 
 describe('applyMedian', () => {
-  it('removes single salt pixel in 3x3 neighborhood', () => {
+  it('removes single salt pixel in 3x3 neighborhood (kernelSize=3)', () => {
     // 3x3 image: center pixel is salt (255,255,255), rest are (50,50,50)
     const v = 50;
     const rgba = new Uint8ClampedArray([
@@ -1728,7 +1753,7 @@ describe('applyMedian', () => {
       v,v,v,255, 255,255,255,255, v,v,v,255,
       v,v,v,255, v,v,v,255, v,v,v,255,
     ]);
-    applyMedian(rgba, 3, 3, 1);
+    applyMedian(rgba, 3, 3, 3);
     // center pixel should become 50 (median of eight 50s and one 255)
     const center = 4 * 4; // pixel index 4
     expect(rgba[center]).toBe(v);
@@ -1742,16 +1767,55 @@ describe('applyMedian', () => {
       100,100,100,255, 100,100,100,255,
       100,100,100,255, 100,100,100,255,
     ]);
-    applyMedian(rgba, 2, 2, 1);
+    applyMedian(rgba, 2, 2, 3);
     expect(rgba[0]).toBe(100);
     expect(rgba[1]).toBe(100);
     expect(rgba[2]).toBe(100);
   });
 
-  it('clamps radius to 1-5 range', () => {
+  it('clamps kernelSize to 3-11 range', () => {
     const rgba = new Uint8ClampedArray([50,50,50,255, 200,200,200,255, 50,50,50,255, 200,200,200,255]);
-    // radius 10 should be clamped to 5, should not throw
-    applyMedian(rgba, 2, 2, 10);
+    // kernelSize 99 should be clamped to 11, should not throw
+    applyMedian(rgba, 2, 2, 99);
     expect(rgba[3]).toBe(255); // alpha preserved
+  });
+
+  it('even kernelSize is rounded up to odd', () => {
+    const v = 50;
+    const rgba = new Uint8ClampedArray([
+      v,v,v,255, v,v,v,255, v,v,v,255,
+      v,v,v,255, 255,255,255,255, v,v,v,255,
+      v,v,v,255, v,v,v,255, v,v,v,255,
+    ]);
+    applyMedian(rgba, 3, 3, 4); // 4 → 5 (kernelSize=5, radius=2)
+    const center = 4 * 4;
+    expect(rgba[center]).toBe(v); // still median of mostly 50s
+  });
+
+  it('kernelSize=5 uses 5x5 window', () => {
+    // 5x5 image: center pixel is salt, rest are (30,30,30)
+    const v = 30;
+    const pixels = [];
+    for (let i = 0; i < 25; i++) {
+      if (i === 12) pixels.push(255, 255, 255, 255);
+      else pixels.push(v, v, v, 255);
+    }
+    const rgba = new Uint8ClampedArray(pixels);
+    applyMedian(rgba, 5, 5, 5);
+    const center = 12 * 4;
+    expect(rgba[center]).toBe(v);
+  });
+
+  it('edge pixels use only valid neighbors (skip boundary)', () => {
+    // 3x3 image, check corner pixel (0,0) which has only 4 neighbors with kernelSize=3
+    const rgba = new Uint8ClampedArray([
+      10,10,10,255, 20,20,20,255, 30,30,30,255,
+      40,40,40,255, 50,50,50,255, 60,60,60,255,
+      70,70,70,255, 80,80,80,255, 90,90,90,255,
+    ]);
+    applyMedian(rgba, 3, 3, 3);
+    // corner (0,0) neighbors: [10,20,40,50] → sorted [10,20,40,50] → median index 2 = 40
+    // (4 elements, mid = 4>>1 = 2, so value at index 2 = 40)
+    expect(rgba[0]).toBe(40);
   });
 });

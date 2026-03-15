@@ -1496,23 +1496,25 @@ export function applyChromaKey(
 
 /**
  * 중앙값 필터를 적용하여 salt-and-pepper 노이즈를 제거한다.
- * 각 픽셀 주변 (2*radius+1)² 윈도우의 R/G/B 중앙값을 선택한다. 알파는 변경하지 않는다.
+ * 각 픽셀 주변 kernelSize² 윈도우의 R/G/B 중앙값을 선택한다. 알파는 변경하지 않는다.
+ * 가장자리 처리: 경계 밖 픽셀은 건너뛰고(skip) 유효 이웃만으로 중앙값 계산 (클램프 아님).
  * @param rgba - RGBA 픽셀 데이터
  * @param width - 이미지 너비
  * @param height - 이미지 높이
- * @param radius - 필터 반경 (1~5, 클램프 적용)
+ * @param kernelSize - 커널 크기 (홀수, 3~11). 짝수면 +1 처리. 범위 밖이면 클램프.
  */
 export function applyMedian(
   rgba: Uint8ClampedArray,
   width: number,
   height: number,
-  radius: number,
+  kernelSize: number,
 ): void {
-  radius = Math.max(1, Math.min(5, Math.round(radius)));
+  kernelSize = Math.max(3, Math.min(11, Math.round(kernelSize)));
+  if (kernelSize % 2 === 0) kernelSize++;
+  const radius = (kernelSize - 1) / 2;
   const pixelCount = width * height;
   const out = new Uint8ClampedArray(pixelCount * 4);
-  const size = 2 * radius + 1;
-  const maxSamples = size * size;
+  const maxSamples = kernelSize * kernelSize;
 
   const rBuf = new Uint8Array(maxSamples);
   const gBuf = new Uint8Array(maxSamples);
