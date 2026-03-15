@@ -145,6 +145,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `median` | `number \| { kernelSize: number }` | `undefined` | 중앙값 필터. kernelSize: 홀수 3~11 (짝수→+1, 범위 밖→클램프). salt-and-pepper 노이즈 제거, 엣지 보존, 가장자리 skip |
 | `unsharpMask` | `{ amount?: number; radius?: number; threshold?: number }` | `undefined` | 언샤프 마스크(엣지 선명화) 효과. amount: 강도 (0~5, 기본값 1), radius: 블러 반경 (1~10, 기본값 1), threshold: 적용 최소 차이값 (0~255, 기본값 0) |
 | `bloom` | `{ threshold?: number; intensity?: number; radius?: number }` | `undefined` | 블룸(밝은 영역 발광) 효과. threshold: 발광 적용 최소 밝기 (0~255, 기본값 200), intensity: 발광 강도 (0~1, 기본값 0.5), radius: 발광 반경 (1~10, 기본값 2) |
+| `radialBlur` | `number \| { amount?: number; centerX?: number; centerY?: number }` | `undefined` | 방사형 줌 블러 효과. amount: 블러 강도/샘플 수 (기본값 10), centerX/centerY: 중심점 (0~1, 기본값 0.5). `number` 단축 표기 시 amount로 사용 |
+| `motionBlur` | `number \| { distance?: number; angle?: number }` | `undefined` | 선형 모션 블러 효과. distance: 블러 거리/샘플 수 (기본값 10), angle: 블러 방향 각도 (도, 기본값 0). `number` 단축 표기 시 distance로 사용 |
 
 #### 반환값 (`JP2LayerResult`)
 
