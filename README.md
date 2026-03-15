@@ -143,6 +143,8 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `colorGrade` | `{ shadows?: [number, number, number]; highlights?: [number, number, number]; balance?: number; strength?: number }` | `undefined` | 섀도우/하이라이트 영역에 독립적 색조를 적용하는 스플릿 토닝 효과 |
 | `chromaKey` | `{ color: [number, number, number]; tolerance?: number }` | `undefined` | 특정 RGB 색상을 투명 처리 (크로마키 효과). tolerance: 유클리드 거리 허용 오차 (기본값: 0) |
 | `median` | `number \| { kernelSize: number }` | `undefined` | 중앙값 필터. kernelSize: 홀수 3~11 (짝수→+1, 범위 밖→클램프). salt-and-pepper 노이즈 제거, 엣지 보존, 가장자리 skip |
+| `unsharpMask` | `{ amount?: number; radius?: number; threshold?: number }` | `undefined` | 언샤프 마스크(엣지 선명화) 효과. amount: 강도 (0~5, 기본값 1), radius: 블러 반경 (1~10, 기본값 1), threshold: 적용 최소 차이값 (0~255, 기본값 0) |
+| `bloom` | `{ threshold?: number; intensity?: number; radius?: number }` | `undefined` | 블룸(밝은 영역 발광) 효과. threshold: 발광 적용 최소 밝기 (0~255, 기본값 200), intensity: 발광 강도 (0~1, 기본값 0.5), radius: 발광 반경 (1~10, 기본값 2) |
 
 #### 반환값 (`JP2LayerResult`)
 
