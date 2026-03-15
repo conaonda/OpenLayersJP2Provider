@@ -10,7 +10,7 @@ import type { BackgroundColor } from 'ol/layer/Base';
 import type { TileProvider, TileProviderInfo, GeoInfo } from './tile-provider';
 import { RangeTileProvider } from './range-tile-provider';
 import { debugLog, debugWarn, debugError } from './debug-logger';
-import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian } from './pixel-conversion';
+import { applyNodata, applyGamma, applyBrightness, applyContrast, applySaturation, applyHue, applyInvert, applyThreshold, applyColorize, applySharpen, applyBlur, applySepia, applyGrayscale, applyColorMap, validateColorMap, applyPosterize, applyVignette, applyEdgeDetect, applyEmboss, applyPixelate, applyChannelSwap, applyColorBalance, applyExposure, applyLevels, validateLevels, applyNoise, applyTint, applyOutputLevels, validateOutputLevels, applyTemperature, applyFlip, applyVibrance, applyCurves, validateCurves, applyDuotone, applyDodge, applyBurn, applySolarize, applyShadowsHighlights, applyClarity, applyCrossProcess, applyGrainFilm, applyHalftone, applyHistogramEqualize, applyColorGrade, applyColorMatrix, applyAutoContrast, applyChromaKey, applyMedian, applyUnsharpMask, applyBloom } from './pixel-conversion';
 
 async function ensureProjection(
   epsgCode: number,
@@ -273,6 +273,10 @@ export interface JP2LayerOptions {
    * 가장자리 처리: 경계 밖 픽셀은 무시 (skip) 하여 유효 이웃만으로 중앙값 계산
    */
   median?: number | { kernelSize: number };
+  /** 언샤프 마스크 에지 선명화. amount: 강도(기본 1.0), radius: 블러 반경(기본 1), threshold: 차이 임계값(기본 0) */
+  unsharpMask?: { amount?: number; radius?: number; threshold?: number };
+  /** 밝은 영역 발광(bloom) 효과. threshold: 최소 밝기(기본 200), intensity: 강도(기본 0.5), radius: 반경(기본 3) */
+  bloom?: { threshold?: number; intensity?: number; radius?: number };
 }
 
 export interface JP2LayerResult {
@@ -464,6 +468,8 @@ export async function createJP2TileLayer(
   const medianKernelSize = options?.median != null
     ? (typeof options.median === 'number' ? options.median : options.median.kernelSize)
     : undefined;
+  const unsharpMask = options?.unsharpMask;
+  const bloom = options?.bloom;
 
   // Progress tracking state
   let progressTotal = 0;
@@ -667,6 +673,14 @@ export async function createJP2TileLayer(
 
           if (medianKernelSize != null && medianKernelSize >= 3) {
             applyMedian(decoded.data, decoded.width, decoded.height, medianKernelSize);
+          }
+
+          if (unsharpMask) {
+            applyUnsharpMask(decoded.data, decoded.width, decoded.height, unsharpMask.amount ?? 1.0, unsharpMask.radius ?? 1, unsharpMask.threshold ?? 0);
+          }
+
+          if (bloom) {
+            applyBloom(decoded.data, decoded.width, decoded.height, bloom.threshold ?? 200, bloom.intensity ?? 0.5, bloom.radius ?? 3);
           }
 
           if (sepia != null && sepia !== 0) {
