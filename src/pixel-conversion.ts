@@ -726,6 +726,29 @@ export function applyExposure(
 }
 
 /**
+ * Remaps pixel input levels: maps [inputMin, inputMax] → [0, 255] linearly.
+ * Values below inputMin become 0, values above inputMax become 255.
+ * Alpha channel is not modified.
+ */
+export function applyLevels(
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+  inputMin: number,
+  inputMax: number,
+): void {
+  if (inputMin === 0 && inputMax === 255) return;
+  const range = inputMax - inputMin || 1;
+  const pixelCount = width * height;
+  for (let i = 0; i < pixelCount; i++) {
+    const off = i * 4;
+    rgba[off]     = Math.round(Math.max(0, Math.min(255, (rgba[off] - inputMin) * 255 / range)));
+    rgba[off + 1] = Math.round(Math.max(0, Math.min(255, (rgba[off + 1] - inputMin) * 255 / range)));
+    rgba[off + 2] = Math.round(Math.max(0, Math.min(255, (rgba[off + 2] - inputMin) * 255 / range)));
+  }
+}
+
+/**
  * Computes min/max values from a decoded 16-bit buffer.
  */
 export function computeMinMax(
