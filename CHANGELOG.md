@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] — Sprint 58
+
+### Added
+- **`JP2LayerOptions.solarize`**: 솔라리제이션 효과 임계값 옵션 추가 (closes #212, PR #215)
+  - 타입: `number` (0~255), 기본값: `128`
+  - 임계값 이상의 채널 값을 반전시켜 솔라리제이션 예술 효과 적용
+  - `pixel-conversion.ts`의 `applySolarize()` 함수로 처리
+  - 적용 순서: burn 이후
+- **`JP2LayerOptions.shadowsHighlights`**: 섀도우/하이라이트 독립 밝기 조정 옵션 추가 (closes #213, PR #215)
+  - 타입: `{ shadows?: number; highlights?: number }` (각 -100~100), 기본값: `{ shadows: 0, highlights: 0 }`
+  - shadows: 어두운 영역 밝기 조정 (양수=밝게, 음수=어둡게)
+  - highlights: 밝은 영역 밝기 조정 (양수=밝게, 음수=어둡게)
+  - `pixel-conversion.ts`의 `applyShadowsHighlights()` 함수로 처리
+  - 적용 순서: solarize 이후
+- **`JP2LayerOptions.clarity`**: 로컬 콘트라스트 강화(clarity) 효과 옵션 추가 (closes #214, PR #215)
+  - 타입: `number` (0~100), 기본값: `0` (변화 없음)
+  - 중간 톤 영역의 로컬 콘트라스트를 강화하여 디테일 선명도 향상
+  - `pixel-conversion.ts`의 `applyClarity()` 함수로 처리
+  - 적용 순서: shadowsHighlights 이후
+
+---
+
 ## [Unreleased] — Sprint 57
 
 ### Added

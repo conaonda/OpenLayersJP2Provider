@@ -133,6 +133,9 @@ const result = await createJP2TileLayer('path/to/file.jp2', options);
 | `duotone` | `{ shadows: [r,g,b]; highlights: [r,g,b] }` | `undefined` | 두 가지 색상(shadows/highlights) 그라디언트 톤 매핑. 픽셀 휘도에 따라 두 색상 사이를 선형 보간 |
 | `dodge` | `number` | `0` | 하이라이트 밝기 증폭(닷지) 효과 (0 ~ 1). 밝은 픽셀일수록 더 많이 밝아짐 |
 | `burn` | `number` | `0` | 섀도우 어둡기 증폭(번) 효과 (0 ~ 1). 어두운 픽셀일수록 더 많이 어두워짐 |
+| `solarize` | `number` | `128` | 솔라리제이션 효과 임계값 (0~255). 임계값 이상의 채널 값을 반전 |
+| `shadowsHighlights` | `{ shadows?: number; highlights?: number }` | `{ shadows: 0, highlights: 0 }` | 섀도우/하이라이트 독립 밝기 조정 (각 -100~100). shadows=어두운 영역, highlights=밝은 영역 |
+| `clarity` | `number` | `0` | 로컬 콘트라스트 강화(clarity) 효과 강도 (0~100). 중간 톤 영역의 디테일 선명도 향상 |
 
 #### 반환값 (`JP2LayerResult`)
 
